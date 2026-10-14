@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The brand is written AZZA in every locale (web manifest.ts). -->
+    <string name="app_name" translatable="false">AZZA</string>
+    <string name="nav_feed">Home</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_create">Post</string>
+    <string name="nav_basket">Basket</string>
+    <string name="nav_profile">Profile</string>
+    <string name="nav_notifications">Notifications</string>
+    <string name="nav_more">More</string>
+    <string name="coming_soon">This part of AZZA is coming to the app soon.</string>
+</resources>

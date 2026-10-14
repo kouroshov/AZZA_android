@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="product_back">بازگشت</string>
+    <string name="product_in_stock">موجود</string>
+    <string name="product_out_of_stock">ناموجود</string>
+</resources>

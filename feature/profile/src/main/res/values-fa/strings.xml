@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="profile_signed_out">برای دیدن صفحه، سفارش‌ها و سبد خریدتان وارد شوید.</string>
+    <string name="profile_sign_in">ورود</string>
+    <string name="profile_sign_out">خروج از حساب</string>
+</resources>

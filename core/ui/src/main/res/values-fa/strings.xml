@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="core_ui_retry">تلاش دوباره</string>
+    <string name="core_ui_error_network">آفلاین هستید یا در حال حاضر به آزا دسترسی نیست.</string>
+    <string name="core_ui_error_signed_out">نشست شما تمام شده است. لطفاً دوباره وارد شوید.</string>
+    <string name="core_ui_error_not_found">این مورد دیگر در دسترس نیست.</string>
+    <string name="core_ui_error_rate_limited">درخواست‌ها زیاد است. کمی صبر کنید و دوباره تلاش کنید.</string>
+    <string name="core_ui_error_server">مشکلی در سمت ما پیش آمد. لطفاً دوباره تلاش کنید.</string>
+    <string name="core_ui_error_generic">مشکلی پیش آمد. لطفاً دوباره تلاش کنید.</string>
+</resources>

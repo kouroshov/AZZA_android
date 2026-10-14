@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="core_ui_retry">Try again</string>
+    <string name="core_ui_error_network">You\'re offline, or AZZA can\'t be reached right now.</string>
+    <string name="core_ui_error_signed_out">Your session has ended. Please sign in again.</string>
+    <string name="core_ui_error_not_found">This isn\'t available any more.</string>
+    <string name="core_ui_error_rate_limited">Too many requests. Wait a moment and try again.</string>
+    <string name="core_ui_error_server">Something went wrong on our side. Please try again.</string>
+    <string name="core_ui_error_generic">Something went wrong. Please try again.</string>
+</resources>

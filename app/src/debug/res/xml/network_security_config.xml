@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- DEBUG ONLY: apps/api runs on http://<PC>:4000 in local dev — the
+     emulator reaches it as 10.0.2.2, a phone on the same network by the PC's
+     LAN address, which changes, so cleartext is allowed everywhere here.
+     Never copy this into src/main. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Splash: the web's dark background (#181a1b) with the app icon. -->
+    <style name="Theme.Azza.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/azza_bg_dark</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="postSplashScreenTheme">@style/Theme.Azza</item>
+    </style>
+
+    <style name="Theme.Azza" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/azza_bg_dark</item>
+    </style>
+
+    <color name="azza_bg_dark">#FF181A1B</color>
+</resources>

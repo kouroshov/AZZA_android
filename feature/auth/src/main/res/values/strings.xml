@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auth_brand" translatable="false">AZZA</string>
+    <string name="auth_sign_in_title">Sign in to your account</string>
+    <string name="auth_sign_up_title">Create an account</string>
+    <string name="auth_email">Email</string>
+    <string name="auth_password">Password</string>
+    <string name="auth_password_rule">At least 8 characters, with a letter, a number and a symbol.</string>
+    <string name="auth_first_name">First name</string>
+    <string name="auth_last_name">Last name</string>
+    <string name="auth_username">Username</string>
+    <string name="auth_sign_in">Sign in</string>
+    <string name="auth_sign_up">Create account</string>
+    <string name="auth_no_account">No account yet? Create one</string>
+    <string name="auth_have_account">Already have an account? Sign in</string>
+    <string name="auth_error_credentials">The email or password is incorrect.</string>
+    <string name="auth_error_email_taken">An account with this email already exists.</string>
+    <string name="auth_error_username_taken">This username is taken.</string>
+    <string name="auth_error_not_active">This account can\'t sign in right now.</string>
+</resources>

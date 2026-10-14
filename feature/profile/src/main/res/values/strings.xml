@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="profile_signed_out">Sign in to see your page, your orders and your basket.</string>
+    <string name="profile_sign_in">Sign in</string>
+    <string name="profile_sign_out">Sign out</string>
+</resources>

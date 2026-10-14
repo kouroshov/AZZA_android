@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auth_sign_in_title">ورود به حساب کاربری</string>
+    <string name="auth_sign_up_title">ساخت حساب کاربری</string>
+    <string name="auth_email">ایمیل</string>
+    <string name="auth_password">رمز عبور</string>
+    <string name="auth_password_rule">حداقل ۸ نویسه، شامل حرف، عدد و یک نماد.</string>
+    <string name="auth_first_name">نام</string>
+    <string name="auth_last_name">نام خانوادگی</string>
+    <string name="auth_username">نام کاربری</string>
+    <string name="auth_sign_in">ورود</string>
+    <string name="auth_sign_up">ساخت حساب</string>
+    <string name="auth_no_account">حساب ندارید؟ بسازید</string>
+    <string name="auth_have_account">حساب دارید؟ وارد شوید</string>
+    <string name="auth_error_credentials">ایمیل یا رمز عبور نادرست است.</string>
+    <string name="auth_error_email_taken">حسابی با این ایمیل وجود دارد.</string>
+    <string name="auth_error_username_taken">این نام کاربری گرفته شده است.</string>
+    <string name="auth_error_not_active">این حساب در حال حاضر امکان ورود ندارد.</string>
+</resources>
