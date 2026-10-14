@@ -4,6 +4,13 @@ import com.azza.core.network.ApiBaseUrl
 import com.azza.core.network.BareClient
 import com.azza.core.network.ClientUserAgent
 import com.azza.core.network.api.AuthApi
+import com.azza.core.network.api.CartApi
+import com.azza.core.network.api.DiscountsApi
+import com.azza.core.network.api.NotificationsApi
+import com.azza.core.network.api.OrdersApi
+import com.azza.core.network.api.PaymentsApi
+import com.azza.core.network.api.SearchApi
+import com.azza.core.network.api.SocialApi
 import com.azza.core.network.api.DiscoveryApi
 import com.azza.core.network.api.ProductsApi
 import com.azza.core.network.api.UsersApi
@@ -93,4 +100,32 @@ internal object NetworkModule {
     @Provides
     @Singleton
     fun provideProductsApi(retrofit: Retrofit): ProductsApi = retrofit.create(ProductsApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideCartApi(retrofit: Retrofit): CartApi = retrofit.create(CartApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideOrdersApi(retrofit: Retrofit): OrdersApi = retrofit.create(OrdersApi::class.java)
+
+    @Provides
+    @Singleton
+    fun providePaymentsApi(retrofit: Retrofit): PaymentsApi = retrofit.create(PaymentsApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideDiscountsApi(retrofit: Retrofit): DiscountsApi = retrofit.create(DiscountsApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideSearchApi(retrofit: Retrofit): SearchApi = retrofit.create(SearchApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideSocialApi(retrofit: Retrofit): SocialApi = retrofit.create(SocialApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideNotificationsApi(retrofit: Retrofit): NotificationsApi = retrofit.create(NotificationsApi::class.java)
 }

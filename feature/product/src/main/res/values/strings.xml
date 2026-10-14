@@ -3,4 +3,10 @@
     <string name="product_back">Back</string>
     <string name="product_in_stock">Available</string>
     <string name="product_out_of_stock">Sold out</string>
+    <string name="product_add_to_cart">Add to Cart</string>
+    <string name="product_add_favorite">Add to favorites</string>
+    <string name="product_remove_favorite">Remove from favorites</string>
+    <string name="product_added_to_basket">Added to your basket</string>
+    <string name="product_view_basket">View basket</string>
+    <string name="product_not_available">This product is not available.</string>
 </resources>

@@ -6,13 +6,22 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.azza.core.common.AppError
 import com.azza.core.common.Outcome
+import com.azza.core.data.AuthRepository
+import com.azza.core.data.CartRepository
+import com.azza.core.data.FavoritesRepository
 import com.azza.core.data.ProductRepository
 import com.azza.core.model.ProductDetail
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 sealed interface ProductUiState {
@@ -21,16 +30,35 @@ sealed interface ProductUiState {
     data class Failed(val error: AppError) : ProductUiState
 }
 
+sealed interface ProductEvent {
+    data object SignInRequired : ProductEvent
+    data object AddedToBasket : ProductEvent
+    data class Failed(val error: AppError) : ProductEvent
+}
+
 @HiltViewModel
 class ProductViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val products: ProductRepository,
+    private val cart: CartRepository,
+    private val favorites: FavoritesRepository,
+    private val auth: AuthRepository,
 ) : ViewModel() {
 
     private val route = savedStateHandle.toRoute<ProductRoute>()
 
     private val _state = MutableStateFlow<ProductUiState>(ProductUiState.Loading)
     val state: StateFlow<ProductUiState> = _state.asStateFlow()
+
+    val isFavorite: StateFlow<Boolean> = favorites.favoriteIds
+        .map { route.productId in it }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    private val _adding = MutableStateFlow(false)
+    val adding: StateFlow<Boolean> = _adding.asStateFlow()
+
+    private val _events = Channel<ProductEvent>(Channel.BUFFERED)
+    val events = _events.receiveAsFlow()
 
     init {
         load()
@@ -44,5 +72,22 @@ class ProductViewModel @Inject constructor(
                 is Outcome.Failure -> ProductUiState.Failed(result.error)
             }
         }
+    }
+
+    fun toggleFavorite() = viewModelScope.launch {
+        if (!auth.isSignedIn.first()) return@launch _events.send(ProductEvent.SignInRequired)
+        val result = favorites.setFavorite(route.productId, favorite = !isFavorite.value)
+        if (result is Outcome.Failure) _events.send(ProductEvent.Failed(result.error))
+    }
+
+    fun addToBasket() = viewModelScope.launch {
+        if (_adding.value) return@launch
+        if (!auth.isSignedIn.first()) return@launch _events.send(ProductEvent.SignInRequired)
+        _adding.value = true
+        when (val result = cart.add(route.productId)) {
+            is Outcome.Success -> _events.send(ProductEvent.AddedToBasket)
+            is Outcome.Failure -> _events.send(ProductEvent.Failed(result.error))
+        }
+        _adding.value = false
     }
 }

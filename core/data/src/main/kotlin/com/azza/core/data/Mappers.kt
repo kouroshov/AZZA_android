@@ -3,6 +3,7 @@ package com.azza.core.data
 import com.azza.core.model.Availability
 import com.azza.core.model.LocalizedText
 import com.azza.core.model.Money
+import com.azza.core.model.OfferingKind
 import com.azza.core.model.PostAuthor
 import com.azza.core.model.ProductCard
 import com.azza.core.model.ProductDetail
@@ -55,4 +56,6 @@ internal fun ProductDto.toModel(media: MediaUrlResolver) = ProductDetail(
     storeId = storeId,
     // A store product's stock lives per branch (InventoryLocation), not here.
     quantityAvailable = inventory?.let { (it.quantity - it.reservedQuantity).coerceAtLeast(0) },
+    offeringKind = runCatching { OfferingKind.valueOf(offeringKind) }.getOrDefault(OfferingKind.UNKNOWN),
+    favoriteCount = favoriteCount,
 )

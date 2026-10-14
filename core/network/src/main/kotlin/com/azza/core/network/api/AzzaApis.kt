@@ -1,6 +1,27 @@
 package com.azza.core.network.api
 
+import com.azza.core.network.model.AddCartItemRequest
 import com.azza.core.network.model.ApiEnvelope
+import com.azza.core.network.model.CartDto
+import com.azza.core.network.model.CheckoutRequest
+import com.azza.core.network.model.CheckoutResultDto
+import com.azza.core.network.model.FavoritesPageDto
+import com.azza.core.network.model.MarkReadRequest
+import com.azza.core.network.model.NotificationsPageDto
+import com.azza.core.network.model.OrdersPageDto
+import com.azza.core.network.model.PaymentRequest
+import com.azza.core.network.model.PlacedOrderDetailDto
+import com.azza.core.network.model.PlacedOrderSummaryDto
+import com.azza.core.network.model.ReceivedOrderDetailDto
+import com.azza.core.network.model.ReceivedOrderSummaryDto
+import com.azza.core.network.model.SearchPageDto
+import com.azza.core.network.model.SearchProductDto
+import com.azza.core.network.model.SearchStoreDto
+import com.azza.core.network.model.SearchUserDto
+import com.azza.core.network.model.UnreadCountDto
+import com.azza.core.network.model.UpdateCartItemRequest
+import com.azza.core.network.model.ValidateDiscountRequest
+import com.azza.core.network.model.ValidateDiscountResponse
 import com.azza.core.network.model.AuthResultDto
 import com.azza.core.network.model.FeedPageDto
 import com.azza.core.network.model.LoginRequest
@@ -10,6 +31,8 @@ import com.azza.core.network.model.RefreshRequest
 import com.azza.core.network.model.RegisterRequest
 import com.azza.core.network.model.TokenPairDto
 import retrofit2.http.Body
+import retrofit2.http.DELETE
+import retrofit2.http.PUT
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -60,4 +83,92 @@ interface ProductsApi {
          */
         @Query("source") source: String? = null,
     ): ApiEnvelope<ProductDto>
+}
+
+interface CartApi {
+    @GET("cart")
+    suspend fun get(): ApiEnvelope<CartDto>
+
+    @POST("cart/items")
+    suspend fun add(@Body body: AddCartItemRequest): ApiEnvelope<CartDto>
+
+    /** Quantity 0 removes the line. */
+    @PUT("cart/items/{productId}")
+    suspend fun update(@Path("productId") productId: String, @Body body: UpdateCartItemRequest): ApiEnvelope<CartDto>
+
+    @DELETE("cart/items/{productId}")
+    suspend fun remove(@Path("productId") productId: String): ApiEnvelope<CartDto>
+}
+
+interface OrdersApi {
+    @POST("orders/checkout")
+    suspend fun checkout(@Body body: CheckoutRequest): ApiEnvelope<CheckoutResultDto>
+
+    @GET("orders/placed")
+    suspend fun placed(@Query("cursor") cursor: String?, @Query("take") take: Int = 20): ApiEnvelope<OrdersPageDto<PlacedOrderSummaryDto>>
+
+    @GET("orders/placed/{orderId}")
+    suspend fun placedDetail(@Path("orderId") orderId: String): ApiEnvelope<PlacedOrderDetailDto>
+
+    @GET("orders/received")
+    suspend fun received(@Query("cursor") cursor: String?, @Query("take") take: Int = 20): ApiEnvelope<OrdersPageDto<ReceivedOrderSummaryDto>>
+
+    @GET("orders/received/{sellerOrderId}")
+    suspend fun receivedDetail(@Path("sellerOrderId") sellerOrderId: String): ApiEnvelope<ReceivedOrderDetailDto>
+
+    @POST("orders/received/{sellerOrderId}/ship")
+    suspend fun markShipped(@Path("sellerOrderId") sellerOrderId: String): ApiEnvelope<kotlinx.serialization.json.JsonElement>
+}
+
+interface PaymentsApi {
+    /**
+     * Dev/test only: marks the caller's own PENDING order paid (apps/api
+     * `ENABLE_TEST_PAYMENT_SIMULATION`; 403 TEST_PAYMENTS_DISABLED when off).
+     * The web's "Pay now (test)" button calls exactly this.
+     */
+    @POST("payments/simulate")
+    suspend fun simulate(@Body body: PaymentRequest): ApiEnvelope<kotlinx.serialization.json.JsonElement>
+}
+
+interface DiscountsApi {
+    @POST("discount-codes/validate")
+    suspend fun validate(@Body body: ValidateDiscountRequest): ApiEnvelope<ValidateDiscountResponse>
+}
+
+interface SearchApi {
+    @GET("search/products")
+    suspend fun products(
+        @Query("q") q: String?,
+        @Query("sort") sort: String?,
+        @Query("cursor") cursor: String?,
+        @Query("take") take: Int = 20,
+    ): ApiEnvelope<SearchPageDto<SearchProductDto>>
+
+    @GET("search/users")
+    suspend fun users(@Query("q") q: String?, @Query("cursor") cursor: String?, @Query("take") take: Int = 20): ApiEnvelope<SearchPageDto<SearchUserDto>>
+
+    @GET("search/stores")
+    suspend fun stores(@Query("q") q: String?, @Query("cursor") cursor: String?, @Query("take") take: Int = 20): ApiEnvelope<SearchPageDto<SearchStoreDto>>
+}
+
+interface SocialApi {
+    @POST("products/{id}/favorite")
+    suspend fun favorite(@Path("id") productId: String)
+
+    @DELETE("products/{id}/favorite")
+    suspend fun unfavorite(@Path("id") productId: String)
+
+    @GET("users/me/favorites")
+    suspend fun favorites(@Query("cursor") cursor: String?, @Query("take") take: Int = 60): ApiEnvelope<FavoritesPageDto>
+}
+
+interface NotificationsApi {
+    @GET("notifications")
+    suspend fun list(@Query("cursor") cursor: String?, @Query("take") take: Int = 20): ApiEnvelope<NotificationsPageDto>
+
+    @GET("notifications/unread-count")
+    suspend fun unreadCount(): ApiEnvelope<UnreadCountDto>
+
+    @POST("notifications/read")
+    suspend fun markAllRead(@Body body: MarkReadRequest = MarkReadRequest()): ApiEnvelope<UnreadCountDto>
 }

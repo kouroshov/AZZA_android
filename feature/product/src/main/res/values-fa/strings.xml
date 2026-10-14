@@ -3,4 +3,10 @@
     <string name="product_back">بازگشت</string>
     <string name="product_in_stock">موجود</string>
     <string name="product_out_of_stock">ناموجود</string>
+    <string name="product_add_to_cart">افزودن به سبد خرید</string>
+    <string name="product_add_favorite">افزودن به علاقه‌مندی‌ها</string>
+    <string name="product_remove_favorite">حذف از علاقه‌مندی‌ها</string>
+    <string name="product_added_to_basket">به سبد خرید اضافه شد</string>
+    <string name="product_view_basket">دیدن سبد</string>
+    <string name="product_not_available">این محصول در دسترس نیست.</string>
 </resources>

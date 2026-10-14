@@ -48,6 +48,8 @@ data class ProductDetail(
     val sellerId: String,
     val storeId: String?,
     val quantityAvailable: Int?,
+    val offeringKind: OfferingKind,
+    val favoriteCount: Int,
 )
 
 data class LocalizedText(val fa: String, val en: String) {

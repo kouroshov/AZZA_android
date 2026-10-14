@@ -119,6 +119,8 @@ data class ProductDto(
     val storeId: String? = null,
     val media: List<ProductMediaDto> = emptyList(),
     val inventory: InventoryDto? = null,
+    val offeringKind: String = "GOOD",
+    val favoriteCount: Int = 0,
 )
 
 @Serializable
