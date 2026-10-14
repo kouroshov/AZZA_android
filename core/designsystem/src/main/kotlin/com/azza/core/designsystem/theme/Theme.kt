@@ -1,6 +1,5 @@
 package com.azza.core.designsystem.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
@@ -11,10 +10,15 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.unit.dp
 
-/** The web's default is dark (`:root`); light is opt-in there and follows the system here. */
+/**
+ * Dark by default, like the web (`:root` is dark; light is the visitor's own
+ * choice there, kept in a cookie). The in-app theme switch — dark / light /
+ * system — arrives with the settings menu (docs/ROADMAP.md); pass
+ * `isSystemInDarkTheme()` for "system".
+ */
 @Composable
 fun AzzaTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     val colors = if (darkTheme) DarkAzzaColors else LightAzzaColors

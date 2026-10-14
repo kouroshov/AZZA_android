@@ -53,6 +53,11 @@ interface ProductsApi {
     @GET("products/{id}")
     suspend fun byId(
         @Path("id") id: String,
-        @Query("source") source: String? = "android",
+        /**
+         * The discovery surface the view came from — one of apps/api's
+         * TrackingQueryDto SOURCES (GLOBAL_EXPLORE, CITY_FEED, FOLLOWING_FEED,
+         * MAP, STORE_PAGE, PROFILE). Anything else is a 400, so null when unknown.
+         */
+        @Query("source") source: String? = null,
     ): ApiEnvelope<ProductDto>
 }

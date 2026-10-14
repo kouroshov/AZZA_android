@@ -1,37 +1,28 @@
-import com.android.build.api.dsl.CommonExtension
-import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalog
 import org.gradle.api.artifacts.VersionCatalogsExtension
-import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.getByType
+import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 internal val Project.libs: VersionCatalog
     get() = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 internal object AzzaSdk {
-    const val COMPILE = 35
-    const val TARGET = 35
+    const val COMPILE = 37
+    const val TARGET = 36
     // API 24 (Android 7.0) still covers the long tail of phones in use in Iran.
     const val MIN = 24
 }
 
-/** The settings every Android module (app or library) shares. */
-internal fun Project.configureKotlinAndroid(extension: CommonExtension<*, *, *, *, *, *>) {
-    extension.apply {
-        compileSdk = AzzaSdk.COMPILE
-        defaultConfig {
-            minSdk = AzzaSdk.MIN
-            testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        }
-        compileOptions {
-            sourceCompatibility = JavaVersion.VERSION_17
-            targetCompatibility = JavaVersion.VERSION_17
-        }
-    }
-    extensions.configure<KotlinAndroidProjectExtension> {
+/**
+ * Kotlin compiler settings shared by every module. AGP 9 compiles Kotlin
+ * itself (built-in Kotlin), so there is no `kotlin.android` plugin to
+ * configure — the compile tasks are configured directly.
+ */
+internal fun Project.configureKotlin() {
+    tasks.withType<KotlinJvmCompile>().configureEach {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
             freeCompilerArgs.addAll(

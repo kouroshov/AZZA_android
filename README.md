@@ -17,7 +17,8 @@ Postgres. Same accounts, same listings, same orders.
 
 ## Run it (local dev)
 
-1. Install **Android Studio** (it ships its own JDK 17 and the Android SDK).
+1. Install **Android Studio** (it ships its own JDK and the Android SDK).
+   Toolchain: AGP 9.4 (built-in Kotlin), Gradle 9.8, Kotlin 2.4, compileSdk 37.
 2. In the web repo, start the backend as usual:
    `npx prisma dev` (repo root) and `npm run start:dev` (in `apps/api`).
    apps/api listens on `0.0.0.0:4000`.
@@ -28,8 +29,8 @@ Postgres. Same accounts, same listings, same orders.
    to `local.properties` and set `azza.apiBaseUrl=http://<PC LAN IP>:4000/api/v1/`.
    apps/api's dev CORS does not matter here — a native app is not a browser.
 
-Command line, once the wrapper exists (Android Studio creates
-`gradle/wrapper/gradle-wrapper.jar` on first sync, or run `gradle wrapper`):
+Command line (Studio's bundled JDK works: set `JAVA_HOME` to
+`<Android Studio>/jbr`):
 
 ```
 ./gradlew :app:assembleDebug

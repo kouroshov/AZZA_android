@@ -27,7 +27,7 @@ class ProductViewModel @Inject constructor(
     private val products: ProductRepository,
 ) : ViewModel() {
 
-    private val productId = savedStateHandle.toRoute<ProductRoute>().productId
+    private val route = savedStateHandle.toRoute<ProductRoute>()
 
     private val _state = MutableStateFlow<ProductUiState>(ProductUiState.Loading)
     val state: StateFlow<ProductUiState> = _state.asStateFlow()
@@ -39,7 +39,7 @@ class ProductViewModel @Inject constructor(
     fun load() {
         _state.value = ProductUiState.Loading
         viewModelScope.launch {
-            _state.value = when (val result = products.product(productId)) {
+            _state.value = when (val result = products.product(route.productId, route.source)) {
                 is Outcome.Success -> ProductUiState.Ready(result.value)
                 is Outcome.Failure -> ProductUiState.Failed(result.error)
             }

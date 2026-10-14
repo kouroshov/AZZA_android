@@ -48,7 +48,8 @@ import com.azza.core.ui.discounted
 import com.azza.core.ui.format
 import kotlinx.serialization.Serializable
 
-@Serializable data class ProductRoute(val productId: String)
+/** [source]: where the person found it, for apps/api's view analytics (see ProductsApi.byId). */
+@Serializable data class ProductRoute(val productId: String, val source: String? = null)
 
 fun NavGraphBuilder.productScreen(onBack: () -> Unit) {
     composable<ProductRoute> { ProductScreen(onBack = onBack) }

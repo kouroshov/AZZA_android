@@ -63,7 +63,7 @@ fun AzzaApp(navController: NavHostController = rememberNavController()) {
             startDestination = FeedRoute,
             modifier = Modifier.padding(padding).consumeWindowInsets(padding),
         ) {
-            feedScreen(onOpenProduct = { id -> navController.navigate(ProductRoute(id)) })
+            feedScreen(onOpenProduct = { id -> navController.navigate(ProductRoute(id, source = "GLOBAL_EXPLORE")) })
             productScreen(onBack = navController::popBackStack)
             profileScreen(onSignIn = { navController.navigate(LoginRoute) })
             authScreens(

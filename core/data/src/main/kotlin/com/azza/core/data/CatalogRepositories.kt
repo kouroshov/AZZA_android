@@ -33,8 +33,8 @@ class ProductRepository @Inject constructor(
     private val media: MediaUrlResolver,
     private val json: Json,
 ) {
-    suspend fun product(id: String): Outcome<ProductDetail> =
-        safeApiCall(json) { api.byId(id).data }.map { it.toModel(media) }
+    suspend fun product(id: String, source: String? = null): Outcome<ProductDetail> =
+        safeApiCall(json) { api.byId(id, source).data }.map { it.toModel(media) }
 }
 
 @Singleton
