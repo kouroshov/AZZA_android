@@ -8,4 +8,10 @@
     <string name="nav_following">دنبال‌شده‌ها</string>
     <string name="nav_explore">کاوش</string>
     <string name="nav_map">نقشهٔ آزا</string>
+    <string name="widget_label">میان‌برهای AZZA</string>
+    <string name="widget_description">جست‌وجو، اسکن بارکد، اعلان‌ها و سبد خرید.</string>
+    <string name="widget_search">جست‌وجو</string>
+    <string name="widget_scan">اسکن</string>
+    <string name="widget_notifications">اعلان‌ها</string>
+    <string name="widget_basket">سبد</string>
 </resources>

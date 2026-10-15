@@ -56,4 +56,10 @@ data class LocalizedText(val fa: String, val en: String) {
     fun forLanguage(language: String): String = if (language == "fa" || language == "ckb") fa else en
 }
 
-data class Page<T>(val items: List<T>, val nextCursor: String?, val hasMore: Boolean)
+data class Page<T>(
+    val items: List<T>,
+    val nextCursor: String?,
+    val hasMore: Boolean,
+    /** Set when this is the saved copy shown offline: when it was saved (epoch ms). */
+    val savedAt: Long? = null,
+)

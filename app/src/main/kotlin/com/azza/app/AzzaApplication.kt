@@ -3,6 +3,7 @@ package com.azza.app
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import com.azza.app.widget.WidgetCounts
 import com.azza.feature.notifications.NotificationPolling
 import coil.ImageLoader
 import coil.ImageLoaderFactory
@@ -18,6 +19,8 @@ class AzzaApplication : Application(), ImageLoaderFactory, Configuration.Provide
 
     @Inject lateinit var notificationPolling: NotificationPolling
 
+    @Inject lateinit var widgetCounts: WidgetCounts
+
     // WorkManager is initialised on demand with Hilt's factory, so a worker can
     // be injected (the default initializer is removed in the manifest).
     override val workManagerConfiguration: Configuration
@@ -26,6 +29,7 @@ class AzzaApplication : Application(), ImageLoaderFactory, Configuration.Provide
     override fun onCreate() {
         super.onCreate()
         notificationPolling.start()
+        widgetCounts.start()
     }
 
     @Inject lateinit var okHttpClient: Provider<OkHttpClient>
@@ -38,5 +42,8 @@ class AzzaApplication : Application(), ImageLoaderFactory, Configuration.Provide
     override fun newImageLoader(): ImageLoader = ImageLoader.Builder(this)
         .okHttpClient { okHttpClient.get() }
         .crossfade(true)
+        // Photos are stored under immutable keys: keep them on disk whatever
+        // the response's cache headers say, so saved lists show them offline.
+        .respectCacheHeaders(false)
         .build()
 }

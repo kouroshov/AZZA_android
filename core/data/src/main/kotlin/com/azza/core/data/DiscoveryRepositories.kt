@@ -1,5 +1,6 @@
 package com.azza.core.data
 
+import com.azza.core.network.model.NotificationsPageDto
 import com.azza.core.common.ApplicationScope
 import com.azza.core.common.Outcome
 import com.azza.core.common.map
@@ -55,6 +56,7 @@ class NotificationsRepository @Inject constructor(
     private val media: MediaUrlResolver,
     private val json: Json,
     private val preferences: AppPreferences,
+    private val offline: OfflineCache,
     sessionStore: SessionStore,
     @ApplicationScope scope: CoroutineScope,
 ) {
@@ -83,9 +85,11 @@ class NotificationsRepository @Inject constructor(
         (safeApiCall(json) { api.unreadCount().data } as? Outcome.Success)?.let { _unread.value = it.value.unreadCount }
     }
 
-    suspend fun page(cursor: String?): Outcome<Page<AppNotification>> =
-        safeApiCall(json) { api.list(cursor).data }
-            .map { Page(it.items.map { n -> n.toModel(media) }, it.nextCursor, it.hasMore) }
+    suspend fun page(cursor: String?): Outcome<Page<AppNotification>> {
+        val fetch = suspend { safeApiCall(json) { api.list(cursor).data } }
+        val result = if (cursor == null) offline.load("notifications", personal = true, NotificationsPageDto.serializer(), fetch = fetch) else fetch().map { Fresh(it) }
+        return result.map { (p, savedAt) -> Page(p.items.map { n -> n.toModel(media) }, p.nextCursor, p.hasMore, savedAt) }
+    }
 
     /**
      * For the background poll: unread notifications newer than the last poll,

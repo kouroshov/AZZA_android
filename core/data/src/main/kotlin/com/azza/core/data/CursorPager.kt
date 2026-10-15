@@ -21,6 +21,8 @@ data class PagedState<T>(
     val refreshing: Boolean = false,
     /** The first page's failure; a later page's failure keeps what is shown. */
     val error: AppError? = null,
+    /** Offline: the first page is the saved copy from this time (epoch ms); no further pages. */
+    val savedAt: Long? = null,
 )
 
 /**
@@ -47,8 +49,10 @@ class CursorPager<T>(
                 is Outcome.Success -> _state.value = PagedState(
                     items = result.value.items,
                     nextCursor = result.value.nextCursor,
-                    hasMore = result.value.hasMore,
+                    // A saved copy cannot be continued: the next page needs the network.
+                    hasMore = result.value.hasMore && result.value.savedAt == null,
                     loadingFirst = false,
+                    savedAt = result.value.savedAt,
                 )
                 is Outcome.Failure -> _state.update { it.copy(loadingFirst = false, refreshing = false, error = result.error) }
             }

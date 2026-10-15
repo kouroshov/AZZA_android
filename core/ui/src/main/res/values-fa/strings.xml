@@ -29,4 +29,6 @@
     <string name="report_reason_harassment">آزار یا توهین</string>
     <string name="report_reason_other">مورد دیگر</string>
     <string name="share">اشتراک‌گذاری</string>
+    <string name="offline_saved_copy">آفلاین — نمایش نسخهٔ ذخیره‌شده از %1$s</string>
+    <string name="offline_just_now">همین حالا</string>
 </resources>

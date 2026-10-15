@@ -11,6 +11,8 @@ import com.azza.core.common.WebDestination
 import com.azza.core.ui.LocalWebLinks
 import androidx.compose.ui.platform.LocalContext
 import com.azza.feature.scan.ScanRoute
+import com.azza.app.widget.EXTRA_OPEN_SCREEN
+import com.azza.app.widget.WidgetTarget
 import com.azza.feature.scan.scanScreen
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -110,6 +112,16 @@ fun AzzaApp(
         val intent = incoming ?: return@LaunchedEffect
         if (intent.getBooleanExtra(EXTRA_OPEN_NOTIFICATIONS, false)) {
             navController.navigate(NotificationsRoute) { launchSingleTop = true }
+        }
+        when (intent.getStringExtra(EXTRA_OPEN_SCREEN)?.let { runCatching { WidgetTarget.valueOf(it) }.getOrNull() }) {
+            WidgetTarget.SEARCH -> navigateTab(navController, SearchRoute)
+            WidgetTarget.SCAN -> {
+                navigateTab(navController, SearchRoute)
+                navController.navigate(ScanRoute)
+            }
+            WidgetTarget.NOTIFICATIONS -> navController.navigate(NotificationsRoute) { launchSingleTop = true }
+            WidgetTarget.BASKET -> navigateTab(navController, BasketRoute())
+            null -> Unit
         }
         val link = intent.data?.takeIf { intent.action == Intent.ACTION_VIEW }
         if (link != null) {

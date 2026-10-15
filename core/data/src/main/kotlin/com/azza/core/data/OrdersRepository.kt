@@ -1,5 +1,9 @@
 package com.azza.core.data
 
+import com.azza.core.network.model.OrdersPageDto
+import com.azza.core.network.model.PlacedOrderSummaryDto
+import com.azza.core.network.model.ReceivedOrderSummaryDto
+import kotlinx.serialization.KSerializer
 import com.azza.core.common.Outcome
 import com.azza.core.common.map
 import com.azza.core.model.CheckoutResult
@@ -30,6 +34,7 @@ class OrdersRepository @Inject constructor(
     private val discounts: DiscountsApi,
     private val cart: CartRepository,
     private val json: Json,
+    private val offline: OfflineCache,
 ) {
     /**
      * Places an order from the server cart. apps/api prices every line,
@@ -66,13 +71,18 @@ class OrdersRepository @Inject constructor(
         safeApiCall(json) { payments.simulate(PaymentRequest(orderId)) }.map { }
 
     suspend fun placed(cursor: String?): Outcome<Page<PlacedOrderSummary>> =
-        safeApiCall(json) { orders.placed(cursor).data }.map { Page(it.items.map { o -> o.toModel() }, it.nextCursor, it.hasMore) }
+        firstPageSaved("orders-placed", cursor, OrdersPageDto.serializer(PlacedOrderSummaryDto.serializer())) { safeApiCall(json) { orders.placed(cursor).data } }
+            .map { (p, savedAt) -> Page(p.items.map { o -> o.toModel() }, p.nextCursor, p.hasMore, savedAt) }
 
     suspend fun placedDetail(orderId: String): Outcome<PlacedOrderDetail> =
         safeApiCall(json) { orders.placedDetail(orderId).data }.map { it.toModel() }
 
     suspend fun received(cursor: String?): Outcome<Page<ReceivedOrderSummary>> =
-        safeApiCall(json) { orders.received(cursor).data }.map { Page(it.items.map { o -> o.toModel() }, it.nextCursor, it.hasMore) }
+        firstPageSaved("orders-received", cursor, OrdersPageDto.serializer(ReceivedOrderSummaryDto.serializer())) { safeApiCall(json) { orders.received(cursor).data } }
+            .map { (p, savedAt) -> Page(p.items.map { o -> o.toModel() }, p.nextCursor, p.hasMore, savedAt) }
+
+    private suspend fun <T> firstPageSaved(key: String, cursor: String?, serializer: KSerializer<T>, fetch: suspend () -> Outcome<T>): Outcome<Fresh<T>> =
+        if (cursor == null) offline.load(key, personal = true, serializer, fetch = fetch) else fetch().map { Fresh(it) }
 
     suspend fun receivedDetail(sellerOrderId: String): Outcome<ReceivedOrderDetail> =
         safeApiCall(json) { orders.receivedDetail(sellerOrderId).data }.map { it.toModel() }

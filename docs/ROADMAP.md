@@ -212,11 +212,26 @@ provider); this round builds 4a–4d below; biometric unlock waits.
   the release key's fingerprint is set there, Android asks which app to
   open a link with instead of opening AZZA directly.
 
+### 4d — offline and the widget ✅ (2026-10-15)
+
+- **Offline cache** (`core:database`, Room, one table): the FIRST page of
+  Explore, Following, notifications, orders placed and received, and the
+  last 100 listings opened, saved as apps/api sent them (`OfflineCache`).
+  Only when a request gets no answer at all is the saved copy shown, with
+  "Offline — showing what was saved …" above the list and no further
+  pages; any answer from the server, an error included, wins. Personal
+  copies are deleted on sign-out. Photos stay in Coil's disk cache
+  (cache headers ignored: media keys never change). A schema change just
+  drops the cache — no migrations.
+- **Home-screen widget** (Glance): Search, Scan, Alerts, Basket, with the
+  unread and basket counts; each opens that screen. It shows saved numbers
+  (`WidgetCounts`), updated by the app and by every notification poll —
+  it never fetches by itself.
+
 ### Still to do in phase 4
 
-- **4d** Offline cache (Room) of the feed and your own data; a home-screen
-  widget.
-- Later: biometric unlock; camera-first listing creation; real push.
+- Biometric unlock of the stored session; camera-first listing creation;
+  real push (replacing the poll) once a provider is chosen.
 
 ## Before the first release
 

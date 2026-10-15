@@ -59,6 +59,7 @@ fun ProductFeed(
     ) {
         LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
             header?.invoke(this)
+            offlineNote(state.savedAt)
             when {
                 state.loadingFirst -> item { Box(Modifier.fillMaxWidth().padding(48.dp)) { LoadingState() } }
                 state.error != null && state.items.isEmpty() -> item {

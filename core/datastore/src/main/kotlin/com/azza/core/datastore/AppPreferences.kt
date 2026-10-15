@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -59,6 +60,21 @@ class AppPreferences @Inject constructor(@ApplicationContext context: Context) {
         store.edit { it[PERMISSION_ASKED] = true }
     }
 
+    /** What the home-screen widget shows: kept current by the app, read by the widget. */
+    data class WidgetCounts(val signedIn: Boolean = false, val unread: Int = 0, val basket: Int = 0)
+
+    val widgetCounts: Flow<WidgetCounts> = store.data.map {
+        WidgetCounts(it[WIDGET_SIGNED_IN] ?: false, it[WIDGET_UNREAD] ?: 0, it[WIDGET_BASKET] ?: 0)
+    }
+
+    suspend fun setWidgetCounts(counts: WidgetCounts) {
+        store.edit {
+            it[WIDGET_SIGNED_IN] = counts.signedIn
+            it[WIDGET_UNREAD] = counts.unread
+            it[WIDGET_BASKET] = counts.basket
+        }
+    }
+
     suspend fun setCity(city: ChosenCity?) {
         store.edit { prefs ->
             if (city == null) {
@@ -78,5 +94,8 @@ class AppPreferences @Inject constructor(@ApplicationContext context: Context) {
         val PHONE_NOTIFICATIONS = booleanPreferencesKey("phone_notifications")
         val NOTIFIED_UP_TO = stringPreferencesKey("notified_up_to")
         val PERMISSION_ASKED = booleanPreferencesKey("notification_permission_asked")
+        val WIDGET_SIGNED_IN = booleanPreferencesKey("widget_signed_in")
+        val WIDGET_UNREAD = intPreferencesKey("widget_unread")
+        val WIDGET_BASKET = intPreferencesKey("widget_basket")
     }
 }

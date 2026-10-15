@@ -1,5 +1,6 @@
 package com.azza.feature.basket
 
+import com.azza.core.ui.offlineNote
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -224,6 +225,7 @@ private fun <T> OrdersTab(
         state.error != null && state.items.isEmpty() -> ErrorState(state.error!!, onRetry = { pager.refresh() })
         state.items.isEmpty() -> EmptyState(stringResource(emptyText))
         else -> LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+            offlineNote(state.savedAt)
             items(state.items, key = key) { item ->
                 Box(Modifier.fillMaxWidth().clickable { onOpen(key(item)) }.padding(16.dp)) { row(item) }
                 HorizontalDivider(color = AzzaTheme.colors.navDivider)

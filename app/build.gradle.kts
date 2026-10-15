@@ -79,6 +79,9 @@ dependencies {
     // WorkManager is started by the app with Hilt's worker factory (AzzaApplication).
     implementation(libs.androidx.work.runtime)
     implementation(libs.androidx.hilt.work)
+    // The home-screen widget (app/…/widget).
+    implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.glance.material3)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.compose)

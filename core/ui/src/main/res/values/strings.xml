@@ -29,4 +29,6 @@
     <string name="report_reason_harassment">Harassment or abuse</string>
     <string name="report_reason_other">Something else</string>
     <string name="share">Share</string>
+    <string name="offline_saved_copy">Offline — showing what was saved %1$s</string>
+    <string name="offline_just_now">just now</string>
 </resources>

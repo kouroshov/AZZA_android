@@ -1,5 +1,6 @@
 package com.azza.feature.notifications
 
+import com.azza.core.ui.offlineNote
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -103,6 +104,7 @@ fun NotificationsScreen(
                 EmptyState(stringResource(R.string.notifications_empty))
             } else {
                 LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+                    offlineNote(state.savedAt)
                     items(state.items, key = { it.id }) { n ->
                         // The seller's copy of an order event opens the received order; the buyer's, the placed one.
                         val open: (() -> Unit)? = when {

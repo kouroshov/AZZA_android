@@ -44,6 +44,19 @@
             </intent-filter>
         </activity>
 
+        <!-- The home-screen widget (search, scan, notifications, basket). -->
+        <receiver
+            android:name=".widget.AzzaWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/azza_widget_info" />
+        </receiver>
+
         <!-- WorkManager starts with Hilt's worker factory (AzzaApplication), not the default. -->
         <provider
             android:name="androidx.startup.InitializationProvider"
