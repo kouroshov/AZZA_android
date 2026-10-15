@@ -7,4 +7,25 @@
     <string name="core_ui_error_rate_limited">درخواست‌ها زیاد است. کمی صبر کنید و دوباره تلاش کنید.</string>
     <string name="core_ui_error_server">مشکلی در سمت ما پیش آمد. لطفاً دوباره تلاش کنید.</string>
     <string name="core_ui_error_generic">مشکلی پیش آمد. لطفاً دوباره تلاش کنید.</string>
+    <string name="report_button">گزارش</string>
+    <string name="report_title_product">گزارش این آگهی</string>
+    <string name="report_title_user">گزارش این حساب</string>
+    <string name="report_title_store">گزارش این فروشگاه</string>
+    <string name="report_intro">بگویید مشکل چیست. تیم مدیریت آن را بررسی می‌کند؛ به کسی که گزارش می‌کنید گفته نمی‌شود چه کسی گزارش داده است.</string>
+    <string name="report_reason">دلیل</string>
+    <string name="report_details">جزئیات (اختیاری)</string>
+    <string name="report_send">ارسال گزارش</string>
+    <string name="report_sending">در حال ارسال…</string>
+    <string name="report_sent">سپاس — گزارش شما دریافت شد و بررسی خواهد شد.</string>
+    <string name="report_cancel">انصراف</string>
+    <string name="report_close">بستن</string>
+    <string name="report_error_duplicate">شما پیش‌تر این مورد را گزارش کرده‌اید و در انتظار بررسی است.</string>
+    <string name="report_error_self">نمی‌توانید حساب یا آگهی خودتان را گزارش کنید.</string>
+    <string name="report_reason_spam">هرزنامه یا تبلیغات</string>
+    <string name="report_reason_fraud">کلاهبرداری</string>
+    <string name="report_reason_counterfeit">کالای تقلبی</string>
+    <string name="report_reason_prohibited">کالای ممنوع یا غیرقانونی</string>
+    <string name="report_reason_inappropriate">محتوای نامناسب</string>
+    <string name="report_reason_harassment">آزار یا توهین</string>
+    <string name="report_reason_other">مورد دیگر</string>
 </resources>

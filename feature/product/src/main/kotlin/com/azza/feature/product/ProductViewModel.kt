@@ -7,6 +7,9 @@ import androidx.navigation.toRoute
 import com.azza.core.common.AppError
 import com.azza.core.common.Outcome
 import com.azza.core.data.AuthRepository
+import com.azza.core.data.ReportReason
+import com.azza.core.data.ReportTarget
+import com.azza.core.data.ReportsRepository
 import com.azza.core.data.CartRepository
 import com.azza.core.data.FavoritesRepository
 import com.azza.core.data.ProductRepository
@@ -45,6 +48,7 @@ class ProductViewModel @Inject constructor(
     private val cart: CartRepository,
     private val favorites: FavoritesRepository,
     private val auth: AuthRepository,
+    private val reports: ReportsRepository,
     users: UserRepository,
 ) : ViewModel() {
 
@@ -72,6 +76,16 @@ class ProductViewModel @Inject constructor(
     init {
         load()
     }
+
+    /** Reporting needs an account; a guest is sent to sign in, as for the basket. */
+    suspend fun canReport(): Boolean {
+        if (auth.isSignedIn.first()) return true
+        _events.send(ProductEvent.SignInRequired)
+        return false
+    }
+
+    suspend fun report(reason: ReportReason, details: String) =
+        reports.report(ReportTarget.PRODUCT, route.productId, reason, details)
 
     fun load() {
         _state.value = ProductUiState.Loading

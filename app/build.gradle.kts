@@ -66,6 +66,7 @@ dependencies {
     implementation(project(":feature:notifications"))
     implementation(project(":feature:create"))
     implementation(project(":feature:map"))
+    implementation(project(":feature:settings"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

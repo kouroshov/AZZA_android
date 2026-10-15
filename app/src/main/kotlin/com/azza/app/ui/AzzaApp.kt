@@ -27,6 +27,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavDestination
+import com.azza.feature.settings.EditProfileRoute
+import com.azza.feature.settings.NewTicketRoute
+import com.azza.feature.settings.SettingsRoute
+import com.azza.feature.settings.SupportRoute
+import com.azza.feature.settings.TicketRoute
+import com.azza.feature.settings.settingsScreens
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -101,7 +107,11 @@ fun AzzaApp(
 
     Scaffold(
         containerColor = AzzaTheme.colors.bg,
-        topBar = { if (showChrome) AzzaTopBar(unread, onNotifications = { navController.navigate(NotificationsRoute) { launchSingleTop = true } }) },
+        topBar = { if (showChrome) AzzaTopBar(
+                unread,
+                onNotifications = { navController.navigate(NotificationsRoute) { launchSingleTop = true } },
+                onMore = { navController.navigate(SettingsRoute) { launchSingleTop = true } },
+            ) },
         bottomBar = { if (showChrome) AzzaBottomBar(destination, navController, basketCount, signedIn) },
     ) { padding ->
         NavHost(
@@ -171,12 +181,22 @@ fun AzzaApp(
                 },
             )
             mapScreen(onOpenStore = openStore, onOpenProduct = { id -> navController.navigate(ProductRoute(id, source = "MAP")) })
+            settingsScreens(
+                onBack = { navController.popBackStack() },
+                onSignIn = signIn,
+                onEditProfile = { navController.navigate(EditProfileRoute) },
+                onSupport = { navController.navigate(SupportRoute) },
+                onNewTicket = { navController.navigate(NewTicketRoute) },
+                onOpenTicket = { id -> navController.navigate(TicketRoute(id)) },
+                // The new thread replaces the form, so Back returns to the list.
+                onTicketCreated = { id -> navController.navigate(TicketRoute(id)) { popUpTo<NewTicketRoute> { inclusive = true } } },
+            )
         }
     }
 }
 
 @Composable
-private fun AzzaTopBar(unread: Int, onNotifications: () -> Unit) {
+private fun AzzaTopBar(unread: Int, onNotifications: () -> Unit, onMore: () -> Unit) {
     TopAppBar(
         title = {
             Text(
@@ -192,7 +212,7 @@ private fun AzzaTopBar(unread: Int, onNotifications: () -> Unit) {
                     Icon(Icons.Outlined.Notifications, stringResource(R.string.nav_notifications), tint = AzzaTheme.colors.navInk)
                 }
             }
-            IconButton(onClick = { /* settings menu — docs/ROADMAP.md */ }) {
+            IconButton(onClick = onMore) {
                 Icon(Icons.Outlined.MoreVert, stringResource(R.string.nav_more), tint = AzzaTheme.colors.navInk)
             }
         },

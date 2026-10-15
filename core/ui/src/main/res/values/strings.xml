@@ -7,4 +7,25 @@
     <string name="core_ui_error_rate_limited">Too many requests. Wait a moment and try again.</string>
     <string name="core_ui_error_server">Something went wrong on our side. Please try again.</string>
     <string name="core_ui_error_generic">Something went wrong. Please try again.</string>
+    <string name="report_button">Report</string>
+    <string name="report_title_product">Report this listing</string>
+    <string name="report_title_user">Report this account</string>
+    <string name="report_title_store">Report this store</string>
+    <string name="report_intro">Tell us what is wrong. The admin team will look at it; the person you are reporting is not told who reported them.</string>
+    <string name="report_reason">Reason</string>
+    <string name="report_details">Details (optional)</string>
+    <string name="report_send">Send report</string>
+    <string name="report_sending">Sending…</string>
+    <string name="report_sent">Thank you — your report has been received and will be reviewed.</string>
+    <string name="report_cancel">Cancel</string>
+    <string name="report_close">Close</string>
+    <string name="report_error_duplicate">You have already reported this. It is waiting to be reviewed.</string>
+    <string name="report_error_self">You cannot report your own account or your own listing.</string>
+    <string name="report_reason_spam">Spam or advertising</string>
+    <string name="report_reason_fraud">Scam or fraud</string>
+    <string name="report_reason_counterfeit">Counterfeit or fake item</string>
+    <string name="report_reason_prohibited">Prohibited or illegal item</string>
+    <string name="report_reason_inappropriate">Inappropriate content</string>
+    <string name="report_reason_harassment">Harassment or abuse</string>
+    <string name="report_reason_other">Something else</string>
 </resources>

@@ -16,4 +16,11 @@
     <string name="auth_error_email_taken">حسابی با این ایمیل وجود دارد.</string>
     <string name="auth_error_username_taken">این نام کاربری گرفته شده است.</string>
     <string name="auth_error_not_active">این حساب در حال حاضر امکان ورود ندارد.</string>
+    <string name="auth_forgot">رمز عبور را فراموش کرده‌اید؟</string>
+    <string name="auth_forgot_title">فراموشی رمز عبور</string>
+    <string name="auth_forgot_intro">ایمیل خود را وارد کنید تا لینک بازیابی برایتان ارسال شود.</string>
+    <string name="auth_forgot_sent">اگر حسابی با این ایمیل وجود داشته باشد، لینک بازیابی رمز عبور برای آن ارسال شد.</string>
+    <string name="auth_forgot_send">ارسال لینک بازیابی</string>
+    <string name="auth_cancel">انصراف</string>
+    <string name="auth_close">بستن</string>
 </resources>

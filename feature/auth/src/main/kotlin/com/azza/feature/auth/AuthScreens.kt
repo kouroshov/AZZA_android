@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +48,7 @@ fun LoginScreen(
 
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
+    var forgot by rememberSaveable { mutableStateOf(false) }
 
     AuthForm(title = stringResource(R.string.auth_sign_in_title)) {
         OutlinedTextField(
@@ -76,10 +78,57 @@ fun LoginScreen(
             enabled = email.isNotBlank() && password.isNotEmpty(),
             onClick = { viewModel.login(email, password) },
         )
+        TextButton(onClick = { forgot = true }, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.auth_forgot))
+        }
         TextButton(onClick = onCreateAccount, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.auth_no_account))
         }
     }
+    if (forgot) ForgotPasswordDialog(initialEmail = email, onDismiss = { forgot = false })
+}
+
+@Composable
+private fun ForgotPasswordDialog(
+    initialEmail: String,
+    onDismiss: () -> Unit,
+    viewModel: ForgotPasswordViewModel = hiltViewModel(),
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    var email by rememberSaveable { mutableStateOf(initialEmail) }
+    val close = { viewModel.reset(); onDismiss() }
+    AlertDialog(
+        onDismissRequest = close,
+        title = { Text(stringResource(R.string.auth_forgot_title)) },
+        text = {
+            if (state.sent) {
+                Text(stringResource(R.string.auth_forgot_sent))
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(stringResource(R.string.auth_forgot_intro))
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text(stringResource(R.string.auth_email)) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Done),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    ErrorLine(state.error)
+                }
+            }
+        },
+        confirmButton = {
+            if (state.sent) {
+                TextButton(onClick = close) { Text(stringResource(R.string.auth_close)) }
+            } else {
+                TextButton(onClick = { viewModel.send(email) }, enabled = !state.sending && email.isNotBlank()) {
+                    Text(stringResource(R.string.auth_forgot_send))
+                }
+            }
+        },
+        dismissButton = { if (!state.sent) TextButton(onClick = close) { Text(stringResource(R.string.auth_cancel)) } },
+    )
 }
 
 @Composable

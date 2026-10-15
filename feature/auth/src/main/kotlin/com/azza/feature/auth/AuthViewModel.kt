@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.azza.core.common.AppError
 import com.azza.core.common.Outcome
+import com.azza.core.data.AccountRepository
 import com.azza.core.data.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -44,4 +45,29 @@ class AuthViewModel @Inject constructor(
             }
         }
     }
+}
+
+data class ForgotPasswordState(val sending: Boolean = false, val sent: Boolean = false, val error: AppError? = null)
+
+/**
+ * "Forgot password": apps/api answers the same whether or not the account exists,
+ * so a success only ever says "if an account exists, a link was sent".
+ */
+@HiltViewModel
+class ForgotPasswordViewModel @Inject constructor(private val account: AccountRepository) : ViewModel() {
+    private val _state = MutableStateFlow(ForgotPasswordState())
+    val state: StateFlow<ForgotPasswordState> = _state.asStateFlow()
+
+    fun send(email: String) {
+        if (_state.value.sending || email.isBlank()) return
+        _state.update { it.copy(sending = true, error = null) }
+        viewModelScope.launch {
+            when (val r = account.forgotPassword(email)) {
+                is Outcome.Success -> _state.update { it.copy(sending = false, sent = true) }
+                is Outcome.Failure -> _state.update { it.copy(sending = false, error = r.error) }
+            }
+        }
+    }
+
+    fun reset() = _state.update { ForgotPasswordState() }
 }

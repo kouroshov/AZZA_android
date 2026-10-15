@@ -17,4 +17,11 @@
     <string name="auth_error_email_taken">An account with this email already exists.</string>
     <string name="auth_error_username_taken">This username is taken.</string>
     <string name="auth_error_not_active">This account can\'t sign in right now.</string>
+    <string name="auth_forgot">Forgot password?</string>
+    <string name="auth_forgot_title">Forgot password</string>
+    <string name="auth_forgot_intro">Enter your email and we\'ll send you a reset link.</string>
+    <string name="auth_forgot_sent">If an account exists for that email, a password reset link has been sent.</string>
+    <string name="auth_forgot_send">Send reset link</string>
+    <string name="auth_cancel">Cancel</string>
+    <string name="auth_close">Close</string>
 </resources>

@@ -27,6 +27,13 @@ class AppPreferences @Inject constructor(@ApplicationContext context: Context) {
         ChosenCity(id, prefs[CITY_NAME].orEmpty())
     }
 
+    /** "DARK" / "LIGHT" / "SYSTEM"; null = never chosen (dark, like the web). */
+    val theme: Flow<String?> = store.data.map { it[THEME] }
+
+    suspend fun setTheme(value: String) {
+        store.edit { it[THEME] = value }
+    }
+
     suspend fun setCity(city: ChosenCity?) {
         store.edit { prefs ->
             if (city == null) {
@@ -42,5 +49,6 @@ class AppPreferences @Inject constructor(@ApplicationContext context: Context) {
     private companion object {
         val CITY_ID = stringPreferencesKey("explore_city_id")
         val CITY_NAME = stringPreferencesKey("explore_city_name")
+        val THEME = stringPreferencesKey("theme")
     }
 }

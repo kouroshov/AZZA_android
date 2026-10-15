@@ -3,7 +3,10 @@ package com.azza.core.network.di
 import com.azza.core.network.ApiBaseUrl
 import com.azza.core.network.BareClient
 import com.azza.core.network.ClientUserAgent
+import com.azza.core.network.api.AccountApi
 import com.azza.core.network.api.AuthApi
+import com.azza.core.network.api.ReportsApi
+import com.azza.core.network.api.SupportApi
 import com.azza.core.network.api.MapApi
 import com.azza.core.network.api.BookingApi
 import com.azza.core.network.api.CategoriesApi
@@ -163,4 +166,16 @@ internal object NetworkModule {
     @Provides
     @Singleton
     fun provideMapApi(retrofit: Retrofit): MapApi = retrofit.create(MapApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideAccountApi(retrofit: Retrofit): AccountApi = retrofit.create(AccountApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideSupportApi(retrofit: Retrofit): SupportApi = retrofit.create(SupportApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideReportsApi(retrofit: Retrofit): ReportsApi = retrofit.create(ReportsApi::class.java)
 }

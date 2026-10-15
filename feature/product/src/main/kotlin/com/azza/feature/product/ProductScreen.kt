@@ -1,5 +1,12 @@
 package com.azza.feature.product
 
+import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import com.azza.core.ui.ReportDialog
+import com.azza.core.data.ReportTarget
 import androidx.compose.foundation.ExperimentalFoundationApi
 import android.content.Context
 import androidx.compose.foundation.layout.height
@@ -107,6 +114,8 @@ fun ProductScreen(
     val added = stringResource(R.string.product_added_to_basket)
     val viewBasket = stringResource(R.string.product_view_basket)
     val context = LocalContext.current
+    var reporting by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -119,6 +128,10 @@ fun ProductScreen(
                 is ProductEvent.Failed -> snackbar.showSnackbar(errorText(context, event.error))
             }
         }
+    }
+
+    if (reporting) {
+        ReportDialog(ReportTarget.PRODUCT, onDismiss = { reporting = false }, submit = viewModel::report)
     }
 
     Scaffold(
@@ -136,6 +149,11 @@ fun ProductScreen(
                     val ready = state as? ProductUiState.Ready
                     if (ready != null && isMine) {
                         TextButton(onClick = { onEdit(ready.product.id) }) { Text(stringResource(R.string.product_edit)) }
+                    }
+                    if (ready != null && !isMine) {
+                        IconButton(onClick = { scope.launch { if (viewModel.canReport()) reporting = true } }) {
+                            Icon(Icons.Outlined.Flag, contentDescription = stringResource(com.azza.core.ui.R.string.report_button), tint = AzzaTheme.colors.textSecondary)
+                        }
                     }
                     if (state is ProductUiState.Ready) {
                         IconButton(onClick = viewModel::toggleFavorite) {

@@ -1,5 +1,14 @@
 package com.azza.feature.profile
 
+import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
+import com.azza.core.ui.ReportDialog
+import com.azza.core.data.ReportTarget
+import com.azza.core.data.ReportReason
+import com.azza.core.data.ReportsRepository
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -93,6 +102,7 @@ class UserProfileViewModel @Inject constructor(
     private val profiles: ProfilesRepository,
     private val follow: FollowRepository,
     private val auth: AuthRepository,
+    private val reports: ReportsRepository,
     users: UserRepository,
 ) : ViewModel() {
     private val username = savedStateHandle.toRoute<UserProfileRoute>().username
@@ -129,6 +139,18 @@ class UserProfileViewModel @Inject constructor(
         }
     }
 
+    /** Reporting needs an account; a guest is sent to sign in, as for Follow. */
+    suspend fun canReport(): Boolean {
+        if (auth.isSignedIn.first()) return true
+        _signInRequired.send(Unit)
+        return false
+    }
+
+    suspend fun report(reason: ReportReason, details: String): Outcome<Unit> {
+        val id = userId ?: return Outcome.Failure(AppError.Unexpected(IllegalStateException()))
+        return reports.report(ReportTarget.USER, id, reason, details)
+    }
+
     fun toggleFollow() = viewModelScope.launch {
         val profile = (_state.value as? Loadable.Ready)?.value ?: return@launch
         if (!auth.isSignedIn.first()) return@launch _signInRequired.send(Unit)
@@ -146,6 +168,7 @@ class StoreProfileViewModel @Inject constructor(
     private val profiles: ProfilesRepository,
     private val follow: FollowRepository,
     private val auth: AuthRepository,
+    private val reports: ReportsRepository,
     users: UserRepository,
 ) : ViewModel() {
     private val idOrSlug = savedStateHandle.toRoute<StoreProfileRoute>().idOrSlug
@@ -182,6 +205,18 @@ class StoreProfileViewModel @Inject constructor(
         }
     }
 
+    /** Reporting needs an account; a guest is sent to sign in, as for Follow. */
+    suspend fun canReport(): Boolean {
+        if (auth.isSignedIn.first()) return true
+        _signInRequired.send(Unit)
+        return false
+    }
+
+    suspend fun report(reason: ReportReason, details: String): Outcome<Unit> {
+        val id = storeId ?: return Outcome.Failure(AppError.Unexpected(IllegalStateException()))
+        return reports.report(ReportTarget.STORE, id, reason, details)
+    }
+
     fun toggleFollow() = viewModelScope.launch {
         val store = (_state.value as? Loadable.Ready)?.value ?: return@launch
         if (!auth.isSignedIn.first()) return@launch _signInRequired.send(Unit)
@@ -203,7 +238,10 @@ fun UserProfileScreen(
     val button by viewModel.followButton.collectAsStateWithLifecycle()
     LaunchedEffect(viewModel) { viewModel.signInRequired.collect { onSignIn() } }
     val title = (state as? Loadable.Ready)?.value?.username?.let(::handle).orEmpty()
-    ProfileScaffold(title, onBack) {
+    var reporting by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    if (reporting) ReportDialog(ReportTarget.USER, onDismiss = { reporting = false }, submit = viewModel::report)
+    ProfileScaffold(title, onBack, onReport = { scope.launch { if (viewModel.canReport()) reporting = true }; Unit }.takeIf { button != FollowButton.HIDDEN }) {
         when (val s = state) {
             Loadable.Loading -> LoadingState()
             is Loadable.Failed -> notFoundOrError(s.error, R.string.profile_user_not_found, viewModel::load)
@@ -235,7 +273,10 @@ fun StoreProfileScreen(
     val button by viewModel.followButton.collectAsStateWithLifecycle()
     LaunchedEffect(viewModel) { viewModel.signInRequired.collect { onSignIn() } }
     val title = (state as? Loadable.Ready)?.value?.slug?.let(::handle).orEmpty()
-    ProfileScaffold(title, onBack) {
+    var reporting by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    if (reporting) ReportDialog(ReportTarget.STORE, onDismiss = { reporting = false }, submit = viewModel::report)
+    ProfileScaffold(title, onBack, onReport = { scope.launch { if (viewModel.canReport()) reporting = true }; Unit }.takeIf { button != FollowButton.HIDDEN }) {
         when (val s = state) {
             Loadable.Loading -> LoadingState()
             is Loadable.Failed -> notFoundOrError(s.error, R.string.profile_store_not_found, viewModel::load)
@@ -262,7 +303,7 @@ fun StoreProfileScreen(
 }
 
 @Composable
-private fun ProfileScaffold(title: String, onBack: () -> Unit, content: @Composable () -> Unit) {
+private fun ProfileScaffold(title: String, onBack: () -> Unit, onReport: (() -> Unit)?, content: @Composable () -> Unit) {
     Scaffold(
         containerColor = AzzaTheme.colors.bg,
         topBar = {
@@ -270,6 +311,13 @@ private fun ProfileScaffold(title: String, onBack: () -> Unit, content: @Composa
                 title = { Text(title, style = MaterialTheme.typography.titleMedium) },
                 navigationIcon = {
                     IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.profile_back)) }
+                },
+                actions = {
+                    if (onReport != null) {
+                        IconButton(onClick = onReport) {
+                            Icon(Icons.Outlined.Flag, stringResource(com.azza.core.ui.R.string.report_button), tint = AzzaTheme.colors.textSecondary)
+                        }
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = AzzaTheme.colors.bg),
             )

@@ -135,11 +135,30 @@ provides no timed service).
 Not in 3d: the web's category filter and store list beside the map, "near
 me" (location permission), clustering.
 
-### Still to do in phase 3
+### 3e — account and support ✅ (2026-10-15)
 
-- **3e** Support tickets, reports, appeals, addresses, account settings,
-  email change, password reset; the settings ("more") menu, language switch
-  (per-app locale), theme.
+- **Settings** (the top bar's ⋮, the web's settings popover as a page):
+  edit profile, support, language, theme, log out (or sign in).
+- **Language**: phone's / English / فارسی, per app
+  (`AppCompatDelegate.setApplicationLocales`, stored by AppCompat below
+  Android 13, by the system from 13 up).
+- **Theme**: dark (default, like the web), light, or the phone's setting;
+  stored in DataStore, applied in `MainActivity`, system-bar icons follow.
+- **Edit profile**: first and last name, bio (150 characters, counted as a
+  person counts them); `PATCH /users/me`.
+- **Support tickets** (`/tickets`): list with "new reply", open a ticket
+  (topic, subject, text), the thread, reply, "I no longer need help".
+- **Report** a listing, an account or a store (`POST /reports`): the web's
+  reasons and copy; "already reported" and "your own" answered by code.
+  A guest is sent to sign in.
+- **Forgot password** on sign-in (`POST /auth/forgot-password`): the same
+  answer whether or not the account exists. The link opens the website;
+  the app has no reset screen.
+
+Left out of 3e, for later: changing the avatar, username or email;
+addresses; moderation appeals; creating and managing a store (needs a
+seller subscription), and with it posting from a store and the provider's
+timetable editor.
 
 ## Phase 4 — Android-only
 
