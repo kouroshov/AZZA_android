@@ -11,16 +11,10 @@ import kotlinx.serialization.Serializable
 // Destinations whose feature modules are not built yet (docs/ROADMAP.md).
 // Each becomes its own :feature module; the route moves there with it.
 
-@Serializable data object SearchRoute
 @Serializable data object CreateRoute
-@Serializable data object BasketRoute
-@Serializable data object NotificationsRoute
 
 fun NavGraphBuilder.pendingScreens() {
-    composable<SearchRoute> { ComingSoon() }
     composable<CreateRoute> { ComingSoon() }
-    composable<BasketRoute> { ComingSoon() }
-    composable<NotificationsRoute> { ComingSoon() }
 }
 
 @Composable

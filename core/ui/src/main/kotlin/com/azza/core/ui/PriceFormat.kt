@@ -31,3 +31,9 @@ fun Money.format(locale: Locale = Locale.getDefault()): String {
     val text = if (whole) formatter.format(value) else formatter.format(value / Money.MINOR_PER_MAJOR.toDouble())
     return "$$text"
 }
+
+/**
+ * A handle as "@name", isolated as left-to-right text (U+2066 … U+2069) so a
+ * right-to-left page does not move the "@" to the end — the web's `<Bdi>`.
+ */
+fun handle(username: String): String = "\u2066@$username\u2069"

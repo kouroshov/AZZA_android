@@ -61,6 +61,9 @@ dependencies {
     implementation(project(":feature:feed"))
     implementation(project(":feature:product"))
     implementation(project(":feature:profile"))
+    implementation(project(":feature:search"))
+    implementation(project(":feature:basket"))
+    implementation(project(":feature:notifications"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -68,7 +71,7 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.hilt.navigation.compose)
+    implementation(libs.hilt.lifecycle.viewmodel.compose)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.compose.material3)
 

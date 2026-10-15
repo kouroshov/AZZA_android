@@ -3,4 +3,10 @@
     <string name="profile_signed_out">برای دیدن صفحه، سفارش‌ها و سبد خریدتان وارد شوید.</string>
     <string name="profile_sign_in">ورود</string>
     <string name="profile_sign_out">خروج از حساب</string>
+    <string name="profile_favorites">علاقه‌مندی‌ها</string>
+    <string name="profile_favorites_empty">هنوز چیزی به علاقه‌مندی‌ها اضافه نکرده‌اید.</string>
+    <string name="profile_fav_deleted">دیگر در دسترس نیست</string>
+    <string name="profile_fav_unpublished">منتشر نشده</string>
+    <string name="profile_fav_out_of_stock">ناموجود</string>
+    <string name="profile_fav_remove">حذف</string>
 </resources>

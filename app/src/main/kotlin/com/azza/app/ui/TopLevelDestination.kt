@@ -14,7 +14,9 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.azza.app.R
+import com.azza.feature.basket.BasketRoute
 import com.azza.feature.feed.FeedRoute
+import com.azza.feature.search.SearchRoute
 import com.azza.feature.profile.ProfileRoute
 import kotlin.reflect.KClass
 
@@ -33,6 +35,6 @@ enum class TopLevelDestination(
     FEED(FeedRoute, FeedRoute::class, R.string.nav_feed, Icons.Outlined.Home, Icons.Filled.Home),
     SEARCH(SearchRoute, SearchRoute::class, R.string.nav_search, Icons.Outlined.Search, Icons.Filled.Search),
     CREATE(CreateRoute, CreateRoute::class, R.string.nav_create, Icons.Outlined.AddBox, Icons.Filled.AddBox),
-    BASKET(BasketRoute, BasketRoute::class, R.string.nav_basket, Icons.Outlined.ShoppingBag, Icons.Filled.ShoppingBag),
+    BASKET(BasketRoute(), BasketRoute::class, R.string.nav_basket, Icons.Outlined.ShoppingBag, Icons.Filled.ShoppingBag),
     PROFILE(ProfileRoute, ProfileRoute::class, R.string.nav_profile, Icons.Outlined.AccountCircle, Icons.Filled.AccountCircle),
 }

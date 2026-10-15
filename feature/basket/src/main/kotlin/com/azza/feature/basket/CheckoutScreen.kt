@@ -25,7 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.azza.core.common.AppError
 import com.azza.core.designsystem.theme.AzzaTheme
@@ -51,7 +51,11 @@ fun CheckoutScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(stringResource(R.string.checkout_placed_title), style = MaterialTheme.typography.headlineSmall)
-            Text(stringResource(R.string.checkout_placed_body, placed.reference), color = AzzaTheme.colors.textSecondary)
+            Text(
+                if (state.paid) stringResource(R.string.order_heading, placed.reference)
+                else stringResource(R.string.checkout_placed_body, placed.reference),
+                color = AzzaTheme.colors.textSecondary,
+            )
             Text(placed.total.format(), style = MaterialTheme.typography.titleLarge)
             if (state.paid) {
                 Text(stringResource(R.string.checkout_paid), color = AzzaTheme.colors.success)

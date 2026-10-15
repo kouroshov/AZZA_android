@@ -15,19 +15,39 @@ same apps/api and the same database. UI follows the web's phone layout.
 - Phone chrome: top bar + bottom bar; Search / Post / Basket /
   Notifications are placeholders.
 
-## Phase 2 — buying
+## Phase 2 — buying ✅ (2026-10-15)
 
-All already exist in apps/api:
-- Search (`GET /search`, `/search/autocomplete`), categories, city feed
-  (`/cities/feed`), following feed (`/feed/following`).
-- Like / favourite / comments / reviews (`products/:id/like|favorite|comments|reviews`).
-- Basket (`/cart`), checkout (`POST /orders/checkout`), discount codes,
-  payment (`/payments`; `simulate` in dev only).
-- Orders placed / received (`/orders/placed`, `/orders/received`, ship).
-- Notifications (`/notifications`, unread count, mark read) + badge.
+Built and checked end to end on the emulator against the local apps/api:
+- **Search** (`/search/products|users|stores`), with tabs and product sort;
+  debounced, and never sent with fewer than 2 letters (apps/api refuses it).
+- **Favourites**: the heart on the product page (optimistic, put back if
+  refused) and the list on the profile, with unfavourite.
+- **Basket** = apps/api's server cart (`/cart`), so it follows the account
+  across devices; the badge on the bag. Four tabs like the web's /Basket:
+  basket, orders placed, orders received, appointments (phase 3).
+- **Checkout** from the server cart: address, one promo code (previewed with
+  `/discount-codes/validate`, decided by checkout), then the web's
+  "Pay now (test)" (`/payments/simulate`, dev only).
+- **Orders**: placed and received lists and details; the seller's earnings,
+  fee, the buyer's address once paid, and "Mark as shipped".
+- **Notifications**: the list with the web's sentences for every member-facing
+  type, tap-through to the order or product, unread badge on the bell
+  (refreshed on navigation and when the app comes forward).
+
+Known gaps, deliberately left:
+- **The web's basket is still browser localStorage**, so the website and the
+  app do not share a basket yet. Moving the web to `/cart` (it already exists)
+  would make them one basket — a web-repo change, not done here.
+- **Product options** ("extra sauce") cannot be chosen in the app: the server
+  cart stores product + quantity only. Needs an options column on
+  `cart_items` in apps/api first.
+- Comments and reviews: the web has no UI for them either, and apps/api's list
+  responses carry no author name.
+- Person and store rows in search are shown, not opened (profiles = phase 3).
 
 ## Phase 3 — selling and profiles
 
+- Categories, city feed (`/cities/feed`), following feed (`/feed/following`).
 - Create / edit listing with the taxonomy schema form
   (`/taxonomy/categories/:id/schema`, `/products`, media upload) — mirror the
   personal-listing rule (goods only, one item).

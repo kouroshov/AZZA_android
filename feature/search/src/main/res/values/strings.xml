@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search_placeholder">Search products, users, and stores…</string>
+    <string name="search_clear">Clear search</string>
+    <string name="search_tab_products">Products</string>
+    <string name="search_tab_users">People</string>
+    <string name="search_tab_stores">Stores</string>
+    <string name="search_hint">Type at least two letters to search AZZA.</string>
+    <string name="search_no_results">No results found. Try a different search term.</string>
+    <string name="search_sort_relevance">Relevance</string>
+    <string name="search_sort_newest">Newest</string>
+    <string name="search_sort_price_asc">Price: low to high</string>
+    <string name="search_sort_price_desc">Price: high to low</string>
+    <string name="search_sort_popular">Popular</string>
+    <string name="search_out_of_stock">Out of stock</string>
+    <string name="search_low_stock">Low stock</string>
+    <string name="search_followers">%1$d followers</string>
+    <string name="search_branches">%1$d branches</string>
+    <string name="search_verified">Verified</string>
+</resources>

@@ -5,6 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.azza.core.common.AppError
 import com.azza.core.common.Outcome
 import com.azza.core.data.AuthRepository
+import com.azza.core.data.CursorPager
+import com.azza.core.data.FavoritesRepository
+import com.azza.core.model.FavoriteItem
 import com.azza.core.data.UserRepository
 import com.azza.core.model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,7 +29,18 @@ sealed interface ProfileUiState {
 class ProfileViewModel @Inject constructor(
     private val auth: AuthRepository,
     private val users: UserRepository,
+    private val favoritesRepository: FavoritesRepository,
 ) : ViewModel() {
+
+    /** The web's profile shows the owner's favourites; so does this page. */
+    val favorites = CursorPager<FavoriteItem>(viewModelScope, { it.productId }) { favoritesRepository.page(it) }
+
+    /** Unfavourite from the list: the row goes once apps/api agrees. */
+    fun unfavorite(productId: String) = viewModelScope.launch {
+        if (favoritesRepository.setFavorite(productId, favorite = false) is Outcome.Success) {
+            favorites.edit { items -> items.filterNot { it.productId == productId } }
+        }
+    }
 
     private val _state = MutableStateFlow<ProfileUiState>(ProfileUiState.Loading)
     val state: StateFlow<ProfileUiState> = _state.asStateFlow()
@@ -43,7 +57,7 @@ class ProfileViewModel @Inject constructor(
     private suspend fun load() {
         _state.value = ProfileUiState.Loading
         _state.value = when (val result = users.me()) {
-            is Outcome.Success -> ProfileUiState.Ready(result.value)
+            is Outcome.Success -> ProfileUiState.Ready(result.value).also { favorites.refresh() }
             is Outcome.Failure -> ProfileUiState.Failed(result.error)
         }
     }

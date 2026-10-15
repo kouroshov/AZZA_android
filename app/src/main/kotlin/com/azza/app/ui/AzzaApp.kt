@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -16,7 +18,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -33,7 +39,15 @@ import com.azza.core.designsystem.theme.AzzaTheme
 import com.azza.feature.auth.LoginRoute
 import com.azza.feature.auth.RegisterRoute
 import com.azza.feature.auth.authScreens
+import com.azza.feature.basket.BasketRoute
+import com.azza.feature.basket.CheckoutRoute
+import com.azza.feature.basket.PlacedOrderRoute
+import com.azza.feature.basket.ReceivedOrderRoute
+import com.azza.feature.basket.basketScreens
 import com.azza.feature.feed.FeedRoute
+import com.azza.feature.notifications.NotificationsRoute
+import com.azza.feature.notifications.notificationsScreen
+import com.azza.feature.search.searchScreen
 import com.azza.feature.feed.feedScreen
 import com.azza.feature.product.ProductRoute
 import com.azza.feature.product.productScreen
@@ -47,16 +61,32 @@ import com.azza.feature.profile.profileScreen
  * and auth screens are full-screen, without either bar.
  */
 @Composable
-fun AzzaApp(navController: NavHostController = rememberNavController()) {
+fun AzzaApp(
+    navController: NavHostController = rememberNavController(),
+    appViewModel: AppViewModel = hiltViewModel(),
+) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val destination = backStackEntry?.destination
     val showChrome = TopLevelDestination.entries.any { destination.isOn(it) } ||
         destination?.hasRoute(NotificationsRoute::class) == true
+    val unread by appViewModel.unreadNotifications.collectAsStateWithLifecycle()
+    val basketCount by appViewModel.basketCount.collectAsStateWithLifecycle()
+
+    LaunchedEffect(destination) { appViewModel.refreshBadges() }
+    LifecycleResumeEffect(Unit) {
+        appViewModel.refreshBadges()
+        onPauseOrDispose { }
+    }
+
+    val openProduct: (String) -> Unit = { id -> navController.navigate(ProductRoute(id)) }
+    val openPlaced: (String) -> Unit = { id -> navController.navigate(PlacedOrderRoute(id)) }
+    val openReceived: (String) -> Unit = { id -> navController.navigate(ReceivedOrderRoute(id)) }
+    val signIn: () -> Unit = { navController.navigate(LoginRoute) }
 
     Scaffold(
         containerColor = AzzaTheme.colors.bg,
-        topBar = { if (showChrome) AzzaTopBar(onNotifications = { navController.navigate(NotificationsRoute) }) },
-        bottomBar = { if (showChrome) AzzaBottomBar(destination, navController) },
+        topBar = { if (showChrome) AzzaTopBar(unread, onNotifications = { navController.navigate(NotificationsRoute) { launchSingleTop = true } }) },
+        bottomBar = { if (showChrome) AzzaBottomBar(destination, navController, basketCount) },
     ) { padding ->
         NavHost(
             navController = navController,
@@ -64,8 +94,30 @@ fun AzzaApp(navController: NavHostController = rememberNavController()) {
             modifier = Modifier.padding(padding).consumeWindowInsets(padding),
         ) {
             feedScreen(onOpenProduct = { id -> navController.navigate(ProductRoute(id, source = "GLOBAL_EXPLORE")) })
-            productScreen(onBack = navController::popBackStack)
-            profileScreen(onSignIn = { navController.navigate(LoginRoute) })
+            searchScreen(onOpenProduct = openProduct)
+            productScreen(
+                onBack = navController::popBackStack,
+                onRequireSignIn = signIn,
+                onOpenBasket = { navController.navigate(BasketRoute()) { launchSingleTop = true } },
+            )
+            profileScreen(onSignIn = signIn, onOpenProduct = { id -> navController.navigate(ProductRoute(id, source = "PROFILE")) })
+            basketScreens(
+                onSignIn = signIn,
+                onBrowse = { navController.navigate(FeedRoute) { popUpTo(FeedRoute) { inclusive = false }; launchSingleTop = true } },
+                onOpenProduct = openProduct,
+                onCheckout = { navController.navigate(CheckoutRoute) },
+                onOpenPlaced = { id ->
+                    // From checkout, "View order" replaces the checkout screen: going back must not re-open a used form.
+                    navController.navigate(PlacedOrderRoute(id)) { popUpTo<CheckoutRoute> { inclusive = true } }
+                },
+                onOpenReceived = openReceived,
+                onBack = navController::popBackStack,
+            )
+            notificationsScreen(
+                onOpenProduct = openProduct,
+                onOpenPlacedOrder = openPlaced,
+                onOpenReceivedOrder = openReceived,
+            )
             authScreens(
                 onSignedIn = { navController.popBackStack(LoginRoute, inclusive = true) || navController.popBackStack() },
                 onOpenRegister = { navController.navigate(RegisterRoute) { popUpTo(LoginRoute) } },
@@ -77,7 +129,7 @@ fun AzzaApp(navController: NavHostController = rememberNavController()) {
 }
 
 @Composable
-private fun AzzaTopBar(onNotifications: () -> Unit) {
+private fun AzzaTopBar(unread: Int, onNotifications: () -> Unit) {
     TopAppBar(
         title = {
             Text(
@@ -89,7 +141,9 @@ private fun AzzaTopBar(onNotifications: () -> Unit) {
         },
         actions = {
             IconButton(onClick = onNotifications) {
-                Icon(Icons.Outlined.Notifications, stringResource(R.string.nav_notifications), tint = AzzaTheme.colors.navInk)
+                CountBadge(unread) {
+                    Icon(Icons.Outlined.Notifications, stringResource(R.string.nav_notifications), tint = AzzaTheme.colors.navInk)
+                }
             }
             IconButton(onClick = { /* settings menu — docs/ROADMAP.md */ }) {
                 Icon(Icons.Outlined.MoreVert, stringResource(R.string.nav_more), tint = AzzaTheme.colors.navInk)
@@ -100,7 +154,7 @@ private fun AzzaTopBar(onNotifications: () -> Unit) {
 }
 
 @Composable
-private fun AzzaBottomBar(current: NavDestination?, navController: NavHostController) {
+private fun AzzaBottomBar(current: NavDestination?, navController: NavHostController, basketCount: Int) {
     NavigationBar(containerColor = AzzaTheme.colors.bg) {
         TopLevelDestination.entries.forEach { item ->
             val selected = current.isOn(item)
@@ -114,7 +168,11 @@ private fun AzzaBottomBar(current: NavDestination?, navController: NavHostContro
                         restoreState = true
                     }
                 },
-                icon = { Icon(if (selected) item.selectedIcon else item.icon, contentDescription = stringResource(item.label)) },
+                icon = {
+                    CountBadge(if (item == TopLevelDestination.BASKET) basketCount else 0) {
+                        Icon(if (selected) item.selectedIcon else item.icon, contentDescription = stringResource(item.label))
+                    }
+                },
                 alwaysShowLabel = false,
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = AzzaTheme.colors.navInk,
@@ -128,3 +186,9 @@ private fun AzzaBottomBar(current: NavDestination?, navController: NavHostContro
 
 private fun NavDestination?.isOn(item: TopLevelDestination): Boolean =
     this?.hierarchy?.any { it.hasRoute(item.routeClass) } == true
+
+@Composable
+private fun CountBadge(count: Int, content: @Composable () -> Unit) {
+    if (count <= 0) return content()
+    BadgedBox(badge = { Badge { Text(if (count > 99) "99+" else count.toString()) } }) { content() }
+}

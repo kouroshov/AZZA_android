@@ -3,4 +3,10 @@
     <string name="profile_signed_out">Sign in to see your page, your orders and your basket.</string>
     <string name="profile_sign_in">Sign in</string>
     <string name="profile_sign_out">Sign out</string>
+    <string name="profile_favorites">Favorites</string>
+    <string name="profile_favorites_empty">You haven\'t favorited anything yet.</string>
+    <string name="profile_fav_deleted">No longer available</string>
+    <string name="profile_fav_unpublished">Not published</string>
+    <string name="profile_fav_out_of_stock">Out of stock</string>
+    <string name="profile_fav_remove">Remove</string>
 </resources>
