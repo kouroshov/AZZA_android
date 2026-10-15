@@ -9,4 +9,17 @@
     <string name="profile_fav_unpublished">Not published</string>
     <string name="profile_fav_out_of_stock">Out of stock</string>
     <string name="profile_fav_remove">Remove</string>
+    <string name="profile_tab_posts">Posts</string>
+    <string name="profile_no_posts">No posts yet.</string>
+    <string name="profile_follow">Follow</string>
+    <string name="profile_following">Following</string>
+    <string name="profile_back">Back</string>
+    <string name="profile_user_not_found">This profile does not exist.</string>
+    <string name="profile_store_not_found">Store not found</string>
+    <string name="profile_store_open">Open now</string>
+    <string name="profile_store_closed">Closed now</string>
+    <plurals name="profile_followers">
+        <item quantity="one">follower</item>
+        <item quantity="other">followers</item>
+    </plurals>
 </resources>

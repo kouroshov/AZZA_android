@@ -4,6 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.TextButton
+import com.azza.core.model.PostAuthor
+import com.azza.core.ui.ProductFeed
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,14 +38,10 @@ import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -71,21 +73,34 @@ import com.azza.core.ui.format
 import com.azza.core.ui.loadingMoreFooter
 import kotlinx.serialization.Serializable
 
+/** The web's /explore: a feed until something is typed, search results once it is. */
 @Serializable data object SearchRoute
 
-fun NavGraphBuilder.searchScreen(onOpenProduct: (String) -> Unit) {
-    composable<SearchRoute> { SearchScreen(onOpenProduct) }
+fun NavGraphBuilder.searchScreen(
+    onOpenProduct: (String) -> Unit,
+    onOpenUser: (String) -> Unit,
+    onOpenStore: (String) -> Unit,
+    onOpenAuthor: (PostAuthor) -> Unit,
+) {
+    composable<SearchRoute> { SearchScreen(onOpenProduct, onOpenUser, onOpenStore, onOpenAuthor) }
 }
 
 @Composable
-fun SearchScreen(onOpenProduct: (String) -> Unit, viewModel: SearchViewModel = hiltViewModel()) {
+fun SearchScreen(
+    onOpenProduct: (String) -> Unit,
+    onOpenUser: (String) -> Unit,
+    onOpenStore: (String) -> Unit,
+    onOpenAuthor: (PostAuthor) -> Unit,
+    viewModel: SearchViewModel = hiltViewModel(),
+) {
     val query by viewModel.query.collectAsStateWithLifecycle()
     val active by viewModel.activeQuery.collectAsStateWithLifecycle()
     val tab by viewModel.tab.collectAsStateWithLifecycle()
     val sort by viewModel.sort.collectAsStateWithLifecycle()
-    val focus = remember { FocusRequester() }
+    val picker by viewModel.picker.collectAsStateWithLifecycle()
     val keyboard = LocalSoftwareKeyboardController.current
-    LaunchedEffect(Unit) { if (query.isEmpty()) focus.requestFocus() }
+
+    if (picker.open) CityPickerDialog(picker, viewModel)
 
     Column(Modifier.fillMaxSize()) {
         OutlinedTextField(
@@ -101,8 +116,14 @@ fun SearchScreen(onOpenProduct: (String) -> Unit, viewModel: SearchViewModel = h
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { keyboard?.hide() }),
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp).focusRequester(focus),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
         )
+
+        if (active.length < MIN_QUERY_LENGTH) {
+            ExploreFeed(viewModel, onOpenProduct, onOpenAuthor)
+            return@Column
+        }
+
         PrimaryTabRow(selectedTabIndex = tab.ordinal, containerColor = AzzaTheme.colors.bg) {
             SearchTab.entries.forEach { t ->
                 Tab(
@@ -123,18 +144,84 @@ fun SearchScreen(onOpenProduct: (String) -> Unit, viewModel: SearchViewModel = h
             }
         }
         if (tab == SearchTab.PRODUCTS) SortChips(sort, viewModel::onSort)
-
-        if (active.length < MIN_QUERY_LENGTH) {
-            EmptyState(stringResource(R.string.search_hint))
-            return@Column
-        }
         when (tab) {
             SearchTab.PRODUCTS -> Results(viewModel.products, { it.id }) { ProductRow(it) { onOpenProduct(it.id) } }
-            // Profiles and store pages arrive in phase 3; until then a person or store is shown, not opened.
-            SearchTab.USERS -> Results(viewModel.users, { it.id }) { UserRow(it) }
-            SearchTab.STORES -> Results(viewModel.stores, { it.id }) { StoreRow(it) }
+            SearchTab.USERS -> Results(viewModel.users, { it.id }) { UserRow(it) { onOpenUser(it.username) } }
+            SearchTab.STORES -> Results(viewModel.stores, { it.id }) { StoreRow(it) { onOpenStore(it.slug) } }
         }
     }
+}
+
+@Composable
+private fun ExploreFeed(viewModel: SearchViewModel, onOpenProduct: (String) -> Unit, onOpenAuthor: (PostAuthor) -> Unit) {
+    val scope by viewModel.scope.collectAsStateWithLifecycle()
+    val city by viewModel.city.collectAsStateWithLifecycle()
+    Row(
+        Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        FilterChip(
+            selected = scope == ExploreScope.GLOBAL,
+            onClick = { viewModel.onScope(ExploreScope.GLOBAL) },
+            label = { Text(stringResource(R.string.explore_global)) },
+        )
+        FilterChip(
+            selected = scope == ExploreScope.CITY,
+            onClick = { viewModel.onScope(ExploreScope.CITY) },
+            label = { Text(city?.name?.takeIf { it.isNotBlank() } ?: stringResource(R.string.explore_city)) },
+        )
+        if (scope == ExploreScope.CITY && city != null) {
+            TextButton(onClick = viewModel::openPicker) { Text(stringResource(R.string.explore_change_city)) }
+        }
+    }
+    when {
+        scope == ExploreScope.GLOBAL -> ProductFeed(
+            pager = viewModel.globalFeed,
+            emptyText = stringResource(R.string.explore_empty_global),
+            onOpenProduct = onOpenProduct,
+            onOpenAuthor = onOpenAuthor,
+        )
+        city == null -> EmptyState(stringResource(R.string.explore_no_city))
+        else -> ProductFeed(
+            pager = viewModel.cityFeed,
+            emptyText = stringResource(R.string.explore_empty_city),
+            onOpenProduct = onOpenProduct,
+            onOpenAuthor = onOpenAuthor,
+        )
+    }
+}
+
+@Composable
+private fun CityPickerDialog(state: CityPickerState, viewModel: SearchViewModel) {
+    AlertDialog(
+        onDismissRequest = viewModel::closePicker,
+        title = { Text(stringResource(if (state.province == null) R.string.explore_select_province else R.string.explore_select_city)) },
+        text = {
+            if (state.loading) {
+                Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            } else {
+                val areas = if (state.province == null) state.provinces else state.cities
+                LazyColumn(Modifier.heightIn(max = 420.dp)) {
+                    items(areas, key = { it.id }) { area ->
+                        Text(
+                            area.name,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { if (state.province == null) viewModel.pickProvince(area) else viewModel.pickCity(area) }
+                                .padding(vertical = 12.dp),
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = { if (state.province != null) viewModel.backToProvinces() else viewModel.closePicker() }) {
+                Text(stringResource(if (state.province != null) R.string.explore_back else R.string.explore_cancel))
+            }
+        },
+    )
 }
 
 @Composable
@@ -220,8 +307,8 @@ private fun ProductRow(product: SearchProduct, onOpen: () -> Unit) {
 }
 
 @Composable
-private fun UserRow(user: SearchUser) {
-    Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+private fun UserRow(user: SearchUser, onOpen: () -> Unit) {
+    Row(Modifier.fillMaxWidth().clickable(onClick = onOpen).padding(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
         Avatar(url = user.avatarUrl, size = 48)
         Column(Modifier.weight(1f)) {
             Text(user.displayName, style = MaterialTheme.typography.titleSmall)
@@ -232,8 +319,8 @@ private fun UserRow(user: SearchUser) {
 }
 
 @Composable
-private fun StoreRow(store: SearchStore) {
-    Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+private fun StoreRow(store: SearchStore, onOpen: () -> Unit) {
+    Row(Modifier.fillMaxWidth().clickable(onClick = onOpen).padding(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
         Avatar(url = store.avatarUrl, isStore = true, size = 48)
         Column(Modifier.weight(1f)) {
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {

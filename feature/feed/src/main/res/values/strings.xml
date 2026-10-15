@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feed_empty">Nothing has been posted yet.</string>
+    <string name="feed_following_title">Following</string>
+    <string name="feed_signed_out">Sign in to see new listings from the people and stores you follow.</string>
+    <string name="feed_sign_in">Sign in</string>
+    <string name="feed_explore_cta">Explore the marketplace</string>
+    <string name="feed_following_empty">You are not following anyone yet. Follow sellers and stores to see their new listings here.</string>
 </resources>

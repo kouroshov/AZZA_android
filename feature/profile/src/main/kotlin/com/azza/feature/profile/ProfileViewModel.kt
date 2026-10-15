@@ -7,6 +7,8 @@ import com.azza.core.common.Outcome
 import com.azza.core.data.AuthRepository
 import com.azza.core.data.CursorPager
 import com.azza.core.data.FavoritesRepository
+import com.azza.core.data.ProfilesRepository
+import com.azza.core.model.PostTile
 import com.azza.core.model.FavoriteItem
 import com.azza.core.data.UserRepository
 import com.azza.core.model.User
@@ -30,10 +32,18 @@ class ProfileViewModel @Inject constructor(
     private val auth: AuthRepository,
     private val users: UserRepository,
     private val favoritesRepository: FavoritesRepository,
+    private val profiles: ProfilesRepository,
 ) : ViewModel() {
 
     /** The web's profile shows the owner's favourites; so does this page. */
     val favorites = CursorPager<FavoriteItem>(viewModelScope, { it.productId }) { favoritesRepository.page(it) }
+
+    private var myId: String? = null
+
+    /** The listings on my personal page (not my stores'), newest first. */
+    val posts = CursorPager<PostTile>(viewModelScope, { it.id }) { cursor ->
+        profiles.personalPosts(myId ?: return@CursorPager Outcome.Failure(AppError.Unauthenticated), cursor)
+    }
 
     /** Unfavourite from the list: the row goes once apps/api agrees. */
     fun unfavorite(productId: String) = viewModelScope.launch {
@@ -57,7 +67,11 @@ class ProfileViewModel @Inject constructor(
     private suspend fun load() {
         _state.value = ProfileUiState.Loading
         _state.value = when (val result = users.me()) {
-            is Outcome.Success -> ProfileUiState.Ready(result.value).also { favorites.refresh() }
+            is Outcome.Success -> ProfileUiState.Ready(result.value).also {
+                myId = result.value.id
+                posts.refresh()
+                favorites.refresh()
+            }
             is Outcome.Failure -> ProfileUiState.Failed(result.error)
         }
     }

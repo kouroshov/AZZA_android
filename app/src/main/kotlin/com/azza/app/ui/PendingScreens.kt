@@ -13,8 +13,12 @@ import kotlinx.serialization.Serializable
 
 @Serializable data object CreateRoute
 
+/** The web's "/" (the marketplace map) — phase 3d. */
+@Serializable data object MapRoute
+
 fun NavGraphBuilder.pendingScreens() {
     composable<CreateRoute> { ComingSoon() }
+    composable<MapRoute> { ComingSoon() }
 }
 
 @Composable

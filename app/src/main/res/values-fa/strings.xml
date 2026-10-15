@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="nav_feed">خانه</string>
-    <string name="nav_search">جستجو</string>
     <string name="nav_create">ثبت آگهی</string>
     <string name="nav_basket">سبد خرید</string>
     <string name="nav_profile">پروفایل</string>
     <string name="nav_notifications">اعلان‌ها</string>
     <string name="nav_more">بیشتر</string>
     <string name="coming_soon">این بخش از آزا به‌زودی به اپ اضافه می‌شود.</string>
+    <string name="nav_following">دنبال‌شده‌ها</string>
+    <string name="nav_explore">کاوش</string>
+    <string name="nav_map">نقشهٔ آزا</string>
 </resources>

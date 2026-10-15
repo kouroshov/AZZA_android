@@ -1,0 +1,356 @@
+package com.azza.feature.profile
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
+import com.azza.core.common.AppError
+import com.azza.core.common.Outcome
+import com.azza.core.data.AuthRepository
+import com.azza.core.data.CursorPager
+import com.azza.core.data.FollowRepository
+import com.azza.core.data.PagedState
+import com.azza.core.data.ProfilesRepository
+import com.azza.core.data.UserRepository
+import com.azza.core.designsystem.theme.AzzaTheme
+import com.azza.core.model.PostTile
+import com.azza.core.model.PublicProfile
+import com.azza.core.model.StorePage
+import com.azza.core.ui.Avatar
+import com.azza.core.ui.EmptyState
+import com.azza.core.ui.ErrorState
+import com.azza.core.ui.LoadMoreEffect
+import com.azza.core.ui.LoadingState
+import com.azza.core.ui.handle
+import com.azza.core.ui.loadingMoreFooter
+import com.azza.core.ui.postGrid
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+
+/** The web's /u/[username]. */
+@Serializable data class UserProfileRoute(val username: String)
+
+/** The web's /stores/[slug]; an id works too. */
+@Serializable data class StoreProfileRoute(val idOrSlug: String)
+
+sealed interface Loadable<out T> {
+    data object Loading : Loadable<Nothing>
+    data class Ready<T>(val value: T) : Loadable<T>
+    data class Failed(val error: AppError) : Loadable<Nothing>
+}
+
+/** The Follow button: hidden on one's own page, a sign-in prompt when signed out. */
+enum class FollowButton { HIDDEN, FOLLOW, FOLLOWING }
+
+@HiltViewModel
+class UserProfileViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    private val profiles: ProfilesRepository,
+    private val follow: FollowRepository,
+    private val auth: AuthRepository,
+    users: UserRepository,
+) : ViewModel() {
+    private val username = savedStateHandle.toRoute<UserProfileRoute>().username
+
+    private val _state = MutableStateFlow<Loadable<PublicProfile>>(Loadable.Loading)
+    val state: StateFlow<Loadable<PublicProfile>> = _state.asStateFlow()
+
+    private var userId: String? = null
+    val posts = CursorPager<PostTile>(viewModelScope, { it.id }) { cursor ->
+        profiles.personalPosts(userId ?: return@CursorPager Outcome.Failure(AppError.Unexpected(IllegalStateException())), cursor)
+    }
+
+    val followButton: StateFlow<FollowButton> = combine(_state, follow.followedUsers, users.currentUser) { s, followed, me ->
+        val profile = (s as? Loadable.Ready)?.value ?: return@combine FollowButton.HIDDEN
+        when {
+            me?.id == profile.id -> FollowButton.HIDDEN
+            profile.id in followed -> FollowButton.FOLLOWING
+            else -> FollowButton.FOLLOW
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), FollowButton.HIDDEN)
+
+    private val _signInRequired = Channel<Unit>(Channel.CONFLATED)
+    val signInRequired = _signInRequired.receiveAsFlow()
+
+    init {
+        load()
+    }
+
+    fun load() = viewModelScope.launch {
+        _state.value = Loadable.Loading
+        _state.value = when (val r = profiles.user(username)) {
+            is Outcome.Success -> Loadable.Ready(r.value).also { userId = r.value.id; posts.refresh() }
+            is Outcome.Failure -> Loadable.Failed(r.error)
+        }
+    }
+
+    fun toggleFollow() = viewModelScope.launch {
+        val profile = (_state.value as? Loadable.Ready)?.value ?: return@launch
+        if (!auth.isSignedIn.first()) return@launch _signInRequired.send(Unit)
+        val now = followButton.value == FollowButton.FOLLOW
+        if (follow.setFollowingUser(profile.id, now) is Outcome.Success) {
+            // The count is the server's; nudge it locally rather than reload the profile.
+            _state.value = Loadable.Ready(profile.copy(followerCount = (profile.followerCount + if (now) 1 else -1).coerceAtLeast(0)))
+        }
+    }
+}
+
+@HiltViewModel
+class StoreProfileViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    private val profiles: ProfilesRepository,
+    private val follow: FollowRepository,
+    private val auth: AuthRepository,
+    users: UserRepository,
+) : ViewModel() {
+    private val idOrSlug = savedStateHandle.toRoute<StoreProfileRoute>().idOrSlug
+
+    private val _state = MutableStateFlow<Loadable<StorePage>>(Loadable.Loading)
+    val state: StateFlow<Loadable<StorePage>> = _state.asStateFlow()
+
+    private var storeId: String? = null
+    val posts = CursorPager<PostTile>(viewModelScope, { it.id }) { cursor ->
+        profiles.storePosts(storeId ?: return@CursorPager Outcome.Failure(AppError.Unexpected(IllegalStateException())), cursor)
+    }
+
+    val followButton: StateFlow<FollowButton> = combine(_state, follow.followedStores, users.currentUser) { s, followed, me ->
+        val store = (s as? Loadable.Ready)?.value ?: return@combine FollowButton.HIDDEN
+        when {
+            me?.id == store.ownerId -> FollowButton.HIDDEN
+            store.id in followed -> FollowButton.FOLLOWING
+            else -> FollowButton.FOLLOW
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), FollowButton.HIDDEN)
+
+    private val _signInRequired = Channel<Unit>(Channel.CONFLATED)
+    val signInRequired = _signInRequired.receiveAsFlow()
+
+    init {
+        load()
+    }
+
+    fun load() = viewModelScope.launch {
+        _state.value = Loadable.Loading
+        _state.value = when (val r = profiles.store(idOrSlug)) {
+            is Outcome.Success -> Loadable.Ready(r.value).also { storeId = r.value.id; posts.refresh() }
+            is Outcome.Failure -> Loadable.Failed(r.error)
+        }
+    }
+
+    fun toggleFollow() = viewModelScope.launch {
+        val store = (_state.value as? Loadable.Ready)?.value ?: return@launch
+        if (!auth.isSignedIn.first()) return@launch _signInRequired.send(Unit)
+        val now = followButton.value == FollowButton.FOLLOW
+        if (follow.setFollowingStore(store.id, now) is Outcome.Success) {
+            _state.value = Loadable.Ready(store.copy(followerCount = (store.followerCount + if (now) 1 else -1).coerceAtLeast(0)))
+        }
+    }
+}
+
+@Composable
+fun UserProfileScreen(
+    onBack: () -> Unit,
+    onOpenProduct: (String) -> Unit,
+    onSignIn: () -> Unit,
+    viewModel: UserProfileViewModel = hiltViewModel(),
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val button by viewModel.followButton.collectAsStateWithLifecycle()
+    LaunchedEffect(viewModel) { viewModel.signInRequired.collect { onSignIn() } }
+    val title = (state as? Loadable.Ready)?.value?.username?.let(::handle).orEmpty()
+    ProfileScaffold(title, onBack) {
+        when (val s = state) {
+            Loadable.Loading -> LoadingState()
+            is Loadable.Failed -> notFoundOrError(s.error, R.string.profile_user_not_found, viewModel::load)
+            is Loadable.Ready -> PostsPage(viewModel.posts, onOpenProduct) {
+                item(key = "header") {
+                    ProfileHeader(
+                        avatarUrl = s.value.avatarUrl,
+                        isStore = false,
+                        name = s.value.displayName,
+                        lines = listOfNotNull(s.value.cityName, s.value.bio?.takeIf { it.isNotBlank() }),
+                        followers = s.value.followerCount,
+                        button = button,
+                        onFollow = viewModel::toggleFollow,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun StoreProfileScreen(
+    onBack: () -> Unit,
+    onOpenProduct: (String) -> Unit,
+    onSignIn: () -> Unit,
+    viewModel: StoreProfileViewModel = hiltViewModel(),
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val button by viewModel.followButton.collectAsStateWithLifecycle()
+    LaunchedEffect(viewModel) { viewModel.signInRequired.collect { onSignIn() } }
+    val title = (state as? Loadable.Ready)?.value?.slug?.let(::handle).orEmpty()
+    ProfileScaffold(title, onBack) {
+        when (val s = state) {
+            Loadable.Loading -> LoadingState()
+            is Loadable.Failed -> notFoundOrError(s.error, R.string.profile_store_not_found, viewModel::load)
+            is Loadable.Ready -> PostsPage(viewModel.posts, onOpenProduct) {
+                item(key = "header") {
+                    val open = when (s.value.openStatus) {
+                        "OPEN" -> stringResource(R.string.profile_store_open)
+                        "CLOSED" -> stringResource(R.string.profile_store_closed)
+                        else -> null
+                    }
+                    ProfileHeader(
+                        avatarUrl = s.value.avatarUrl,
+                        isStore = true,
+                        name = s.value.name,
+                        lines = listOfNotNull(open, s.value.description?.takeIf { it.isNotBlank() }),
+                        followers = s.value.followerCount,
+                        button = button,
+                        onFollow = viewModel::toggleFollow,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfileScaffold(title: String, onBack: () -> Unit, content: @Composable () -> Unit) {
+    Scaffold(
+        containerColor = AzzaTheme.colors.bg,
+        topBar = {
+            TopAppBar(
+                title = { Text(title, style = MaterialTheme.typography.titleMedium) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.profile_back)) }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = AzzaTheme.colors.bg),
+            )
+        },
+    ) { padding -> Box(Modifier.padding(padding).fillMaxSize()) { content() } }
+}
+
+@Composable
+private fun notFoundOrError(error: AppError, notFound: Int, retry: () -> Unit) {
+    if ((error as? AppError.Api)?.status == 404) EmptyState(stringResource(notFound)) else ErrorState(error, onRetry = { retry() })
+}
+
+/** Header item(s) first, then the grid of posts, in one scroll. */
+@Composable
+internal fun PostsPage(pager: CursorPager<PostTile>, onOpenProduct: (String) -> Unit, header: LazyListScope.() -> Unit) {
+    val posts: PagedState<PostTile> by pager.state.collectAsStateWithLifecycle()
+    val listState = rememberLazyListState()
+    LoadMoreEffect(listState, posts.items.size, pager::loadMore)
+    LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+        header()
+        when {
+            posts.loadingFirst -> item { Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) { Text("…") } }
+            posts.items.isEmpty() -> item {
+                Text(stringResource(R.string.profile_no_posts), color = AzzaTheme.colors.textMuted, modifier = Modifier.padding(16.dp))
+            }
+            else -> postGrid(posts.items, onOpenProduct)
+        }
+        loadingMoreFooter(posts.loadingMore)
+    }
+}
+
+/** The web's profile header in its phone order: photo with the counter beside it, name and lines, then the action. */
+@Composable
+internal fun ProfileHeader(
+    avatarUrl: String?,
+    isStore: Boolean,
+    name: String,
+    lines: List<String>,
+    followers: Int,
+    button: FollowButton,
+    onFollow: () -> Unit,
+) {
+    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+            Avatar(url = avatarUrl, isStore = isStore, size = 80)
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(followers.toString(), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    pluralStringResource(R.plurals.profile_followers, followers),
+                    color = AzzaTheme.colors.textSecondary,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(name, style = MaterialTheme.typography.titleSmall)
+            // Written by the person, in their language: laid out by its own direction, not the UI's.
+            lines.forEach {
+                Text(
+                    it,
+                    color = AzzaTheme.colors.textSecondary,
+                    style = MaterialTheme.typography.bodyMedium.copy(textDirection = TextDirection.Content),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+        when (button) {
+            FollowButton.HIDDEN -> Unit
+            FollowButton.FOLLOW -> Button(onClick = onFollow, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.profile_follow)) }
+            FollowButton.FOLLOWING -> OutlinedButton(onClick = onFollow, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.profile_following))
+            }
+        }
+    }
+}
+
+fun NavGraphBuilder.publicProfileScreens(
+    onBack: () -> Unit,
+    onOpenProduct: (String) -> Unit,
+    onSignIn: () -> Unit,
+) {
+    composable<UserProfileRoute> { UserProfileScreen(onBack, onOpenProduct, onSignIn) }
+    composable<StoreProfileRoute> { StoreProfileScreen(onBack, onOpenProduct, onSignIn) }
+}

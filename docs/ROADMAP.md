@@ -45,19 +45,41 @@ Known gaps, deliberately left:
   responses carry no author name.
 - Person and store rows in search are shown, not opened (profiles = phase 3).
 
-## Phase 3 — selling and profiles
+## Phase 3 — selling and profiles (in parts)
 
-- Categories, city feed (`/cities/feed`), following feed (`/feed/following`).
-- Create / edit listing with the taxonomy schema form
+### 3a — profiles, follow, feeds ✅ (2026-10-15)
+
+- **The bottom bar is the web's**: Following · Explore · Map · "+" · Basket ·
+  Profile (Sidebar.tsx `bottomBarItems`), "+" for signed-in people only.
+- **Following** (start tab): `/feed/following`, re-read after a follow or
+  unfollow anywhere in the app.
+- **Explore**: the search box on top; with nothing typed, the Global feed or
+  one City's feed (`/cities/feed`), the city picked from apps/api's own
+  provinces and cities and remembered on the device.
+- **Public profiles** (`/users/by-username/:u`) and **store pages**
+  (`/stores/:idOrSlug`): header, follower count, Follow / Following (hidden
+  on your own page or store), a three-column grid of posts. Post authors,
+  people and stores in search all open these.
+- **Own profile**: Posts and Favorites tabs.
+- Needed one apps/api addition (web repo, branch `api/products-list-scope`):
+  `GET /products?storeId=` and `?sellerId=&personal=true`, so a store's or a
+  person's listings can be read without a token. Until that branch is
+  merged there, store and profile grids need it running.
+
+Not in 3a: followers / following lists (only your own exist in apps/api),
+a person's stores on their public page (no public endpoint lists them).
+
+### Still to do in phase 3
+
+- **3b** Create / edit a listing with the taxonomy schema form
   (`/taxonomy/categories/:id/schema`, `/products`, media upload) — mirror the
-  personal-listing rule (goods only, one item).
-- Public profiles (`/users/by-username/:u`), stores (`/stores/:idOrSlug`),
-  follow, followers, store management, branches, branch inventory.
-- Booking: availability, appointments, provider calendar, deposits.
-- Map (`/map/branches`) — MapLibre Android SDK.
-- Support tickets, reports, appeals, addresses, account settings, email
-  change, password reset.
-- The settings ("more") menu, language switch (per-app locale), theme.
+  personal-listing rule (goods only, one item). Store management, branches,
+  branch inventory.
+- **3c** Booking: availability, appointments, provider calendar, deposits.
+- **3d** Map (`/map/branches`) — MapLibre Android SDK.
+- **3e** Support tickets, reports, appeals, addresses, account settings,
+  email change, password reset; the settings ("more") menu, language switch
+  (per-app locale), theme.
 
 ## Phase 4 — Android-only
 

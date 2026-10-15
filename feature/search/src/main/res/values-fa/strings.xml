@@ -17,4 +17,14 @@
     <string name="search_followers">%1$d دنبال‌کننده</string>
     <string name="search_branches">%1$d شعبه</string>
     <string name="search_verified">تأییدشده</string>
+    <string name="explore_global">سراسری</string>
+    <string name="explore_city">شهر</string>
+    <string name="explore_change_city">تغییر شهر</string>
+    <string name="explore_no_city">برای دیدن آگهی‌های محلی، یک شهر انتخاب کنید.</string>
+    <string name="explore_empty_global">محصولی یافت نشد. آگهی‌های تازه دائماً اضافه می‌شوند.</string>
+    <string name="explore_empty_city">هنوز آگهی‌ای در این شهر موجود نیست.</string>
+    <string name="explore_select_province">یک استان انتخاب کنید</string>
+    <string name="explore_select_city">یک شهر انتخاب کنید</string>
+    <string name="explore_back">بازگشت</string>
+    <string name="explore_cancel">انصراف</string>
 </resources>

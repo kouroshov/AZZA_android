@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.azza.core.designsystem.theme.AzzaTextStyles
 import com.azza.core.designsystem.theme.AzzaTheme
+import com.azza.core.model.PostAuthor
 import com.azza.core.model.ProductCard
 import java.util.Locale
 
@@ -42,11 +43,15 @@ fun ProductPostCard(
     card: ProductCard,
     onOpen: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenAuthor: ((PostAuthor) -> Unit)? = null,
 ) {
     val colors = AzzaTheme.colors
     Column(modifier.fillMaxWidth().clickable(onClick = onOpen)) {
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+            Modifier
+                .fillMaxWidth()
+                .then(if (onOpenAuthor != null) Modifier.clickable { onOpenAuthor(card.author) } else Modifier)
+                .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {

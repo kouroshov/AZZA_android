@@ -11,7 +11,14 @@ import com.azza.core.network.api.DiscoveryApi
 import com.azza.core.network.api.ProductsApi
 import com.azza.core.network.api.UsersApi
 import com.azza.core.network.safeApiCall
+import com.azza.core.common.ApplicationScope
+import com.azza.core.datastore.SessionStore
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
 
@@ -24,6 +31,16 @@ class FeedRepository @Inject constructor(
     /** The Global Explore feed — the web's home page. Keyset-paged: pass the previous page's cursor. */
     suspend fun explore(cursor: String?, pageSize: Int = 20): Outcome<Page<ProductCard>> =
         safeApiCall(json) { api.explore(cursor = cursor, take = pageSize).data }
+            .map { page -> Page(page.items.map { it.toModel(media) }, page.nextCursor, page.hasMore) }
+
+    /** Posts from the people and stores the signed-in person follows (the web's /following). */
+    suspend fun following(cursor: String?, pageSize: Int = 20): Outcome<Page<ProductCard>> =
+        safeApiCall(json) { api.following(cursor, pageSize).data }
+            .map { page -> Page(page.items.map { it.toModel(media) }, page.nextCursor, page.hasMore) }
+
+    /** One or more cities' local feed, by city id. */
+    suspend fun cities(cityIds: List<String>, cursor: String?, pageSize: Int = 20): Outcome<Page<ProductCard>> =
+        safeApiCall(json) { api.cities(cityIds.joinToString(","), cursor, pageSize).data }
             .map { page -> Page(page.items.map { it.toModel(media) }, page.nextCursor, page.hasMore) }
 }
 
@@ -42,6 +59,20 @@ class UserRepository @Inject constructor(
     private val api: UsersApi,
     private val media: MediaUrlResolver,
     private val json: Json,
+    sessionStore: SessionStore,
+    @ApplicationScope scope: CoroutineScope,
 ) {
-    suspend fun me(): Outcome<User> = safeApiCall(json) { api.me().data }.map { it.toModel(media) }
+    private val _me = MutableStateFlow<User?>(null)
+
+    /** The signed-in person, once known; null when signed out. Lets a profile tell "this is me". */
+    val currentUser: StateFlow<User?> = _me.asStateFlow()
+
+    init {
+        scope.launch {
+            sessionStore.isSignedIn.collect { signedIn -> if (signedIn) me() else _me.value = null }
+        }
+    }
+
+    suspend fun me(): Outcome<User> =
+        safeApiCall(json) { api.me().data }.map { it.toModel(media) }.also { if (it is Outcome.Success) _me.value = it.value }
 }

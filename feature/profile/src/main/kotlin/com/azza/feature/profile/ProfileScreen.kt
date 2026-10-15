@@ -1,6 +1,12 @@
 package com.azza.feature.profile
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Tab
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import com.azza.core.ui.postGrid
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -69,13 +75,17 @@ fun ProfileScreen(onSignIn: () -> Unit, onOpenProduct: (String) -> Unit, viewMod
     }
 }
 
-/** The profile header's slots in their phone order: handle, photo, name/bio, then actions (web §4); then favourites. */
+/** The profile header's slots in their phone order: handle, photo, name/bio, then actions (web §4); then Posts | Favorites. */
 @Composable
 private fun Profile(user: User, viewModel: ProfileViewModel, onOpenProduct: (String) -> Unit, onLogout: () -> Unit) {
     val colors = AzzaTheme.colors
+    var tab by rememberSaveable { mutableIntStateOf(0) }
     val favorites by viewModel.favorites.state.collectAsStateWithLifecycle()
+    val posts by viewModel.posts.state.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
-    LoadMoreEffect(listState, favorites.items.size, viewModel.favorites::loadMore)
+    LoadMoreEffect(listState, if (tab == 0) posts.items.size else favorites.items.size) {
+        if (tab == 0) viewModel.posts.loadMore() else viewModel.favorites.loadMore()
+    }
 
     LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
         item(key = "header") {
@@ -91,20 +101,36 @@ private fun Profile(user: User, viewModel: ProfileViewModel, onOpenProduct: (Str
                 OutlinedButton(onClick = onLogout, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.profile_sign_out))
                 }
-                Text(stringResource(R.string.profile_favorites), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
             }
         }
-        when {
-            favorites.loadingFirst -> item { Text("…", modifier = Modifier.padding(16.dp), color = colors.textMuted) }
-            favorites.items.isEmpty() -> item {
-                Text(stringResource(R.string.profile_favorites_empty), modifier = Modifier.padding(16.dp), color = colors.textMuted)
-            }
-            else -> items(favorites.items, key = { it.productId }) { fav ->
-                FavoriteRow(fav, onOpen = { onOpenProduct(fav.productId) }, onRemove = { viewModel.unfavorite(fav.productId) })
-                HorizontalDivider(color = colors.navDivider)
+        item(key = "tabs") {
+            PrimaryTabRow(selectedTabIndex = tab, containerColor = colors.bg) {
+                Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text(stringResource(R.string.profile_tab_posts)) })
+                Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(stringResource(R.string.profile_favorites)) })
             }
         }
-        loadingMoreFooter(favorites.loadingMore)
+        if (tab == 0) {
+            when {
+                posts.loadingFirst -> item { Text("…", modifier = Modifier.padding(16.dp), color = colors.textMuted) }
+                posts.items.isEmpty() -> item {
+                    Text(stringResource(R.string.profile_no_posts), modifier = Modifier.padding(16.dp), color = colors.textMuted)
+                }
+                else -> postGrid(posts.items, onOpenProduct)
+            }
+            loadingMoreFooter(posts.loadingMore)
+        } else {
+            when {
+                favorites.loadingFirst -> item { Text("…", modifier = Modifier.padding(16.dp), color = colors.textMuted) }
+                favorites.items.isEmpty() -> item {
+                    Text(stringResource(R.string.profile_favorites_empty), modifier = Modifier.padding(16.dp), color = colors.textMuted)
+                }
+                else -> items(favorites.items, key = { it.productId }) { fav ->
+                    FavoriteRow(fav, onOpen = { onOpenProduct(fav.productId) }, onRemove = { viewModel.unfavorite(fav.productId) })
+                    HorizontalDivider(color = colors.navDivider)
+                }
+            }
+            loadingMoreFooter(favorites.loadingMore)
+        }
     }
 }
 

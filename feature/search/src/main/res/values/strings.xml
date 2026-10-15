@@ -17,4 +17,14 @@
     <string name="search_followers">%1$d followers</string>
     <string name="search_branches">%1$d branches</string>
     <string name="search_verified">Verified</string>
+    <string name="explore_global">Global</string>
+    <string name="explore_city">City</string>
+    <string name="explore_change_city">Change city</string>
+    <string name="explore_no_city">Pick a city to see local listings.</string>
+    <string name="explore_empty_global">No products found. New listings are added all the time.</string>
+    <string name="explore_empty_city">No listings available in this city yet.</string>
+    <string name="explore_select_province">Select a province</string>
+    <string name="explore_select_city">Select a city</string>
+    <string name="explore_back">Back</string>
+    <string name="explore_cancel">Cancel</string>
 </resources>

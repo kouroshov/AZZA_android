@@ -11,5 +11,8 @@ dependencies {
     api(project(":core:designsystem"))
     implementation(project(":core:model"))
     implementation(project(":core:common"))
+    // PagedState: the shared feed list renders a CursorPager's state.
+    implementation(project(":core:data"))
     api(libs.coil.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
 }

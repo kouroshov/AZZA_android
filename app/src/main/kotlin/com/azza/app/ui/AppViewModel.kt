@@ -2,6 +2,7 @@ package com.azza.app.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.azza.core.data.AuthRepository
 import com.azza.core.data.CartRepository
 import com.azza.core.data.NotificationsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +18,11 @@ import kotlinx.coroutines.launch
 class AppViewModel @Inject constructor(
     cart: CartRepository,
     private val notifications: NotificationsRepository,
+    auth: AuthRepository,
 ) : ViewModel() {
+
+    /** "+" is for signed-in people only, as on the web. */
+    val signedIn: StateFlow<Boolean> = auth.isSignedIn.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val unreadNotifications: StateFlow<Int> = notifications.unreadCount
 
@@ -26,5 +31,13 @@ class AppViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
 
     /** Like the web's badge, refreshed on navigation and when the app comes back to the front. */
-    fun refreshBadges() = viewModelScope.launch { notifications.refreshUnreadCount() }
+    private var lastRefresh = 0L
+
+    fun refreshBadges() {
+        val now = android.os.SystemClock.elapsedRealtime()
+        // Navigation, resume and sign-in arrive together at start-up: one request covers them.
+        if (now - lastRefresh < 2_000) return
+        lastRefresh = now
+        viewModelScope.launch { notifications.refreshUnreadCount() }
+    }
 }

@@ -4,6 +4,9 @@ import com.azza.core.network.ApiBaseUrl
 import com.azza.core.network.BareClient
 import com.azza.core.network.ClientUserAgent
 import com.azza.core.network.api.AuthApi
+import com.azza.core.network.api.FollowApi
+import com.azza.core.network.api.GeographyApi
+import com.azza.core.network.api.StoresApi
 import com.azza.core.network.api.CartApi
 import com.azza.core.network.api.DiscountsApi
 import com.azza.core.network.api.NotificationsApi
@@ -128,4 +131,16 @@ internal object NetworkModule {
     @Provides
     @Singleton
     fun provideNotificationsApi(retrofit: Retrofit): NotificationsApi = retrofit.create(NotificationsApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideStoresApi(retrofit: Retrofit): StoresApi = retrofit.create(StoresApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideFollowApi(retrofit: Retrofit): FollowApi = retrofit.create(FollowApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideGeographyApi(retrofit: Retrofit): GeographyApi = retrofit.create(GeographyApi::class.java)
 }

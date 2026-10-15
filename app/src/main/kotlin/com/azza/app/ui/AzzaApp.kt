@@ -47,7 +47,12 @@ import com.azza.feature.basket.basketScreens
 import com.azza.feature.feed.FeedRoute
 import com.azza.feature.notifications.NotificationsRoute
 import com.azza.feature.notifications.notificationsScreen
+import com.azza.feature.search.SearchRoute
 import com.azza.feature.search.searchScreen
+import com.azza.feature.profile.StoreProfileRoute
+import com.azza.feature.profile.UserProfileRoute
+import com.azza.feature.profile.publicProfileScreens
+import com.azza.core.model.PostAuthor
 import com.azza.feature.feed.feedScreen
 import com.azza.feature.product.ProductRoute
 import com.azza.feature.product.productScreen
@@ -71,6 +76,7 @@ fun AzzaApp(
         destination?.hasRoute(NotificationsRoute::class) == true
     val unread by appViewModel.unreadNotifications.collectAsStateWithLifecycle()
     val basketCount by appViewModel.basketCount.collectAsStateWithLifecycle()
+    val signedIn by appViewModel.signedIn.collectAsStateWithLifecycle()
 
     LaunchedEffect(destination) { appViewModel.refreshBadges() }
     LifecycleResumeEffect(Unit) {
@@ -82,19 +88,39 @@ fun AzzaApp(
     val openPlaced: (String) -> Unit = { id -> navController.navigate(PlacedOrderRoute(id)) }
     val openReceived: (String) -> Unit = { id -> navController.navigate(ReceivedOrderRoute(id)) }
     val signIn: () -> Unit = { navController.navigate(LoginRoute) }
+    val openUser: (String) -> Unit = { username -> navController.navigate(UserProfileRoute(username)) }
+    val openStore: (String) -> Unit = { idOrSlug -> navController.navigate(StoreProfileRoute(idOrSlug)) }
+    val openAuthor: (PostAuthor) -> Unit = { author ->
+        if (author.isStore) openStore(author.storeSlug ?: author.id) else openUser(author.handle)
+    }
 
     Scaffold(
         containerColor = AzzaTheme.colors.bg,
         topBar = { if (showChrome) AzzaTopBar(unread, onNotifications = { navController.navigate(NotificationsRoute) { launchSingleTop = true } }) },
-        bottomBar = { if (showChrome) AzzaBottomBar(destination, navController, basketCount) },
+        bottomBar = { if (showChrome) AzzaBottomBar(destination, navController, basketCount, signedIn) },
     ) { padding ->
         NavHost(
             navController = navController,
             startDestination = FeedRoute,
             modifier = Modifier.padding(padding).consumeWindowInsets(padding),
         ) {
-            feedScreen(onOpenProduct = { id -> navController.navigate(ProductRoute(id, source = "GLOBAL_EXPLORE")) })
-            searchScreen(onOpenProduct = openProduct)
+            feedScreen(
+                onOpenProduct = { id -> navController.navigate(ProductRoute(id, source = "FOLLOWING_FEED")) },
+                onOpenAuthor = openAuthor,
+                onSignIn = signIn,
+                onExplore = { navigateTab(navController, SearchRoute) },
+            )
+            searchScreen(
+                onOpenProduct = { id -> navController.navigate(ProductRoute(id, source = "GLOBAL_EXPLORE")) },
+                onOpenUser = openUser,
+                onOpenStore = openStore,
+                onOpenAuthor = openAuthor,
+            )
+            publicProfileScreens(
+                onBack = navController::popBackStack,
+                onOpenProduct = { id -> navController.navigate(ProductRoute(id, source = "PROFILE")) },
+                onSignIn = signIn,
+            )
             productScreen(
                 onBack = navController::popBackStack,
                 onRequireSignIn = signIn,
@@ -103,7 +129,7 @@ fun AzzaApp(
             profileScreen(onSignIn = signIn, onOpenProduct = { id -> navController.navigate(ProductRoute(id, source = "PROFILE")) })
             basketScreens(
                 onSignIn = signIn,
-                onBrowse = { navController.navigate(FeedRoute) { popUpTo(FeedRoute) { inclusive = false }; launchSingleTop = true } },
+                onBrowse = { navigateTab(navController, SearchRoute) },
                 onOpenProduct = openProduct,
                 onCheckout = { navController.navigate(CheckoutRoute) },
                 onOpenPlaced = { id ->
@@ -154,20 +180,13 @@ private fun AzzaTopBar(unread: Int, onNotifications: () -> Unit) {
 }
 
 @Composable
-private fun AzzaBottomBar(current: NavDestination?, navController: NavHostController, basketCount: Int) {
+private fun AzzaBottomBar(current: NavDestination?, navController: NavHostController, basketCount: Int, signedIn: Boolean) {
     NavigationBar(containerColor = AzzaTheme.colors.bg) {
-        TopLevelDestination.entries.forEach { item ->
+        TopLevelDestination.entries.filter { signedIn || !it.signedInOnly }.forEach { item ->
             val selected = current.isOn(item)
             NavigationBarItem(
                 selected = selected,
-                onClick = {
-                    navController.navigate(item.route) {
-                        // Tabs keep their own back stack and scroll position, like the web's history per page.
-                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                },
+                onClick = { navigateTab(navController, item.route) },
                 icon = {
                     CountBadge(if (item == TopLevelDestination.BASKET) basketCount else 0) {
                         Icon(if (selected) item.selectedIcon else item.icon, contentDescription = stringResource(item.label))
@@ -191,4 +210,13 @@ private fun NavDestination?.isOn(item: TopLevelDestination): Boolean =
 private fun CountBadge(count: Int, content: @Composable () -> Unit) {
     if (count <= 0) return content()
     BadgedBox(badge = { Badge { Text(if (count > 99) "99+" else count.toString()) } }) { content() }
+}
+
+/** Tabs keep their own back stack and scroll position, like the web's history per page. */
+private fun navigateTab(navController: NavHostController, route: Any) {
+    navController.navigate(route) {
+        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
+    }
 }

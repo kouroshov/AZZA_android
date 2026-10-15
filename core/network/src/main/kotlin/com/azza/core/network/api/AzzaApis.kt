@@ -1,6 +1,11 @@
 package com.azza.core.network.api
 
 import com.azza.core.network.model.AddCartItemRequest
+import com.azza.core.network.model.AreaDto
+import com.azza.core.network.model.FollowingSetDto
+import com.azza.core.network.model.ProductsPageDto
+import com.azza.core.network.model.PublicProfileDto
+import com.azza.core.network.model.StoreDto
 import com.azza.core.network.model.ApiEnvelope
 import com.azza.core.network.model.CartDto
 import com.azza.core.network.model.CheckoutRequest
@@ -60,6 +65,40 @@ interface AuthApi {
 interface UsersApi {
     @GET("users/me")
     suspend fun me(): ApiEnvelope<MeDto>
+
+    @GET("users/by-username/{username}")
+    suspend fun byUsername(@Path("username") username: String): ApiEnvelope<PublicProfileDto>
+}
+
+interface StoresApi {
+    /** By id or slug. Public; a suspended or unknown store is 404 STORE_NOT_FOUND. */
+    @GET("stores/{idOrSlug}")
+    suspend fun get(@Path("idOrSlug") idOrSlug: String): ApiEnvelope<StoreDto>
+}
+
+interface FollowApi {
+    @POST("users/{id}/follow")
+    suspend fun followUser(@Path("id") userId: String)
+
+    @DELETE("users/{id}/follow")
+    suspend fun unfollowUser(@Path("id") userId: String)
+
+    @POST("stores/{id}/follow")
+    suspend fun followStore(@Path("id") storeId: String)
+
+    @DELETE("stores/{id}/follow")
+    suspend fun unfollowStore(@Path("id") storeId: String)
+
+    @GET("users/me/following")
+    suspend fun following(): ApiEnvelope<FollowingSetDto>
+}
+
+interface GeographyApi {
+    @GET("geography/provinces")
+    suspend fun provinces(): ApiEnvelope<List<AreaDto>>
+
+    @GET("geography/provinces/{provinceId}/cities")
+    suspend fun cities(@Path("provinceId") provinceId: String): ApiEnvelope<List<AreaDto>>
 }
 
 interface DiscoveryApi {
@@ -69,6 +108,18 @@ interface DiscoveryApi {
         @Query("take") take: Int = 20,
         @Query("categoryId") categoryId: String? = null,
         @Query("q") query: String? = null,
+    ): ApiEnvelope<FeedPageDto>
+
+    /** Posts from the people and stores the caller follows. Authenticated. */
+    @GET("feed/following")
+    suspend fun following(@Query("cursor") cursor: String? = null, @Query("take") take: Int = 20): ApiEnvelope<FeedPageDto>
+
+    /** [cities]: comma-separated city ids (or slugs). */
+    @GET("cities/feed")
+    suspend fun cities(
+        @Query("cities") cities: String,
+        @Query("cursor") cursor: String? = null,
+        @Query("take") take: Int = 20,
     ): ApiEnvelope<FeedPageDto>
 }
 
@@ -83,6 +134,20 @@ interface ProductsApi {
          */
         @Query("source") source: String? = null,
     ): ApiEnvelope<ProductDto>
+
+    /**
+     * Public, ACTIVE listings, newest first. `storeId`: one store's page;
+     * `sellerId` + `personal=true`: one person's personal page (sellerId
+     * alone also matches their stores' listings).
+     */
+    @GET("products")
+    suspend fun list(
+        @Query("sellerId") sellerId: String? = null,
+        @Query("storeId") storeId: String? = null,
+        @Query("personal") personal: Boolean? = null,
+        @Query("cursor") cursor: String? = null,
+        @Query("take") take: Int = 30,
+    ): ApiEnvelope<ProductsPageDto>
 }
 
 interface CartApi {

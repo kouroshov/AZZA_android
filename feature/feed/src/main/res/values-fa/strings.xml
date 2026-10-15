@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feed_empty">هنوز چیزی منتشر نشده است.</string>
+    <string name="feed_following_title">دنبال‌شده‌ها</string>
+    <string name="feed_signed_out">وارد شوید تا آگهی‌های تازهٔ افراد و فروشگاه‌هایی را که دنبال می‌کنید ببینید.</string>
+    <string name="feed_sign_in">ورود</string>
+    <string name="feed_explore_cta">کاوش در بازار</string>
+    <string name="feed_following_empty">هنوز کسی را دنبال نمی‌کنید. فروشندگان و فروشگاه‌ها را دنبال کنید تا آگهی‌های تازه‌شان اینجا نمایش داده شود.</string>
 </resources>

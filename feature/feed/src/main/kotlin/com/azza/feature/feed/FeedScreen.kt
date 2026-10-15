@@ -1,83 +1,69 @@
 package com.azza.feature.feed
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.azza.core.designsystem.theme.AzzaTheme
-import com.azza.core.ui.EmptyState
-import com.azza.core.ui.ErrorState
+import com.azza.core.model.PostAuthor
 import com.azza.core.ui.LoadingState
-import com.azza.core.ui.ProductPostCard
+import com.azza.core.ui.ProductFeed
 import kotlinx.serialization.Serializable
 
+/** The app's start destination — the web's phone bar puts /following first. */
 @Serializable data object FeedRoute
 
-fun NavGraphBuilder.feedScreen(onOpenProduct: (String) -> Unit) {
-    composable<FeedRoute> { FeedScreen(onOpenProduct = onOpenProduct) }
+fun NavGraphBuilder.feedScreen(
+    onOpenProduct: (String) -> Unit,
+    onOpenAuthor: (PostAuthor) -> Unit,
+    onSignIn: () -> Unit,
+    onExplore: () -> Unit,
+) {
+    composable<FeedRoute> { FollowingFeedScreen(onOpenProduct, onOpenAuthor, onSignIn, onExplore) }
 }
 
 @Composable
-fun FeedScreen(
+fun FollowingFeedScreen(
     onOpenProduct: (String) -> Unit,
-    viewModel: FeedViewModel = hiltViewModel(),
+    onOpenAuthor: (PostAuthor) -> Unit,
+    onSignIn: () -> Unit,
+    onExplore: () -> Unit,
+    viewModel: FollowingFeedViewModel = hiltViewModel(),
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val listState = rememberLazyListState()
-
-    val nearEnd by remember {
-        derivedStateOf {
-            val last = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            last >= listState.layoutInfo.totalItemsCount - 4
-        }
-    }
-    LaunchedEffect(nearEnd, state.items.size) { if (nearEnd) viewModel.loadMore() }
-
-    when {
-        state.loadingFirstPage -> LoadingState()
-        state.items.isEmpty() && state.error != null ->
-            ErrorState(state.error!!, onRetry = { viewModel.loadFirstPage() })
-        else -> PullToRefreshBox(
-            isRefreshing = state.refreshing,
-            onRefresh = { viewModel.loadFirstPage(isRefresh = true) },
-            modifier = Modifier.fillMaxSize(),
+    val signedIn by viewModel.signedIn.collectAsStateWithLifecycle()
+    when (signedIn) {
+        null -> LoadingState()
+        false -> Column(
+            Modifier.fillMaxSize().padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            if (state.items.isEmpty()) {
-                EmptyState(stringResource(R.string.feed_empty))
-            } else {
-                LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
-                    items(state.items, key = { it.id }) { card ->
-                        ProductPostCard(card = card, onOpen = { onOpenProduct(card.id) })
-                        HorizontalDivider(color = AzzaTheme.colors.navDivider)
-                    }
-                    if (state.loadingMore) {
-                        item {
-                            Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator()
-                            }
-                        }
-                    }
-                }
-            }
+            Text(stringResource(R.string.feed_following_title), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.feed_signed_out), color = AzzaTheme.colors.textSecondary, textAlign = TextAlign.Center)
+            Button(onClick = onSignIn) { Text(stringResource(R.string.feed_sign_in)) }
+            OutlinedButton(onClick = onExplore) { Text(stringResource(R.string.feed_explore_cta)) }
         }
+        true -> ProductFeed(
+            pager = viewModel.pager,
+            emptyText = stringResource(R.string.feed_following_empty),
+            onOpenProduct = onOpenProduct,
+            onOpenAuthor = onOpenAuthor,
+            emptyAction = { Button(onClick = onExplore) { Text(stringResource(R.string.feed_explore_cta)) } },
+        )
     }
 }

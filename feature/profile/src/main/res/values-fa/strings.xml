@@ -9,4 +9,17 @@
     <string name="profile_fav_unpublished">منتشر نشده</string>
     <string name="profile_fav_out_of_stock">ناموجود</string>
     <string name="profile_fav_remove">حذف</string>
+    <string name="profile_tab_posts">پست‌ها</string>
+    <string name="profile_no_posts">هنوز پستی ندارد.</string>
+    <string name="profile_follow">دنبال کردن</string>
+    <string name="profile_following">دنبال می‌کنید</string>
+    <string name="profile_back">بازگشت</string>
+    <string name="profile_user_not_found">این پروفایل وجود ندارد.</string>
+    <string name="profile_store_not_found">فروشگاه پیدا نشد</string>
+    <string name="profile_store_open">اکنون باز است</string>
+    <string name="profile_store_closed">اکنون بسته است</string>
+    <plurals name="profile_followers">
+        <item quantity="one">دنبال‌کننده</item>
+        <item quantity="other">دنبال‌کننده</item>
+    </plurals>
 </resources>
