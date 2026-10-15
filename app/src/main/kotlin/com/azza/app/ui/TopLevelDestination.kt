@@ -19,6 +19,7 @@ import com.azza.app.R
 import com.azza.feature.basket.BasketRoute
 import com.azza.feature.create.CreateRoute
 import com.azza.feature.feed.FeedRoute
+import com.azza.feature.map.MapRoute
 import com.azza.feature.profile.ProfileRoute
 import com.azza.feature.search.SearchRoute
 import kotlin.reflect.KClass

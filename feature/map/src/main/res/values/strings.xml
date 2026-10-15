@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="map_close">Close</string>
+    <string name="map_open_now">Open now</string>
+    <string name="map_closed_now">Closed now</string>
+    <string name="map_hours_unknown">Opening hours not published</string>
+    <plurals name="map_open_store">
+        <item quantity="one">Open the store · %d product</item>
+        <item quantity="other">Open the store · %d products</item>
+    </plurals>
+</resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="map_close">بستن</string>
+    <string name="map_open_now">اکنون باز است</string>
+    <string name="map_closed_now">اکنون بسته است</string>
+    <string name="map_hours_unknown">ساعات کاری ثبت نشده</string>
+    <plurals name="map_open_store">
+        <item quantity="one">دیدن فروشگاه · %d محصول</item>
+        <item quantity="other">دیدن فروشگاه · %d محصول</item>
+    </plurals>
+</resources>

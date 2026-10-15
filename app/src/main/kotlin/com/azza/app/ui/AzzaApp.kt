@@ -49,6 +49,7 @@ import com.azza.feature.create.CreateRoute
 import com.azza.feature.create.EditListingRoute
 import com.azza.feature.create.createScreen
 import com.azza.feature.feed.FeedRoute
+import com.azza.feature.map.mapScreen
 import com.azza.feature.notifications.NotificationsRoute
 import com.azza.feature.notifications.notificationsScreen
 import com.azza.feature.search.SearchRoute
@@ -169,7 +170,7 @@ fun AzzaApp(
                     navController.popBackStack<ProductRoute>(inclusive = true) || navController.popBackStack()
                 },
             )
-            pendingScreens()
+            mapScreen(onOpenStore = openStore, onOpenProduct = { id -> navController.navigate(ProductRoute(id, source = "MAP")) })
         }
     }
 }

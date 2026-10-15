@@ -119,9 +119,24 @@ the store's Timetable tab; they come with store management (3e). The
 provider side was not exercised on the emulator (the test account
 provides no timed service).
 
+### 3d — map ✅ (2026-10-15)
+
+- **The "AZZA Map" tab** (the web's `/`): MapLibre GL with the web's tiles
+  (OpenFreeMap "liberty", no key), store branches loaded for the visible
+  area (`/map/branches`), blue when open now, grey otherwise. A dot opens
+  the store preview (`/map/branches/:id`): open status, address, some of
+  its products, and "Open the store".
+- apps/api refuses an area wider than 22° a side; zoomed further out, the
+  app asks for the middle of the screen.
+- Found and fixed in apps/api (web repo, branch `api/android-support`):
+  the public map counted and previewed **unpublished** listings (a DRAFT
+  with branch stock showed its title and price to anyone). e2e added.
+
+Not in 3d: the web's category filter and store list beside the map, "near
+me" (location permission), clustering.
+
 ### Still to do in phase 3
 
-- **3d** Map (`/map/branches`) — MapLibre Android SDK.
 - **3e** Support tickets, reports, appeals, addresses, account settings,
   email change, password reset; the settings ("more") menu, language switch
   (per-app locale), theme.
