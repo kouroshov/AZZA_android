@@ -14,10 +14,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import java.text.DateFormat
-import java.text.SimpleDateFormat
-import java.util.Locale
-import java.util.TimeZone
 
 /** Calls [onLoadMore] when the list is within a few rows of its end. */
 @Composable
@@ -37,12 +33,3 @@ fun LazyListScope.loadingMoreFooter(visible: Boolean) {
         Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
     }
 }
-
-/**
- * apps/api's ISO-8601 instants ("2026-10-14T17:24:21.593Z") as a medium date
- * in the current locale. minSdk 24 has no java.time, hence SimpleDateFormat.
- */
-fun formatInstantDate(iso: String, locale: Locale = Locale.getDefault()): String = runCatching {
-    val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX", Locale.US).apply { timeZone = TimeZone.getTimeZone("UTC") }
-    DateFormat.getDateInstance(DateFormat.MEDIUM, locale).format(parser.parse(iso)!!)
-}.getOrDefault(iso.take(10))

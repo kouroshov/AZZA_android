@@ -10,4 +10,23 @@
     <string name="product_view_basket">View basket</string>
     <string name="product_not_available">This product is not available.</string>
     <string name="product_edit">Edit</string>
+    <string name="booking_title">Book a time</string>
+    <string name="booking_not_open">Booking is not open for this service yet.</string>
+    <string name="booking_session_length">%1$d min session</string>
+    <string name="booking_earlier">Earlier</string>
+    <string name="booking_later">Later</string>
+    <string name="booking_none_this_week">No free times in these days. Try the next ones.</string>
+    <string name="booking_timezone_note">Times are shown in the provider\'s timezone (%1$s).</string>
+    <string name="booking_note_label">A note for the provider (optional)</string>
+    <string name="booking_pay_on_site">Nothing is charged now — you pay at the appointment.</string>
+    <string name="booking_deposit_required">%1$d%% deposit to keep this time: %2$s</string>
+    <string name="booking_book_action">Book this time</string>
+    <string name="booking_hold_action">Hold this time</string>
+    <string name="booking_booked">Booked: %1$s</string>
+    <string name="booking_held">Held: %1$s. Pay the deposit to keep it — it is in your basket.</string>
+    <string name="booking_go_to_basket">Go to the basket</string>
+    <string name="booking_my_appointments">My appointments</string>
+    <string name="booking_error_slot_taken">Someone just took that time. Here are the times still free.</string>
+    <string name="booking_error_not_available">That time is no longer available. Please pick another one.</string>
+    <string name="booking_error_self">You cannot book an appointment with yourself.</string>
 </resources>

@@ -4,7 +4,6 @@
     <string name="basket_tab_placed">سفارش‌های من</string>
     <string name="basket_tab_received">سفارش‌های دریافتی</string>
     <string name="basket_tab_appointments">قرارهای ملاقات</string>
-    <string name="basket_appointments_soon">نوبت‌ها به‌زودی به اپ می‌آیند. تا آن موقع از وب‌سایت در دسترس‌اند.</string>
     <string name="basket_empty_heading">سبد خرید شما خالی است</string>
     <string name="basket_empty_body">برای ادامهٔ خرید، محصولاتی به سبد خود اضافه کنید.</string>
     <string name="basket_browse">مشاهدهٔ محصولات</string>
@@ -92,4 +91,33 @@
         <item quantity="one">%d کالا</item>
         <item quantity="other">%d کالا</item>
     </plurals>
+    <string name="appt_tab_mine">قرارهای من</string>
+    <string name="appt_tab_received">تقویم من</string>
+    <string name="appt_group_unpaid">بیعانه‌های پرداخت‌نشده</string>
+    <string name="appt_group_unpaid_hint">هر کدام تا پرداخت بیعانه نگه داشته می‌شود. با پایان مهلت، ساعت به بقیه بازمی‌گردد.</string>
+    <string name="appt_group_upcoming">قرارهای پیش رو</string>
+    <string name="appt_group_past">قرارهای گذشته</string>
+    <string name="appt_empty_mine">هنوز قرار ملاقاتی ندارید.</string>
+    <string name="appt_empty_received">هنوز کسی با شما قرار نگذاشته است.</string>
+    <string name="appt_hold_expires_in">%1$d دقیقه مانده</string>
+    <string name="appt_hold_expired">مهلت این نگه‌داشت تمام شده است.</string>
+    <string name="appt_deposit_amount">بیعانهٔ قابل پرداخت: %1$s</string>
+    <string name="appt_deposit_paid">بیعانه پرداخت شد: %1$s</string>
+    <string name="appt_pay_deposit">پرداخت %1$s</string>
+    <string name="appt_contact_hint">فقط همان چیزی که ارائه‌دهنده برای پذیرش شما لازم دارد.</string>
+    <string name="appt_contact_name">نام و نام خانوادگی</string>
+    <string name="appt_contact_email">ایمیل</string>
+    <string name="appt_contact_address">آدرس محل سکونت (اختیاری)</string>
+    <string name="appt_contact_invalid">نام و ایمیل را بررسی کنید.</string>
+    <string name="appt_cancel">لغو</string>
+    <string name="appt_complete">انجام شد</string>
+    <string name="appt_no_show">غیبت</string>
+    <string name="appt_status_held">نگه‌داشته</string>
+    <string name="appt_status_confirmed">تأییدشده</string>
+    <string name="appt_status_completed">انجام‌شده</string>
+    <string name="appt_status_cancelled">لغوشده</string>
+    <string name="appt_status_no_show">غیبت</string>
+    <string name="appt_status_expired">منقضی</string>
+    <string name="appt_with">با %1$s</string>
+    <string name="appt_note">یادداشت: %1$s</string>
 </resources>

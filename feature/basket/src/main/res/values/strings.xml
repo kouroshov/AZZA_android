@@ -4,7 +4,6 @@
     <string name="basket_tab_placed">Orders placed</string>
     <string name="basket_tab_received">Orders received</string>
     <string name="basket_tab_appointments">Appointments</string>
-    <string name="basket_appointments_soon">Appointments are coming to the app soon. Until then they are on the website.</string>
     <string name="basket_empty_heading">Your basket is empty</string>
     <string name="basket_empty_body">Add some products to your cart to continue shopping.</string>
     <string name="basket_browse">Browse Products</string>
@@ -92,4 +91,33 @@
         <item quantity="one">%d item</item>
         <item quantity="other">%d items</item>
     </plurals>
+    <string name="appt_tab_mine">My appointments</string>
+    <string name="appt_tab_received">My calendar</string>
+    <string name="appt_group_unpaid">Deposits to pay</string>
+    <string name="appt_group_unpaid_hint">Each of these is held until its deposit is paid. When the time runs out, the hour goes back to everyone else.</string>
+    <string name="appt_group_upcoming">Upcoming appointments</string>
+    <string name="appt_group_past">Past appointments</string>
+    <string name="appt_empty_mine">You have no appointments yet.</string>
+    <string name="appt_empty_received">Nobody has booked a time with you yet.</string>
+    <string name="appt_hold_expires_in">%1$d min left</string>
+    <string name="appt_hold_expired">This hold has run out.</string>
+    <string name="appt_deposit_amount">Deposit to pay now: %1$s</string>
+    <string name="appt_deposit_paid">Deposit paid: %1$s</string>
+    <string name="appt_pay_deposit">Pay %1$s</string>
+    <string name="appt_contact_hint">Only what the provider needs to expect you.</string>
+    <string name="appt_contact_name">Full name</string>
+    <string name="appt_contact_email">Email</string>
+    <string name="appt_contact_address">Home address (optional)</string>
+    <string name="appt_contact_invalid">Check the name and the email address.</string>
+    <string name="appt_cancel">Cancel</string>
+    <string name="appt_complete">Mark done</string>
+    <string name="appt_no_show">No-show</string>
+    <string name="appt_status_held">Held</string>
+    <string name="appt_status_confirmed">Confirmed</string>
+    <string name="appt_status_completed">Done</string>
+    <string name="appt_status_cancelled">Cancelled</string>
+    <string name="appt_status_no_show">No-show</string>
+    <string name="appt_status_expired">Expired</string>
+    <string name="appt_with">With %1$s</string>
+    <string name="appt_note">Note: %1$s</string>
 </resources>

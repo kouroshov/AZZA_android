@@ -10,4 +10,23 @@
     <string name="product_view_basket">دیدن سبد</string>
     <string name="product_not_available">این محصول در دسترس نیست.</string>
     <string name="product_edit">ویرایش</string>
+    <string name="booking_title">رزرو وقت</string>
+    <string name="booking_not_open">رزرو برای این خدمت هنوز باز نشده است.</string>
+    <string name="booking_session_length">جلسهٔ %1$d دقیقه‌ای</string>
+    <string name="booking_earlier">قبل‌تر</string>
+    <string name="booking_later">بعدتر</string>
+    <string name="booking_none_this_week">در این روزها وقت آزادی نیست. روزهای بعد را ببینید.</string>
+    <string name="booking_timezone_note">ساعت‌ها به وقت ارائه‌دهنده (%1$s) نمایش داده می‌شود.</string>
+    <string name="booking_note_label">یادداشت برای ارائه‌دهنده (اختیاری)</string>
+    <string name="booking_pay_on_site">اکنون مبلغی دریافت نمی‌شود — پرداخت هنگام مراجعه انجام می‌شود.</string>
+    <string name="booking_deposit_required">برای نگه‌داشتن این ساعت، %1$d٪ بیعانه: %2$s</string>
+    <string name="booking_book_action">رزرو این ساعت</string>
+    <string name="booking_hold_action">نگه‌داشتن این ساعت</string>
+    <string name="booking_booked">رزرو شد: %1$s</string>
+    <string name="booking_held">نگه داشته شد: %1$s. برای حفظ آن، بیعانه را پرداخت کنید — در سبد خرید شماست.</string>
+    <string name="booking_go_to_basket">رفتن به سبد خرید</string>
+    <string name="booking_my_appointments">قرارهای من</string>
+    <string name="booking_error_slot_taken">این ساعت همین حالا رزرو شد. ساعت‌های آزاد باقی‌مانده را ببینید.</string>
+    <string name="booking_error_not_available">این ساعت دیگر در دسترس نیست. لطفاً ساعت دیگری انتخاب کنید.</string>
+    <string name="booking_error_self">نمی‌توانید با خودتان قرار ملاقات بگذارید.</string>
 </resources>

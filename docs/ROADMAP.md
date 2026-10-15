@@ -94,9 +94,33 @@ deposit for a bookable listing (3c), reordering photos, store creation and
 management (needs a seller subscription — 3e), posting from a store was
 not exercised on the emulator (the test account has no store).
 
+### 3c — booking ✅ (2026-10-15)
+
+- **On a bookable listing** (`/products/:id/booking[/availability]`): a week
+  of days with their free times, shown in the provider's timezone, a note,
+  then Book (confirmed at once, paid at the visit) or Hold (when a deposit
+  keeps the time). A lost race is apps/api's 409 SLOT_TAKEN and the week
+  re-reads. No basket button on a bookable listing; none on your own.
+- **Basket → Appointments**: deposits to pay (with the hold's countdown;
+  name, email and an optional address, then the deposit as its own order,
+  paid like any order), upcoming, past; cancel. **My calendar**: what was
+  booked with you, with the customer's contact details and note; done /
+  no-show / cancel.
+- Dates follow the web's Intl output: Jalali calendar and Persian digits in
+  Persian (android.icu), e.g. «پنجشنبه ۲۳ مهر، ۱۵:۰۰».
+- Needed an apps/api fix (web repo, branch `api/android-support`): a
+  deposit checkout (`appointmentIds`, no `items`) used to take the server
+  cart too whenever it held anything — the app's basket is that cart.
+  Now it never does; e2e test added, booking + orders 84/84.
+
+Not in 3c: editing the provider's working week and booking settings
+(`/booking/calendar`, `PUT /products/:id/booking`) — the web keeps those on
+the store's Timetable tab; they come with store management (3e). The
+provider side was not exercised on the emulator (the test account
+provides no timed service).
+
 ### Still to do in phase 3
 
-- **3c** Booking: availability, appointments, provider calendar, deposits.
 - **3d** Map (`/map/branches`) — MapLibre Android SDK.
 - **3e** Support tickets, reports, appeals, addresses, account settings,
   email change, password reset; the settings ("more") menu, language switch

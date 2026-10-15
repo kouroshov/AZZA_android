@@ -40,6 +40,7 @@ import com.azza.feature.auth.LoginRoute
 import com.azza.feature.auth.RegisterRoute
 import com.azza.feature.auth.authScreens
 import com.azza.feature.basket.BasketRoute
+import com.azza.feature.basket.BasketTab
 import com.azza.feature.basket.CheckoutRoute
 import com.azza.feature.basket.PlacedOrderRoute
 import com.azza.feature.basket.ReceivedOrderRoute
@@ -129,6 +130,7 @@ fun AzzaApp(
                 onRequireSignIn = signIn,
                 onOpenBasket = { navController.navigate(BasketRoute()) { launchSingleTop = true } },
                 onEdit = { id -> navController.navigate(EditListingRoute(id)) },
+                onOpenAppointments = { navController.navigate(BasketRoute(tab = BasketTab.APPOINTMENTS.ordinal)) },
             )
             profileScreen(onSignIn = signIn, onOpenProduct = { id -> navController.navigate(ProductRoute(id, source = "PROFILE")) })
             basketScreens(

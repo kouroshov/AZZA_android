@@ -44,6 +44,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.azza.core.data.CursorPager
@@ -95,7 +96,7 @@ fun BasketScreen(
             BasketTab.BASKET -> BasketTabContent(viewModel, onBrowse, onOpenProduct, onCheckout)
             BasketTab.PLACED -> OrdersTab(viewModel.placed, R.string.basket_placed_empty, { it.orderId }, onOpenPlaced) { PlacedRow(it) }
             BasketTab.RECEIVED -> OrdersTab(viewModel.received, R.string.basket_received_empty, { it.sellerOrderId }, onOpenReceived) { ReceivedRow(it) }
-            BasketTab.APPOINTMENTS -> EmptyState(stringResource(R.string.basket_appointments_soon))
+            BasketTab.APPOINTMENTS -> AppointmentsTab(onOpenOrder = onOpenPlaced, onOpenProduct = onOpenProduct)
         }
     }
 }
@@ -211,7 +212,11 @@ private fun <T> OrdersTab(
     row: @Composable (T) -> Unit,
 ) {
     val state by pager.state.collectAsStateWithLifecycle()
-    LaunchedEffect(pager) { pager.refresh() }
+    // On first show, and again on returning (an order just paid or shipped elsewhere).
+    LifecycleResumeEffect(pager) {
+        pager.refresh(showSpinner = true)
+        onPauseOrDispose { }
+    }
     val listState = rememberLazyListState()
     LoadMoreEffect(listState, state.items.size, pager::loadMore)
     when {

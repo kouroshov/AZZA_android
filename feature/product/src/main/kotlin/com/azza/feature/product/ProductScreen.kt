@@ -73,8 +73,17 @@ fun NavGraphBuilder.productScreen(
     onRequireSignIn: () -> Unit,
     onOpenBasket: () -> Unit,
     onEdit: (String) -> Unit,
+    onOpenAppointments: () -> Unit,
 ) {
-    composable<ProductRoute> { ProductScreen(onBack = onBack, onRequireSignIn = onRequireSignIn, onOpenBasket = onOpenBasket, onEdit = onEdit) }
+    composable<ProductRoute> {
+        ProductScreen(
+            onBack = onBack,
+            onRequireSignIn = onRequireSignIn,
+            onOpenBasket = onOpenBasket,
+            onEdit = onEdit,
+            onOpenAppointments = onOpenAppointments,
+        )
+    }
 }
 
 @Composable
@@ -83,6 +92,7 @@ fun ProductScreen(
     onRequireSignIn: () -> Unit,
     onOpenBasket: () -> Unit,
     onEdit: (String) -> Unit,
+    onOpenAppointments: () -> Unit,
     viewModel: ProductViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -160,7 +170,13 @@ fun ProductScreen(
             when (val s = state) {
                 ProductUiState.Loading -> LoadingState()
                 is ProductUiState.Failed -> ErrorState(s.error, onRetry = viewModel::load)
-                is ProductUiState.Ready -> ProductBody(s.product)
+                is ProductUiState.Ready -> ProductBody(s.product) {
+                    // A bookable listing is booked on its timetable, not through the basket (BOOKING_REQUIRED);
+                    // you cannot book yourself (BOOKING_SELF_NOT_ALLOWED).
+                    if (s.product.offeringKind == OfferingKind.BOOKABLE && !isMine) {
+                        BookingPanel(onRequireSignIn = onRequireSignIn, onOpenAppointments = onOpenAppointments)
+                    }
+                }
             }
         }
     }
@@ -168,7 +184,7 @@ fun ProductScreen(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ProductBody(product: ProductDetail) {
+private fun ProductBody(product: ProductDetail, extra: @Composable () -> Unit = {}) {
     val colors = AzzaTheme.colors
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         val images = product.imageUrls
@@ -227,6 +243,7 @@ private fun ProductBody(product: ProductDetail) {
                 Text(product.description!!, style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
             }
         }
+        extra()
     }
 }
 

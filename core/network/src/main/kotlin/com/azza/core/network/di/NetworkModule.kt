@@ -4,6 +4,7 @@ import com.azza.core.network.ApiBaseUrl
 import com.azza.core.network.BareClient
 import com.azza.core.network.ClientUserAgent
 import com.azza.core.network.api.AuthApi
+import com.azza.core.network.api.BookingApi
 import com.azza.core.network.api.CategoriesApi
 import com.azza.core.network.api.ListingsApi
 import com.azza.core.network.api.FollowApi
@@ -153,4 +154,8 @@ internal object NetworkModule {
     @Provides
     @Singleton
     fun provideListingsApi(retrofit: Retrofit): ListingsApi = retrofit.create(ListingsApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideBookingApi(retrofit: Retrofit): BookingApi = retrofit.create(BookingApi::class.java)
 }
