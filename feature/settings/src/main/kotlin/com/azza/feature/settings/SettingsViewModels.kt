@@ -41,6 +41,10 @@ class SettingsViewModel @Inject constructor(
 
     fun setTheme(choice: ThemeChoice) = viewModelScope.launch { account.setTheme(choice) }
 
+    val phoneNotifications: StateFlow<Boolean> = account.phoneNotifications.stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    fun setPhoneNotifications(on: Boolean) = viewModelScope.launch { account.setPhoneNotifications(on) }
+
     fun signOut() = viewModelScope.launch { auth.logout() }
 }
 

@@ -28,4 +28,5 @@
     <string name="report_reason_inappropriate">محتوای نامناسب</string>
     <string name="report_reason_harassment">آزار یا توهین</string>
     <string name="report_reason_other">مورد دیگر</string>
+    <string name="share">اشتراک‌گذاری</string>
 </resources>

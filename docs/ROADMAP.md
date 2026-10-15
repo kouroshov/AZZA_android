@@ -160,24 +160,70 @@ addresses; moderation appeals; creating and managing a store (needs a
 seller subscription), and with it posting from a store and the provider's
 timetable editor.
 
-## Phase 4 — Android-only
+## Phase 4 — Android-only (in parts)
 
-Needs a decision and, for some, backend work in apps/api first:
-- **Push notifications.** Today notifications are in-app only. FCM is not
-  reliably reachable in Iran — decide FCM vs. a local provider (e.g.
-  Pushe/Najva) or a WorkManager poll of `/notifications/unread-count`.
-  Needs a device-token table + endpoint in apps/api.
-- **Barcode scanning** of the EAN-13 codes every product already has
-  (CameraX + ML Kit, or ZXing — ML Kit needs Play Services).
-- Camera-first listing creation, share sheet / deep links
-  (`https://<domain>/…` App Links → the same screens), home-screen widgets,
-  offline cache (Room) of the feed and own data.
-- Biometric unlock of the stored session.
+Decided 2026-10-15: notifications by polling (not FCM / an Iranian push
+provider); this round builds 4a–4d below; biometric unlock waits.
+
+### 4a — notifications on the phone ✅ (2026-10-15)
+
+- **Polling, not push.** FCM is unreliable in Iran and a local provider
+  (Pushe/Najva) needs an account and apps/api work. WorkManager runs
+  `NotificationPollWorker` about every 15 minutes (Android's minimum),
+  only on a network, only while signed in and switched on. It reads the
+  first page of `/notifications` and posts what is unread and newer than
+  the last poll — the first poll after sign-in only draws that line, so a
+  phone is never flooded with history. No apps/api change.
+- Up to four entries, more as one "N new notifications"; a tap opens the
+  in-app list, which clears the shade. Signing out (or switching it off)
+  stops the work and clears the shade; the line is reset per account.
+- Android 13+: the permission is asked once, after sign-in. Settings has
+  "Notifications on this phone".
+- The text is the in-app list's own (`NotificationText.kt`), in the app's
+  language (below Android 13, once the app has been opened in that process;
+  before that, the phone's).
+- Real push later replaces `NotificationPolling` only; `SystemNotifications`
+  stays.
+
+### 4b — barcode scanning ✅ (2026-10-15)
+
+- Explore's search field has a scan button when empty. CameraX + **ZXing**
+  (pure Java): ML Kit's "bundled" barcode library still depends on Play
+  Services libraries, and many phones in Iran have none. EAN-13 only,
+  read level or sideways, check digit verified; the torch can be switched
+  on; the 13 digits can be typed instead (no camera, or a worn label).
+- apps/api (web repo, branch `api/android-support`): new public
+  `GET /products/barcode/:code` → `{ productId }`, for exactly the listings
+  `GET /products/:id` shows. e2e in `geography-stores`.
+
+### 4c — share and deep links ✅ (2026-10-15)
+
+- **Share** on a listing, a person's page and a store page: the phone's
+  share sheet with the title and the website's address (`WebLinks`, the
+  web's paths `/store/<id>`, `/u/<username>`, `/stores/<slug>`).
+- **Links open in the app**: the same three paths, with or without a
+  locale (`/fa/…`, `/ckb/…`). Any other page on the site is handed back to
+  the browser. The origin comes from the build: `azza.webBaseUrl` in
+  `local.properties` for debug (default `http://10.0.2.2:3000`, next dev
+  on the PC), `https://azza.example` (placeholder) for release.
+- **App Links** (`autoVerify`): the website now serves
+  `/.well-known/assetlinks.json` from `ANDROID_APP_PACKAGE` /
+  `ANDROID_CERT_SHA256` (web repo, branch `api/android-support`). Until
+  the release key's fingerprint is set there, Android asks which app to
+  open a link with instead of opening AZZA directly.
+
+### Still to do in phase 4
+
+- **4d** Offline cache (Room) of the feed and your own data; a home-screen
+  widget.
+- Later: biometric unlock; camera-first listing creation; real push.
 
 ## Before the first release
 
 - Confirm the `applicationId` (`com.azza.app` now — permanent once uploaded).
-- The production apps/api URL (https) in `app/build.gradle.kts`.
+- The production apps/api URL (https) and website origin (`webLinks(…)`)
+  in `app/build.gradle.kts`; the release key's SHA-256 in the website's
+  `ANDROID_CERT_SHA256` so App Links verify.
 - Signing key (kept out of git), Play Console / Cafe Bazaar / Myket listing.
   Bazaar and Myket matter more than Play for Iranian users.
 - Fonts: bundle the web's Geist + Noto Sans Arabic (or Vazirmatn) as

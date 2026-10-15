@@ -35,6 +35,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -118,6 +119,7 @@ fun SettingsScreen(
 ) {
     val signedIn by viewModel.signedIn.collectAsStateWithLifecycle()
     val theme by viewModel.theme.collectAsStateWithLifecycle()
+    val phoneNotifications by viewModel.phoneNotifications.collectAsStateWithLifecycle()
     // The per-app language, as Android stores it (AppCompat keeps it below Android 13).
     val current = AppCompatDelegate.getApplicationLocales().toLanguageTags()
     Page(stringResource(R.string.settings_title), onBack) {
@@ -145,6 +147,18 @@ fun SettingsScreen(
                         .forEach { (choice, label) ->
                             FilterChip(theme == choice, { viewModel.setTheme(choice) }, { Text(stringResource(label)) })
                         }
+                }
+            }
+            if (signedIn) {
+                androidx.compose.foundation.layout.Row(
+                    Modifier.fillMaxWidth().clickable { viewModel.setPhoneNotifications(!phoneNotifications) }.padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(stringResource(R.string.settings_phone_notifications), style = MaterialTheme.typography.bodyLarge)
+                        Text(stringResource(R.string.settings_phone_notifications_hint), style = MaterialTheme.typography.bodySmall, color = AzzaTheme.colors.textMuted)
+                    }
+                    Switch(checked = phoneNotifications, onCheckedChange = viewModel::setPhoneNotifications)
                 }
             }
             HorizontalDivider(color = AzzaTheme.colors.navDivider, modifier = Modifier.padding(vertical = 8.dp))

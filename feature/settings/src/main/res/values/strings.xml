@@ -54,4 +54,6 @@
     <string name="support_cat_store">A store</string>
     <string name="support_cat_abuse">Abuse or safety</string>
     <string name="support_cat_other">Something else</string>
+    <string name="settings_phone_notifications">Notifications on this phone</string>
+    <string name="settings_phone_notifications_hint">New activity appears in the notification shade. Checked about every 15 minutes.</string>
 </resources>

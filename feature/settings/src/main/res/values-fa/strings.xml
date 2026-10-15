@@ -54,4 +54,6 @@
     <string name="support_cat_store">یک فروشگاه</string>
     <string name="support_cat_abuse">سوءاستفاده یا ایمنی</string>
     <string name="support_cat_other">موضوع دیگر</string>
+    <string name="settings_phone_notifications">اعلان روی این گوشی</string>
+    <string name="settings_phone_notifications_hint">فعالیت‌های تازه در نوار اعلان گوشی نشان داده می‌شود. حدوداً هر ۱۵ دقیقه بررسی می‌شود.</string>
 </resources>

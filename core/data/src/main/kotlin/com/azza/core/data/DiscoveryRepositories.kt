@@ -3,6 +3,7 @@ package com.azza.core.data
 import com.azza.core.common.ApplicationScope
 import com.azza.core.common.Outcome
 import com.azza.core.common.map
+import com.azza.core.datastore.AppPreferences
 import com.azza.core.datastore.SessionStore
 import com.azza.core.model.AppNotification
 import com.azza.core.model.Page
@@ -20,6 +21,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
@@ -52,6 +54,7 @@ class NotificationsRepository @Inject constructor(
     private val api: NotificationsApi,
     private val media: MediaUrlResolver,
     private val json: Json,
+    private val preferences: AppPreferences,
     sessionStore: SessionStore,
     @ApplicationScope scope: CoroutineScope,
 ) {
@@ -64,7 +67,13 @@ class NotificationsRepository @Inject constructor(
         scope.launch {
             sessionStore.isSignedIn.collect { now ->
                 signedIn = now
-                if (now) refreshUnreadCount() else _unread.value = 0
+                if (now) {
+                    refreshUnreadCount()
+                } else {
+                    _unread.value = 0
+                    // The next account on this phone starts its own line.
+                    preferences.setNotifiedUpTo(null)
+                }
             }
         }
     }
@@ -78,7 +87,29 @@ class NotificationsRepository @Inject constructor(
         safeApiCall(json) { api.list(cursor).data }
             .map { Page(it.items.map { n -> n.toModel(media) }, it.nextCursor, it.hasMore) }
 
+    /**
+     * For the background poll: unread notifications newer than the last poll,
+     * oldest first. The first poll after sign-in only draws the line, so a
+     * phone is never flooded with an account's history.
+     *
+     * apps/api writes `createdAt` with `Date.toISOString()` — always the same
+     * width, always UTC — so the strings order as the instants do.
+     */
+    suspend fun unseenSinceLastPoll(): Outcome<List<AppNotification>> =
+        safeApiCall(json) { api.list(cursor = null, take = POLL_PAGE).data }.map { page ->
+            val items = page.items.map { it.toModel(media) }
+            val line = preferences.notifiedUpTo.first()
+            val newest = items.maxOfOrNull { it.createdAt }
+            // "0" orders before every timestamp: "polled once, nothing yet".
+            if (newest != null && (line == null || newest > line)) preferences.setNotifiedUpTo(newest)
+            else if (line == null) preferences.setNotifiedUpTo("0")
+            if (line == null) emptyList() else items.filter { !it.read && it.createdAt > line }.sortedBy { it.createdAt }
+        }
+
     suspend fun markAllRead() {
         (safeApiCall(json) { api.markAllRead().data } as? Outcome.Success)?.let { _unread.value = it.value.unreadCount }
     }
 }
+
+/** One page is enough: fifteen minutes rarely brings more, and the shade summarises the rest. */
+private const val POLL_PAGE = 20

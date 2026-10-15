@@ -1,3 +1,4 @@
+import java.net.URI
 import java.util.Properties
 
 plugins {
@@ -33,10 +34,14 @@ android {
             // 10.0.2.2 is the emulator's name for the PC running apps/api.
             val apiBaseUrl = localProperties.getProperty("azza.apiBaseUrl", "http://10.0.2.2:4000/api/v1/")
             buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+            // The website (next dev on the PC): what Share sends, and which links open in the app.
+            webLinks(localProperties.getProperty("azza.webBaseUrl", "http://10.0.2.2:3000"))
         }
         release {
             // TODO(production): the public apps/api origin, https only.
             buildConfigField("String", "API_BASE_URL", "\"https://api.azza.example/api/v1/\"")
+            // TODO(production): the public website origin; its /.well-known/assetlinks.json verifies the app.
+            webLinks("https://azza.example")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
@@ -67,9 +72,13 @@ dependencies {
     implementation(project(":feature:create"))
     implementation(project(":feature:map"))
     implementation(project(":feature:settings"))
+    implementation(project(":feature:scan"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
+    // WorkManager is started by the app with Hilt's worker factory (AzzaApplication).
+    implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.hilt.work)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.compose)
@@ -81,4 +90,12 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.junit)
     androidTestImplementation(libs.androidx.test.espresso)
+}
+
+/** WEB_BASE_URL for Share, and the manifest's link filter (scheme, host; WebLinks.parse also checks the port) for the same origin. */
+fun com.android.build.api.dsl.ApplicationBuildType.webLinks(url: String) {
+    val uri = URI(url)
+    buildConfigField("String", "WEB_BASE_URL", "\"${url.trimEnd('/')}\"")
+    manifestPlaceholders["webScheme"] = uri.scheme
+    manifestPlaceholders["webHost"] = uri.host
 }

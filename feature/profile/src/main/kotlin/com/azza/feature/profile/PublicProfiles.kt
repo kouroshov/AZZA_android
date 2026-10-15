@@ -1,5 +1,9 @@
 package com.azza.feature.profile
 
+import androidx.compose.material.icons.outlined.Share
+import com.azza.core.ui.LocalWebLinks
+import com.azza.core.ui.shareLink
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -241,7 +245,7 @@ fun UserProfileScreen(
     var reporting by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     if (reporting) ReportDialog(ReportTarget.USER, onDismiss = { reporting = false }, submit = viewModel::report)
-    ProfileScaffold(title, onBack, onReport = { scope.launch { if (viewModel.canReport()) reporting = true }; Unit }.takeIf { button != FollowButton.HIDDEN }) {
+    ProfileScaffold(title, onBack, onReport = { scope.launch { if (viewModel.canReport()) reporting = true }; Unit }.takeIf { button != FollowButton.HIDDEN }, shareUrl = (state as? Loadable.Ready)?.value?.username?.let(LocalWebLinks.current::user)) {
         when (val s = state) {
             Loadable.Loading -> LoadingState()
             is Loadable.Failed -> notFoundOrError(s.error, R.string.profile_user_not_found, viewModel::load)
@@ -276,7 +280,7 @@ fun StoreProfileScreen(
     var reporting by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     if (reporting) ReportDialog(ReportTarget.STORE, onDismiss = { reporting = false }, submit = viewModel::report)
-    ProfileScaffold(title, onBack, onReport = { scope.launch { if (viewModel.canReport()) reporting = true }; Unit }.takeIf { button != FollowButton.HIDDEN }) {
+    ProfileScaffold(title, onBack, onReport = { scope.launch { if (viewModel.canReport()) reporting = true }; Unit }.takeIf { button != FollowButton.HIDDEN }, shareUrl = (state as? Loadable.Ready)?.value?.slug?.let(LocalWebLinks.current::store)) {
         when (val s = state) {
             Loadable.Loading -> LoadingState()
             is Loadable.Failed -> notFoundOrError(s.error, R.string.profile_store_not_found, viewModel::load)
@@ -303,7 +307,8 @@ fun StoreProfileScreen(
 }
 
 @Composable
-private fun ProfileScaffold(title: String, onBack: () -> Unit, onReport: (() -> Unit)?, content: @Composable () -> Unit) {
+private fun ProfileScaffold(title: String, onBack: () -> Unit, onReport: (() -> Unit)?, shareUrl: String? = null, content: @Composable () -> Unit) {
+    val context = LocalContext.current
     Scaffold(
         containerColor = AzzaTheme.colors.bg,
         topBar = {
@@ -313,6 +318,11 @@ private fun ProfileScaffold(title: String, onBack: () -> Unit, onReport: (() -> 
                     IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.profile_back)) }
                 },
                 actions = {
+                    if (shareUrl != null) {
+                        IconButton(onClick = { shareLink(context, title, shareUrl) }) {
+                            Icon(Icons.Outlined.Share, stringResource(com.azza.core.ui.R.string.share))
+                        }
+                    }
                     if (onReport != null) {
                         IconButton(onClick = onReport) {
                             Icon(Icons.Outlined.Flag, stringResource(com.azza.core.ui.R.string.report_button), tint = AzzaTheme.colors.textSecondary)

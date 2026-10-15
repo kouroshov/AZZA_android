@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="scan_title">Scan a barcode</string>
+    <string name="scan_back">Back</string>
+    <string name="scan_torch_on">Turn on the light</string>
+    <string name="scan_torch_off">Turn off the light</string>
+    <string name="scan_camera_needed">The camera is needed to read a barcode. You can also type the digits below.</string>
+    <string name="scan_allow_camera">Allow the camera</string>
+    <string name="scan_hint">Hold the label level inside the frame.</string>
+    <string name="scan_looking">Looking up %1$s…</string>
+    <string name="scan_not_found">No listing has the barcode %1$s.</string>
+    <string name="scan_again">Scan again</string>
+    <string name="scan_type_instead">Or type the 13 digits under the bars</string>
+    <string name="scan_digits">Barcode</string>
+    <string name="scan_invalid">That is not a valid barcode. Check the digits.</string>
+    <string name="scan_find">Find the listing</string>
+</resources>

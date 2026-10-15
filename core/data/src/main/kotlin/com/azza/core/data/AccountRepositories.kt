@@ -36,6 +36,14 @@ class AccountRepository @Inject constructor(
 
     suspend fun setTheme(choice: ThemeChoice) = preferences.setTheme(choice.name)
 
+    val phoneNotifications: Flow<Boolean> = preferences.phoneNotifications
+
+    suspend fun setPhoneNotifications(on: Boolean) = preferences.setPhoneNotifications(on)
+
+    val notificationPermissionAsked: Flow<Boolean> = preferences.notificationPermissionAsked
+
+    suspend fun setNotificationPermissionAsked() = preferences.setNotificationPermissionAsked()
+
     /** Saves name and bio; the cached current user is refreshed so every screen shows the new one. */
     suspend fun updateProfile(firstName: String, lastName: String, bio: String): Outcome<User> =
         safeApiCall(json) { api.updateProfile(UpdateProfileRequest(firstName.trim(), lastName.trim(), bio.trim())).data }

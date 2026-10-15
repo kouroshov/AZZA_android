@@ -3,6 +3,7 @@ package com.azza.core.datastore
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -34,6 +35,30 @@ class AppPreferences @Inject constructor(@ApplicationContext context: Context) {
         store.edit { it[THEME] = value }
     }
 
+    /** Show new notifications in the phone's notification shade (the background poll). */
+    val phoneNotifications: Flow<Boolean> = store.data.map { it[PHONE_NOTIFICATIONS] ?: true }
+
+    suspend fun setPhoneNotifications(on: Boolean) {
+        store.edit { it[PHONE_NOTIFICATIONS] = on }
+    }
+
+    /**
+     * The newest notification time the poll has already seen (apps/api's
+     * ISO-8601 `createdAt`); null = not yet polled since sign-in.
+     */
+    val notifiedUpTo: Flow<String?> = store.data.map { it[NOTIFIED_UP_TO] }
+
+    suspend fun setNotifiedUpTo(value: String?) {
+        store.edit { if (value == null) it.remove(NOTIFIED_UP_TO) else it[NOTIFIED_UP_TO] = value }
+    }
+
+    /** Android 13+'s notification permission is asked once; after that it lives in the phone's settings. */
+    val notificationPermissionAsked: Flow<Boolean> = store.data.map { it[PERMISSION_ASKED] ?: false }
+
+    suspend fun setNotificationPermissionAsked() {
+        store.edit { it[PERMISSION_ASKED] = true }
+    }
+
     suspend fun setCity(city: ChosenCity?) {
         store.edit { prefs ->
             if (city == null) {
@@ -50,5 +75,8 @@ class AppPreferences @Inject constructor(@ApplicationContext context: Context) {
         val CITY_ID = stringPreferencesKey("explore_city_id")
         val CITY_NAME = stringPreferencesKey("explore_city_name")
         val THEME = stringPreferencesKey("theme")
+        val PHONE_NOTIFICATIONS = booleanPreferencesKey("phone_notifications")
+        val NOTIFIED_UP_TO = stringPreferencesKey("notified_up_to")
+        val PERMISSION_ASKED = booleanPreferencesKey("notification_permission_asked")
     }
 }

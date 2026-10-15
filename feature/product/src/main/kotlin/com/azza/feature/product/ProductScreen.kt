@@ -1,5 +1,8 @@
 package com.azza.feature.product
 
+import androidx.compose.material.icons.outlined.Share
+import com.azza.core.ui.LocalWebLinks
+import com.azza.core.ui.shareLink
 import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -149,6 +152,12 @@ fun ProductScreen(
                     val ready = state as? ProductUiState.Ready
                     if (ready != null && isMine) {
                         TextButton(onClick = { onEdit(ready.product.id) }) { Text(stringResource(R.string.product_edit)) }
+                    }
+                    if (ready != null) {
+                        val url = LocalWebLinks.current.product(ready.product.id)
+                        IconButton(onClick = { shareLink(context, ready.product.title, url) }) {
+                            Icon(Icons.Outlined.Share, contentDescription = stringResource(com.azza.core.ui.R.string.share))
+                        }
                     }
                     if (ready != null && !isMine) {
                         IconButton(onClick = { scope.launch { if (viewModel.canReport()) reporting = true } }) {

@@ -28,4 +28,5 @@
     <string name="report_reason_inappropriate">Inappropriate content</string>
     <string name="report_reason_harassment">Harassment or abuse</string>
     <string name="report_reason_other">Something else</string>
+    <string name="share">Share</string>
 </resources>

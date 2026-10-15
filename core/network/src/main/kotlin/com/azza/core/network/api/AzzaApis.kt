@@ -1,5 +1,6 @@
 package com.azza.core.network.api
 
+import kotlinx.serialization.Serializable
 import com.azza.core.network.model.AddCartItemRequest
 import com.azza.core.network.model.AreaDto
 import com.azza.core.network.model.FollowingSetDto
@@ -140,6 +141,10 @@ interface ProductsApi {
      * `sellerId` + `personal=true`: one person's personal page (sellerId
      * alone also matches their stores' listings).
      */
+    /** A label's EAN-13 → the listing it belongs to (public; the same visibility as [byId]). */
+    @GET("products/barcode/{code}")
+    suspend fun byBarcode(@Path("code") code: String): ApiEnvelope<BarcodeMatchDto>
+
     @GET("products")
     suspend fun list(
         @Query("sellerId") sellerId: String? = null,
@@ -237,3 +242,6 @@ interface NotificationsApi {
     @POST("notifications/read")
     suspend fun markAllRead(@Body body: MarkReadRequest = MarkReadRequest()): ApiEnvelope<UnreadCountDto>
 }
+
+@Serializable
+data class BarcodeMatchDto(val productId: String)

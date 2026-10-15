@@ -49,4 +49,9 @@
     <string name="n_text_order_refunded">سفارش %1$s شما بازپرداخت شد. پول در راه برگشت به شماست.</string>
     <string name="n_text_order_refunded_seller">سفارش %1$s توسط AZZA بازپرداخت شد. آنچه از این فروش به موجودی شما اضافه شده بود برگشت خورد.</string>
     <string name="n_text_payout_sent">تسویه‌ای به حساب بانکی شما واریز شد.</string>
+    <string name="n_channel_activity">فعالیت‌ها</string>
+    <plurals name="n_shade_summary">
+        <item quantity="one">%d اعلان تازه</item>
+        <item quantity="other">%d اعلان تازه</item>
+    </plurals>
 </resources>

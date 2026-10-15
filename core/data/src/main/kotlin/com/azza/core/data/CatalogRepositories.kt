@@ -52,6 +52,10 @@ class ProductRepository @Inject constructor(
 ) {
     suspend fun product(id: String, source: String? = null): Outcome<ProductDetail> =
         safeApiCall(json) { api.byId(id, source).data }.map { it.toModel(media) }
+
+    /** The listing a scanned label belongs to; 404 PRODUCT_NOT_FOUND when none (or none visible). */
+    suspend fun idByBarcode(code: String): Outcome<String> =
+        safeApiCall(json) { api.byBarcode(code).data }.map { it.productId }
 }
 
 @Singleton

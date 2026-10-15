@@ -49,4 +49,10 @@
     <string name="n_text_order_refunded">Your order %1$s was refunded. The money is on its way back to you.</string>
     <string name="n_text_order_refunded_seller">Order %1$s was refunded by AZZA. What the sale added to your balance has been taken back.</string>
     <string name="n_text_payout_sent">A payout was sent to your bank account.</string>
+    <string name="app_brand" translatable="false">AZZA</string>
+    <string name="n_channel_activity">Activity</string>
+    <plurals name="n_shade_summary">
+        <item quantity="one">%d new notification</item>
+        <item quantity="other">%d new notifications</item>
+    </plurals>
 </resources>

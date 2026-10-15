@@ -1,6 +1,17 @@
 package com.azza.app.ui
 
+import android.Manifest
+import android.content.Intent
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.consumeWindowInsets
+import com.azza.feature.notifications.EXTRA_OPEN_NOTIFICATIONS
+import com.azza.core.common.WebDestination
+import com.azza.core.ui.LocalWebLinks
+import androidx.compose.ui.platform.LocalContext
+import com.azza.feature.scan.ScanRoute
+import com.azza.feature.scan.scanScreen
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
@@ -78,6 +89,8 @@ import com.azza.feature.profile.profileScreen
  */
 @Composable
 fun AzzaApp(
+    incoming: Intent? = null,
+    onIncomingHandled: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
     appViewModel: AppViewModel = hiltViewModel(),
 ) {
@@ -90,6 +103,35 @@ fun AzzaApp(
     val signedIn by appViewModel.signedIn.collectAsStateWithLifecycle()
 
     LaunchedEffect(destination) { appViewModel.refreshBadges() }
+
+    val webLinks = LocalWebLinks.current
+    val context = LocalContext.current
+    LaunchedEffect(incoming) {
+        val intent = incoming ?: return@LaunchedEffect
+        if (intent.getBooleanExtra(EXTRA_OPEN_NOTIFICATIONS, false)) {
+            navController.navigate(NotificationsRoute) { launchSingleTop = true }
+        }
+        val link = intent.data?.takeIf { intent.action == Intent.ACTION_VIEW }
+        if (link != null) {
+            when (val to = webLinks.parse(link.toString())) {
+                is WebDestination.Product -> navController.navigate(ProductRoute(to.id))
+                is WebDestination.User -> navController.navigate(UserProfileRoute(to.username))
+                is WebDestination.Store -> navController.navigate(StoreProfileRoute(to.slug))
+                // A page the app has no screen for: the browser, never this app again.
+                null -> openInBrowser(context, link)
+            }
+        }
+        onIncomingHandled()
+    }
+
+    val askPermission by appViewModel.askNotificationPermission.collectAsStateWithLifecycle()
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    LaunchedEffect(askPermission) {
+        if (askPermission && Build.VERSION.SDK_INT >= 33) {
+            appViewModel.notificationPermissionAsked()
+            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
     LifecycleResumeEffect(Unit) {
         appViewModel.refreshBadges()
         onPauseOrDispose { }
@@ -130,6 +172,12 @@ fun AzzaApp(
                 onOpenUser = openUser,
                 onOpenStore = openStore,
                 onOpenAuthor = openAuthor,
+                onScan = { navController.navigate(ScanRoute) },
+            )
+            scanScreen(
+                onBack = { navController.popBackStack() },
+                // The listing replaces the scanner, so Back from it returns to Explore.
+                onOpenProduct = { id -> navController.navigate(ProductRoute(id)) { popUpTo<ScanRoute> { inclusive = true } } },
             )
             publicProfileScreens(
                 onBack = navController::popBackStack,
@@ -260,4 +308,10 @@ private fun navigateTab(navController: NavHostController, route: Any) {
         launchSingleTop = true
         restoreState = true
     }
+}
+
+private fun openInBrowser(context: android.content.Context, link: android.net.Uri) {
+    val browser = Intent.makeMainSelectorActivity(Intent.ACTION_MAIN, Intent.CATEGORY_APP_BROWSER)
+    val view = Intent(Intent.ACTION_VIEW, link).apply { selector = browser }.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    runCatching { context.startActivity(view) }
 }

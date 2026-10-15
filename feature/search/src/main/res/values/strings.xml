@@ -27,4 +27,5 @@
     <string name="explore_select_city">Select a city</string>
     <string name="explore_back">Back</string>
     <string name="explore_cancel">Cancel</string>
+    <string name="search_scan">Scan a barcode</string>
 </resources>
