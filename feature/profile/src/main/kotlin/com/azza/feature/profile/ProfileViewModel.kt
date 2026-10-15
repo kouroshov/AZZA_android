@@ -76,5 +76,11 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
+    fun refreshLists() {
+        if (_state.value !is ProfileUiState.Ready) return
+        posts.refresh(showSpinner = true)
+        favorites.refresh(showSpinner = true)
+    }
+
     fun logout() = viewModelScope.launch { auth.logout() }
 }

@@ -1,0 +1,340 @@
+package com.azza.feature.create
+
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.azza.core.common.AppError
+import com.azza.core.common.Outcome
+import com.azza.core.data.ListingRepository
+import com.azza.core.model.CategoryHit
+import com.azza.core.model.CategoryNode
+import com.azza.core.model.CategorySchema
+import com.azza.core.model.ExistingPhoto
+import com.azza.core.model.FieldError
+import com.azza.core.model.ItemCondition
+import com.azza.core.model.ListingDraft
+import com.azza.core.model.LocalizedText
+import com.azza.core.model.OfferingKind
+import com.azza.core.model.OwnStore
+import com.azza.core.model.RuleContext
+import com.azza.core.model.SchemaRules
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+
+/** The category the listing is filed under, with how it reads ("Home › Furniture › Wardrobe"). */
+data class ChosenCategory(val id: String, val name: LocalizedText, val path: List<LocalizedText>)
+
+data class CategoryPickerState(
+    val open: Boolean = false,
+    val query: String = "",
+    val hits: List<CategoryHit> = emptyList(),
+    /** Browsing the tree: the nodes from the root to the one being looked into. */
+    val trail: List<CategoryNode> = emptyList(),
+    val roots: List<CategoryNode> = emptyList(),
+    val loading: Boolean = false,
+)
+
+data class CreateUiState(
+    val stores: List<OwnStore> = emptyList(),
+    /** Null = the personal page. */
+    val storeId: String? = null,
+    val category: ChosenCategory? = null,
+    val schema: CategorySchema? = null,
+    val schemaLoading: Boolean = false,
+    val offeringKind: OfferingKind = OfferingKind.GOOD,
+    val title: String = "",
+    val description: String = "",
+    val price: String = "",
+    val discount: String = "",
+    val condition: ItemCondition = ItemCondition.USED,
+    val quantity: String = "",
+    /** Raw form values per attribute slug: String, Boolean or List<String>. */
+    val attributes: Map<String, Any> = emptyMap(),
+    val photos: List<String> = emptyList(),
+    val fieldErrors: Map<String, FieldError> = emptyMap(),
+    val formErrors: Set<FormError> = emptySet(),
+    val posting: Boolean = false,
+    val error: AppError? = null,
+    /** A hidden listing an earlier attempt created; posting again continues it. */
+    val pendingId: String? = null,
+    val uploaded: Set<String> = emptySet(),
+    val failedPhotos: List<String> = emptyList(),
+    /** Editing a saved listing: its id, and the photos it already has. */
+    val editingId: String? = null,
+    val existingPhotos: List<ExistingPhoto> = emptyList(),
+    val loadingListing: Boolean = false,
+    val deleted: Boolean = false,
+    val stockNotPlaced: Boolean = false,
+    val postedId: String? = null,
+) {
+    val isPersonal: Boolean get() = storeId == null
+
+    /** A personal page sells physical goods only (CLAUDE.md §4); a store may offer what the category allows. */
+    val allowedKinds: List<OfferingKind>
+        get() {
+            val kinds = schema?.allowedKinds.orEmpty().ifEmpty { listOf(OfferingKind.GOOD) }
+            return if (isPersonal) kinds.filter { it == OfferingKind.GOOD } else kinds
+        }
+
+    val ruleContext: RuleContext get() = RuleContext(condition = condition.name, offeringKind = offeringKind.name)
+}
+
+enum class FormError { CATEGORY, TITLE, DESCRIPTION, PRICE, DISCOUNT, QUANTITY, GOODS_ONLY }
+
+const val MAX_PHOTOS = 10
+const val MAX_STORE_QUANTITY = 1_000_000
+
+@OptIn(FlowPreview::class)
+@HiltViewModel
+class CreateListingViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    private val listings: ListingRepository,
+) : ViewModel() {
+
+    /** Set when the screen was opened as EditListingRoute. */
+    private val editId: String? = savedStateHandle.get<String>("productId")
+
+    private val _state = MutableStateFlow(CreateUiState())
+    val state: StateFlow<CreateUiState> = _state.asStateFlow()
+
+    private val _picker = MutableStateFlow(CategoryPickerState())
+    val picker: StateFlow<CategoryPickerState> = _picker.asStateFlow()
+
+    private var searchJob: Job? = null
+
+    init {
+        if (editId != null) loadForEdit(editId) else viewModelScope.launch {
+            (listings.myStores() as? Outcome.Success)?.let { r -> _state.update { it.copy(stores = r.value) } }
+        }
+    }
+
+    private fun loadForEdit(id: String) {
+        _state.update { it.copy(editingId = id, loadingListing = true) }
+        viewModelScope.launch {
+            when (val r = listings.loadForEdit(id)) {
+                is Outcome.Failure -> _state.update { it.copy(loadingListing = false, error = r.error) }
+                is Outcome.Success -> {
+                    val l = r.value
+                    _state.update {
+                        it.copy(
+                            loadingListing = false,
+                            storeId = l.storeId,
+                            offeringKind = l.offeringKind,
+                            category = ChosenCategory(l.categoryId, l.categoryName, emptyList()),
+                            title = l.title,
+                            description = l.description,
+                            price = l.price,
+                            discount = l.discountPercentage,
+                            condition = l.condition,
+                            attributes = l.attributes,
+                            existingPhotos = l.photos,
+                        )
+                    }
+                    loadSchema(l.categoryId)
+                }
+            }
+        }
+    }
+
+    /** Removes a saved photo at once, like the web's media manager. */
+    fun removeExistingPhoto(photo: ExistingPhoto) {
+        val id = editId ?: return
+        _state.update { it.copy(existingPhotos = it.existingPhotos - photo) }
+        viewModelScope.launch {
+            val r = listings.deletePhoto(id, photo.mediaId)
+            if (r is Outcome.Failure) _state.update { it.copy(existingPhotos = it.existingPhotos + photo, error = r.error) }
+        }
+    }
+
+    fun delete() {
+        val id = editId ?: return
+        _state.update { it.copy(posting = true, error = null) }
+        viewModelScope.launch {
+            when (val r = listings.delete(id)) {
+                is Outcome.Success -> _state.update { it.copy(posting = false, deleted = true) }
+                is Outcome.Failure -> _state.update { it.copy(posting = false, error = r.error) }
+            }
+        }
+    }
+
+    fun edit(transform: CreateUiState.() -> CreateUiState) = _state.update { it.transform().copy(error = null) }
+
+    fun setAttribute(slug: String, value: Any?) = _state.update { s ->
+        val next = if (value == null || SchemaRules.isEmptyValue(value)) s.attributes - slug else s.attributes + (slug to value)
+        s.copy(attributes = next, fieldErrors = s.fieldErrors - slug)
+    }
+
+    fun postAs(storeId: String?) {
+        _state.update { s ->
+            val next = s.copy(storeId = storeId)
+            // Switching to the personal page drops a service choice it cannot make (the web does the same).
+            if (storeId == null && s.offeringKind != OfferingKind.GOOD) next.copy(offeringKind = OfferingKind.GOOD) else next
+        }
+        _state.value.category?.let { loadSchema(it.id) }
+    }
+
+    fun chooseKind(kind: OfferingKind) {
+        _state.update { it.copy(offeringKind = kind) }
+        _state.value.category?.let { loadSchema(it.id) }
+    }
+
+    fun addPhotos(uris: List<String>) = _state.update { s ->
+        s.copy(photos = (s.photos + uris.filterNot { it in s.photos }).take(MAX_PHOTOS - s.existingPhotos.size))
+    }
+
+    fun removePhoto(uri: String) = _state.update { it.copy(photos = it.photos - uri, failedPhotos = it.failedPhotos - uri) }
+
+    // ---- category picker ----
+
+    fun openPicker() {
+        _picker.value = CategoryPickerState(open = true, loading = true)
+        viewModelScope.launch {
+            val roots = (listings.categoryTree() as? Outcome.Success)?.value.orEmpty()
+            _picker.update { it.copy(roots = roots, loading = false) }
+        }
+    }
+
+    fun closePicker() {
+        _picker.value = CategoryPickerState()
+    }
+
+    fun searchCategories(query: String) {
+        _picker.update { it.copy(query = query) }
+        searchJob?.cancel()
+        if (query.trim().length < 2) return _picker.update { it.copy(hits = emptyList()) }
+        searchJob = viewModelScope.launch {
+            delay(250)
+            val hits = (listings.searchCategories(query) as? Outcome.Success)?.value.orEmpty()
+            _picker.update { it.copy(hits = hits) }
+        }
+    }
+
+    fun openNode(node: CategoryNode) {
+        if (node.children.isEmpty()) {
+            choose(ChosenCategory(node.id, node.name, _picker.value.trail.map { it.name }))
+        } else {
+            _picker.update { it.copy(trail = it.trail + node) }
+        }
+    }
+
+    fun up() = _picker.update { it.copy(trail = it.trail.dropLast(1)) }
+
+    fun chooseHit(hit: CategoryHit) = choose(ChosenCategory(hit.id, hit.name, hit.path))
+
+    private fun choose(category: ChosenCategory) {
+        _picker.value = CategoryPickerState()
+        _state.update { it.copy(category = category, attributes = emptyMap(), fieldErrors = emptyMap(), formErrors = it.formErrors - FormError.CATEGORY) }
+        loadSchema(category.id)
+    }
+
+    private fun loadSchema(categoryId: String) {
+        _state.update { it.copy(schemaLoading = true) }
+        viewModelScope.launch {
+            val s = _state.value
+            when (val r = listings.schema(categoryId, s.offeringKind)) {
+                is Outcome.Success -> _state.update { cur ->
+                    val schema = r.value
+                    // The category decides which kinds exist; keep the choice if it still fits.
+                    val kind = when {
+                        cur.offeringKind in schema.allowedKinds -> cur.offeringKind
+                        cur.isPersonal -> OfferingKind.GOOD
+                        else -> schema.offeringKind
+                    }
+                    cur.copy(schema = schema, schemaLoading = false, offeringKind = kind)
+                }
+                is Outcome.Failure -> _state.update { it.copy(schemaLoading = false, error = r.error) }
+            }
+        }
+    }
+
+    // ---- posting ----
+
+    fun post() {
+        val s = _state.value
+        if (s.posting) return
+        val formErrors = validateForm(s)
+        val schemaResult = s.schema?.let { SchemaRules.validate(it.fields, s.attributes, s.ruleContext) }
+        val fieldErrors = schemaResult?.errors.orEmpty().associateBy { it.field }
+        if (formErrors.isNotEmpty() || fieldErrors.isNotEmpty()) {
+            _state.update { it.copy(formErrors = formErrors, fieldErrors = fieldErrors) }
+            return
+        }
+        val draft = ListingDraft(
+            storeId = s.storeId,
+            offeringKind = s.offeringKind,
+            categoryId = s.category!!.id,
+            title = s.title,
+            description = s.description,
+            price = s.price,
+            discountPercentage = s.discount,
+            condition = s.condition,
+            quantity = s.quantity,
+            // Only what the rules accept: hidden fields and empty inputs are not sent.
+            attributeValues = schemaResult?.values.orEmpty(),
+            photos = s.photos,
+        )
+        _state.update { it.copy(posting = true, error = null, formErrors = emptySet(), fieldErrors = emptyMap()) }
+        if (editId != null) {
+            viewModelScope.launch {
+                when (val r = listings.saveEdit(editId, draft.copy(photos = s.photos.filterNot { it in s.uploaded }))) {
+                    is Outcome.Failure -> _state.update { it.copy(posting = false, error = r.error) }
+                    is Outcome.Success -> _state.update {
+                        if (r.value.isEmpty()) it.copy(posting = false, postedId = editId)
+                        else it.copy(posting = false, failedPhotos = r.value, uploaded = it.uploaded + (s.photos - r.value.toSet()))
+                    }
+                }
+            }
+            return
+        }
+        viewModelScope.launch {
+            when (val r = listings.submit(draft, s.pendingId, s.uploaded)) {
+                is Outcome.Failure -> _state.update { it.copy(posting = false, error = r.error) }
+                is Outcome.Success -> _state.update {
+                    val result = r.value
+                    if (result.published) {
+                        it.copy(posting = false, postedId = result.productId, stockNotPlaced = result.stockNotPlaced)
+                    } else {
+                        it.copy(
+                            posting = false,
+                            pendingId = result.productId,
+                            failedPhotos = result.failedPhotos,
+                            uploaded = it.uploaded + (draft.photos - result.failedPhotos.toSet()),
+                            stockNotPlaced = result.stockNotPlaced,
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun validateForm(s: CreateUiState): Set<FormError> = buildSet {
+        if (s.category == null) add(FormError.CATEGORY)
+        if (s.title.isBlank() || s.title.length > 200) add(FormError.TITLE)
+        if (s.description.isBlank()) add(FormError.DESCRIPTION)
+        val price = number(s.price)
+        if (price == null || price <= 0) add(FormError.PRICE)
+        if (s.discount.isNotBlank()) {
+            val d = number(s.discount)
+            if (d == null || d < 0 || d > 100) add(FormError.DISCOUNT)
+        }
+        if (!s.isPersonal && s.quantity.isNotBlank()) {
+            val q = number(s.quantity)
+            if (q == null || q < 0 || q > MAX_STORE_QUANTITY || q != Math.floor(q)) add(FormError.QUANTITY)
+        }
+        // apps/api's PERSONAL_LISTING_GOODS_ONLY, said before the request: a personal page sells a
+        // physical item, so a category that only takes services is posted from a store.
+        val goodsAllowed = s.schema?.allowedKinds?.let { it.isEmpty() || OfferingKind.GOOD in it } ?: true
+        if (s.isPersonal && (s.offeringKind != OfferingKind.GOOD || !goodsAllowed)) add(FormError.GOODS_ONLY)
+    }
+
+    private fun number(text: String): Double? =
+        SchemaRules.toLatinDigits(text.trim()).replace(Regex("[,٬]"), "").replace('٫', '.').toDoubleOrNull()
+}

@@ -44,6 +44,9 @@ import com.azza.feature.basket.CheckoutRoute
 import com.azza.feature.basket.PlacedOrderRoute
 import com.azza.feature.basket.ReceivedOrderRoute
 import com.azza.feature.basket.basketScreens
+import com.azza.feature.create.CreateRoute
+import com.azza.feature.create.EditListingRoute
+import com.azza.feature.create.createScreen
 import com.azza.feature.feed.FeedRoute
 import com.azza.feature.notifications.NotificationsRoute
 import com.azza.feature.notifications.notificationsScreen
@@ -125,6 +128,7 @@ fun AzzaApp(
                 onBack = navController::popBackStack,
                 onRequireSignIn = signIn,
                 onOpenBasket = { navController.navigate(BasketRoute()) { launchSingleTop = true } },
+                onEdit = { id -> navController.navigate(EditListingRoute(id)) },
             )
             profileScreen(onSignIn = signIn, onOpenProduct = { id -> navController.navigate(ProductRoute(id, source = "PROFILE")) })
             basketScreens(
@@ -148,6 +152,20 @@ fun AzzaApp(
                 onSignedIn = { navController.popBackStack(LoginRoute, inclusive = true) || navController.popBackStack() },
                 onOpenRegister = { navController.navigate(RegisterRoute) { popUpTo(LoginRoute) } },
                 onOpenLogin = { navController.navigate(LoginRoute) { popUpTo(LoginRoute) { inclusive = true } } },
+            )
+            createScreen(
+                onPosted = { id ->
+                    // The new post replaces the form: back from it returns to where "+" was pressed.
+                    navController.navigate(ProductRoute(id)) { popUpTo<CreateRoute> { inclusive = true } }
+                },
+                onSaved = {
+                    // Back to the listing, which re-reads itself.
+                    navController.popBackStack()
+                },
+                onDeleted = {
+                    // The listing no longer exists: leave both the form and its page.
+                    navController.popBackStack<ProductRoute>(inclusive = true) || navController.popBackStack()
+                },
             )
             pendingScreens()
         }

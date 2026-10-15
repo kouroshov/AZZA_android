@@ -9,4 +9,5 @@
     <string name="product_added_to_basket">Added to your basket</string>
     <string name="product_view_basket">View basket</string>
     <string name="product_not_available">This product is not available.</string>
+    <string name="product_edit">Edit</string>
 </resources>

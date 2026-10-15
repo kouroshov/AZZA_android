@@ -45,6 +45,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -66,6 +67,11 @@ fun NavGraphBuilder.profileScreen(onSignIn: () -> Unit, onOpenProduct: (String) 
 @Composable
 fun ProfileScreen(onSignIn: () -> Unit, onOpenProduct: (String) -> Unit, viewModel: ProfileViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    // Back from posting, editing or deleting a listing: the grid re-reads, keeping what is on screen meanwhile.
+    LifecycleResumeEffect(viewModel) {
+        viewModel.refreshLists()
+        onPauseOrDispose { }
+    }
     when (val s = state) {
         ProfileUiState.Loading -> LoadingState()
         ProfileUiState.SignedOut -> SignedOut(onSignIn)

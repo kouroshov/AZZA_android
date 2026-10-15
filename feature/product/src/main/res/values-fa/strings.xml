@@ -9,4 +9,5 @@
     <string name="product_added_to_basket">به سبد خرید اضافه شد</string>
     <string name="product_view_basket">دیدن سبد</string>
     <string name="product_not_available">این محصول در دسترس نیست.</string>
+    <string name="product_edit">ویرایش</string>
 </resources>

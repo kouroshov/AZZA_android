@@ -64,6 +64,7 @@ dependencies {
     implementation(project(":feature:search"))
     implementation(project(":feature:basket"))
     implementation(project(":feature:notifications"))
+    implementation(project(":feature:create"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

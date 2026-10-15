@@ -10,6 +10,7 @@ import com.azza.core.data.AuthRepository
 import com.azza.core.data.CartRepository
 import com.azza.core.data.FavoritesRepository
 import com.azza.core.data.ProductRepository
+import com.azza.core.data.UserRepository
 import com.azza.core.model.ProductDetail
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -43,6 +45,7 @@ class ProductViewModel @Inject constructor(
     private val cart: CartRepository,
     private val favorites: FavoritesRepository,
     private val auth: AuthRepository,
+    users: UserRepository,
 ) : ViewModel() {
 
     private val route = savedStateHandle.toRoute<ProductRoute>()
@@ -53,6 +56,12 @@ class ProductViewModel @Inject constructor(
     val isFavorite: StateFlow<Boolean> = favorites.favoriteIds
         .map { route.productId in it }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    /** Your own listing: no buying it (checkout refuses SELF_PURCHASE_NOT_ALLOWED). */
+    val isMine: StateFlow<Boolean> = combine(_state, users.currentUser) { s, me ->
+        val product = (s as? ProductUiState.Ready)?.product
+        product != null && me != null && product.sellerId == me.id
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     private val _adding = MutableStateFlow(false)
     val adding: StateFlow<Boolean> = _adding.asStateFlow()
@@ -72,6 +81,12 @@ class ProductViewModel @Inject constructor(
                 is Outcome.Failure -> ProductUiState.Failed(result.error)
             }
         }
+    }
+
+    /** Re-reads without a spinner — coming back from editing it, the page must show the new version. */
+    fun refreshQuietly() = viewModelScope.launch {
+        if (_state.value !is ProductUiState.Ready) return@launch
+        (products.product(route.productId) as? Outcome.Success)?.let { _state.value = ProductUiState.Ready(it.value) }
     }
 
     fun toggleFavorite() = viewModelScope.launch {

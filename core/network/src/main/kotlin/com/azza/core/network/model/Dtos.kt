@@ -121,7 +121,31 @@ data class ProductDto(
     val inventory: InventoryDto? = null,
     val offeringKind: String = "GOOD",
     val favoriteCount: Int = 0,
+    // For the edit form:
+    val categoryId: String? = null,
+    val category: ProductCategoryDto? = null,
+    val condition: String? = null,
+    val status: String = "ACTIVE",
+    val attributeValues: List<AttributeValueDto> = emptyList(),
 )
+
+@Serializable
+data class ProductCategoryDto(val id: String, val nameEn: String = "", val nameFa: String? = null)
+
+/** One stored attribute value: exactly one `value*` column is set, by the attribute's type. */
+@Serializable
+data class AttributeValueDto(
+    val categoryAttribute: AttributeRefDto,
+    val valueText: String? = null,
+    @Serializable(with = FlexibleDoubleSerializer::class)
+    val valueNumber: Double? = null,
+    val valueBoolean: Boolean? = null,
+    val valueDate: String? = null,
+    val valueJson: kotlinx.serialization.json.JsonElement? = null,
+)
+
+@Serializable
+data class AttributeRefDto(val slug: String, val dataType: String = "TEXT")
 
 @Serializable
 data class ProductMediaDto(

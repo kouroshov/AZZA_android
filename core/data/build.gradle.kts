@@ -13,4 +13,7 @@ dependencies {
     implementation(project(":core:network"))
     implementation(project(":core:datastore"))
     implementation(libs.kotlinx.serialization.json)
+    // Photo orientation, read before a photo is shrunk for upload.
+    implementation(libs.androidx.exifinterface)
+    implementation(libs.okhttp)
 }

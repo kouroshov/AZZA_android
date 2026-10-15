@@ -69,12 +69,33 @@ Known gaps, deliberately left:
 Not in 3a: followers / following lists (only your own exist in apps/api),
 a person's stores on their public page (no public endpoint lists them).
 
+### 3b — posting and editing listings ✅ (2026-10-15)
+
+- **"+"** opens the post form: Post as (personal page or one of your
+  stores), category (search, or browse the tree), offering kind (a personal
+  page: physical goods only), the category's own fields, title,
+  description, price, discount, condition, stock (stores only, placed at
+  the main branch), photos from the system photo picker (no permission).
+- **The category fields follow apps/api's rule engine**, ported to
+  `core:model/SchemaRules.kt` and checked against apps/api's own
+  conformance cases (`schema-rules.conformance.ts`, 18 cases). When the
+  server's rules change, port the change and the new cases.
+- **The web's posting order**: created hidden → photos upload in order (the
+  first is the cover) → published; a failed photo leaves nothing live and
+  "Try again" continues the same hidden listing. Photos are shrunk to
+  2048 px JPEG under apps/api's 5 MB limit, rotation applied.
+- **Edit and delete** your own listing from its page ("Edit"): the same form
+  pre-filled with the saved fields and photos; a saved photo is removed at
+  once; delete is apps/api's soft DELETED status, after a confirmation.
+- Your own listing has no basket button (checkout refuses it anyway).
+
+Not in 3b: product options ("extra sauce"), the occupation step, the
+deposit for a bookable listing (3c), reordering photos, store creation and
+management (needs a seller subscription — 3e), posting from a store was
+not exercised on the emulator (the test account has no store).
+
 ### Still to do in phase 3
 
-- **3b** Create / edit a listing with the taxonomy schema form
-  (`/taxonomy/categories/:id/schema`, `/products`, media upload) — mirror the
-  personal-listing rule (goods only, one item). Store management, branches,
-  branch inventory.
 - **3c** Booking: availability, appointments, provider calendar, deposits.
 - **3d** Map (`/map/branches`) — MapLibre Android SDK.
 - **3e** Support tickets, reports, appeals, addresses, account settings,
