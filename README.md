@@ -8,6 +8,13 @@ clients talk to the same backend, **apps/api** (NestJS, in the web repo at
 `AZZA/apps/api`), and apps/api is the only thing that reads or writes
 Postgres. Same accounts, same listings, same orders.
 
+Two repositories, one product:
+- this app — `D:\Folders	he_store\AZZA_android`, GitHub `kouroshov/AZZA_android` (private);
+- the website and apps/api — `D:\Folders	he_store\AZZA\AZZA`, GitHub `kouroshov/AZZA` (private).
+
+A change the app needs on the server goes into the web repo, on its own
+branch, merged to `master` through a pull request (e.g. #37).
+
 ```
  Android app ──HTTPS──┐
                       ├──► apps/api (/api/v1) ──► PostgreSQL (one schema)

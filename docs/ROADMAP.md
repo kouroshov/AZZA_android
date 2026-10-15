@@ -108,7 +108,7 @@ not exercised on the emulator (the test account has no store).
   no-show / cancel.
 - Dates follow the web's Intl output: Jalali calendar and Persian digits in
   Persian (android.icu), e.g. «پنجشنبه ۲۳ مهر، ۱۵:۰۰».
-- Needed an apps/api fix (web repo, branch `api/android-support`): a
+- Needed an apps/api fix (web repo, PR #37, merged into `master` 2026-10-15): a
   deposit checkout (`appointmentIds`, no `items`) used to take the server
   cart too whenever it held anything — the app's basket is that cart.
   Now it never does; e2e test added, booking + orders 84/84.
@@ -128,7 +128,7 @@ provides no timed service).
   its products, and "Open the store".
 - apps/api refuses an area wider than 22° a side; zoomed further out, the
   app asks for the middle of the screen.
-- Found and fixed in apps/api (web repo, branch `api/android-support`):
+- Found and fixed in apps/api (web repo, PR #37, merged into `master` 2026-10-15):
   the public map counted and previewed **unpublished** listings (a DRAFT
   with branch stock showed its title and price to anyone). e2e added.
 
@@ -192,7 +192,7 @@ provider); this round builds 4a–4d below; biometric unlock waits.
   Services libraries, and many phones in Iran have none. EAN-13 only,
   read level or sideways, check digit verified; the torch can be switched
   on; the 13 digits can be typed instead (no camera, or a worn label).
-- apps/api (web repo, branch `api/android-support`): new public
+- apps/api (web repo, PR #37, merged into `master` 2026-10-15): new public
   `GET /products/barcode/:code` → `{ productId }`, for exactly the listings
   `GET /products/:id` shows. e2e in `geography-stores`.
 
@@ -208,7 +208,7 @@ provider); this round builds 4a–4d below; biometric unlock waits.
   on the PC), `https://azza.example` (placeholder) for release.
 - **App Links** (`autoVerify`): the website now serves
   `/.well-known/assetlinks.json` from `ANDROID_APP_PACKAGE` /
-  `ANDROID_CERT_SHA256` (web repo, branch `api/android-support`). Until
+  `ANDROID_CERT_SHA256` (web repo, PR #37, merged into `master` 2026-10-15). Until
   the release key's fingerprint is set there, Android asks which app to
   open a link with instead of opening AZZA directly.
 
