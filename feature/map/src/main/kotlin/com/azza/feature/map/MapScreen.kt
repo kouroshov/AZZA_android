@@ -1,5 +1,21 @@
 package com.azza.feature.map
 
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.AssistChip
+import com.azza.core.ui.ChoiceMenu
+import com.azza.core.model.CategoryNode
+import com.azza.core.model.Area
+import com.azza.core.data.GeographyRepository
+import com.azza.core.data.ListingRepository
 import androidx.compose.material.icons.outlined.MyLocation
 import android.graphics.Color
 import androidx.compose.foundation.background
@@ -102,8 +118,22 @@ private const val MAX_SPAN = 21.9
 /** Iran as a whole, as the map opens before anything is known about the person. */
 private val START = CameraPosition.Builder().target(LatLng(32.4, 53.4)).zoom(3.9).build()
 
+/** Where the phone is, once "near me" found it — for the distance on a preview. */
+data class Here(val latitude: Double, val longitude: Double)
+
+/** Iran's box: a fix outside it does not move the map (the web's "outsideIran"). */
+internal fun insideIran(lat: Double, lng: Double) = lat in 24.8..40.0 && lng in 43.9..63.5
+
 data class MapUiState(
     val markers: List<BranchMarker> = emptyList(),
+    /** The map shows only stores holding this category (the web's category filter). */
+    val categoryId: String? = null,
+    val categories: List<CategoryNode> = emptyList(),
+    val here: Here? = null,
+    /** Zoomed out past what is worth listing (the web lists from city level). */
+    val tooFarOut: Boolean = false,
+    val provinces: List<Area> = emptyList(),
+    val cities: List<Area> = emptyList(),
     val loading: Boolean = false,
     val error: AppError? = null,
     val selected: String? = null,
@@ -112,22 +142,47 @@ data class MapUiState(
 )
 
 @HiltViewModel
-class MapViewModel @Inject constructor(private val repository: MapRepository) : ViewModel() {
+class MapViewModel @Inject constructor(
+    private val repository: MapRepository,
+    private val listings: ListingRepository,
+    private val geography: GeographyRepository,
+) : ViewModel() {
     private val _state = MutableStateFlow(MapUiState())
     val state: StateFlow<MapUiState> = _state.asStateFlow()
     private var viewportJob: Job? = null
+    private var lastViewport: DoubleArray? = null
+
+    init {
+        viewModelScope.launch {
+            (listings.categoryTree() as? Outcome.Success)?.let { r -> _state.update { it.copy(categories = r.value) } }
+            (geography.provinces() as? Outcome.Success)?.let { r -> _state.update { it.copy(provinces = r.value) } }
+        }
+    }
+
+    fun setCategory(id: String?) {
+        _state.update { it.copy(categoryId = id) }
+        lastViewport?.let { (n, s, e, w) -> onViewport(n, s, e, w) }
+    }
+
+    fun loadCities(province: Area) = viewModelScope.launch {
+        _state.update { it.copy(cities = emptyList()) }
+        (geography.cities(province.id) as? Outcome.Success)?.let { r -> _state.update { it.copy(cities = r.value) } }
+    }
+
+    fun setHere(here: Here?) = _state.update { it.copy(here = here) }
 
     /** Called when the camera settles; a short pause so panning does not fire a request per frame. */
     fun onViewport(north: Double, south: Double, east: Double, west: Double) {
+        lastViewport = doubleArrayOf(north, south, east, west)
         viewportJob?.cancel()
         viewportJob = viewModelScope.launch {
             delay(250)
-            _state.update { it.copy(loading = true) }
+            _state.update { it.copy(loading = true, tooFarOut = north - south > 6.0) }
             // apps/api refuses an area wider than 22° a side (GEOGRAPHY_QUERY_TOO_LARGE):
             // zoomed far out, ask for the middle of the screen instead of failing.
             val (n, s) = clampSpan(south, north)
             val (e, w) = clampSpan(west, east)
-            when (val r = repository.branches(n, s, e, w)) {
+            when (val r = repository.branches(n, s, e, w, _state.value.categoryId)) {
                 is Outcome.Success -> _state.update { it.copy(markers = r.value, loading = false, error = null) }
                 is Outcome.Failure -> _state.update { it.copy(loading = false, error = r.error) }
             }
@@ -144,7 +199,8 @@ class MapViewModel @Inject constructor(private val repository: MapRepository) : 
     fun select(branchId: String) {
         _state.update { it.copy(selected = branchId, preview = null, previewLoading = true) }
         viewModelScope.launch {
-            val r = repository.preview(branchId)
+            val here = _state.value.here
+            val r = repository.preview(branchId, here?.latitude, here?.longitude)
             _state.update {
                 if (it.selected != branchId) it
                 else it.copy(previewLoading = false, preview = (r as? Outcome.Success)?.value, error = (r as? Outcome.Failure)?.error)
@@ -245,15 +301,23 @@ fun MapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, vi
     // "Near me": the phone's own position service (not Google's — no Play Services needed), asked for when used.
     var locating by remember { mutableStateOf(false) }
     var locationProblem by remember { mutableStateOf(false) }
+    var outsideIran by remember { mutableStateOf(false) }
+    var listOpen by remember { mutableStateOf(false) }
+    var cityOpen by remember { mutableStateOf(false) }
     val goToMe = {
         locating = true
         locationProblem = false
+        outsideIran = false
         currentLocation(context) { lat, lng ->
             locating = false
-            if (lat != null && lng != null) {
-                map?.animateCamera(org.maplibre.android.camera.CameraUpdateFactory.newLatLngZoom(LatLng(lat, lng), 13.0))
-            } else {
-                locationProblem = true
+            when {
+                lat == null || lng == null -> locationProblem = true
+                // Outside Iran: the map stays (the web's message), and no distance is measured from there.
+                !insideIran(lat, lng) -> outsideIran = true
+                else -> {
+                    viewModel.setHere(Here(lat, lng))
+                    map?.animateCamera(org.maplibre.android.camera.CameraUpdateFactory.newLatLngZoom(LatLng(lat, lng), 13.0))
+                }
             }
         }
     }
@@ -274,6 +338,24 @@ fun MapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, vi
             if (locating) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
             else Icon(androidx.compose.material.icons.Icons.Outlined.MyLocation, stringResource(R.string.map_near_me))
         }
+        // Category chips, the city chooser and the list of stores in view (the web's map section).
+        Column(Modifier.align(Alignment.TopStart).padding(start = 64.dp, top = 12.dp, end = 48.dp)) {
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                AssistChip(onClick = { cityOpen = true }, label = { Text(stringResource(R.string.map_choose_city)) }, colors = chipColors())
+                AssistChip(onClick = { listOpen = true }, label = { Text(pluralStringResource(R.plurals.map_stores_here, state.markers.size, state.markers.size)) }, colors = chipColors())
+            }
+            Row(Modifier.horizontalScroll(rememberScrollState()).padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                val language = LocalConfiguration.current.locales[0].language
+                FilterChip(selected = state.categoryId == null, onClick = { viewModel.setCategory(null) }, label = { Text(stringResource(R.string.map_category_all)) }, colors = filterColors())
+                state.categories.forEach { c ->
+                    FilterChip(selected = state.categoryId == c.id, onClick = { viewModel.setCategory(c.id) }, label = { Text(c.name.forLanguage(language)) }, colors = filterColors())
+                }
+            }
+        }
+        if (outsideIran) {
+            Text(stringResource(R.string.map_outside_iran), color = AzzaTheme.colors.textSecondary, style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                modifier = Modifier.align(Alignment.Center).padding(24.dp).background(AzzaTheme.colors.bg, RoundedCornerShape(8.dp)).padding(8.dp))
+        }
         if (locationProblem) {
             Text(stringResource(R.string.map_location_unavailable), color = AzzaTheme.colors.textSecondary, style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
                 modifier = Modifier.align(Alignment.TopCenter).padding(top = 64.dp).background(AzzaTheme.colors.bg, RoundedCornerShape(8.dp)).padding(8.dp))
@@ -282,6 +364,21 @@ fun MapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, vi
         state.error?.takeIf { state.selected == null }?.let {
             Text(errorMessage(it), color = AzzaTheme.colors.error, modifier = Modifier.align(Alignment.TopCenter).padding(12.dp)
                 .background(AzzaTheme.colors.bg, RoundedCornerShape(8.dp)).padding(8.dp))
+        }
+        if (listOpen) {
+            StoresInView(state, onDismiss = { listOpen = false }) { marker ->
+                listOpen = false
+                map?.animateCamera(org.maplibre.android.camera.CameraUpdateFactory.newLatLng(LatLng(marker.latitude, marker.longitude)))
+                viewModel.select(marker.branchId)
+            }
+        }
+        if (cityOpen) {
+            CityDialog(state, viewModel::loadCities, onDismiss = { cityOpen = false }) { area ->
+                cityOpen = false
+                val lat = area.latitude
+                val lng = area.longitude
+                if (lat != null && lng != null) map?.animateCamera(org.maplibre.android.camera.CameraUpdateFactory.newLatLngZoom(LatLng(lat, lng), 11.5))
+            }
         }
         if (state.selected != null) {
             PreviewCard(
@@ -336,6 +433,7 @@ private fun PreviewCard(
             IconButton(onClick = onClose) { Icon(Icons.Outlined.Close, stringResource(R.string.map_close)) }
         }
         if (p.address.isNotBlank()) Text(p.address, color = colors.textSecondary, style = MaterialTheme.typography.bodySmall)
+        p.distanceKm?.let { Text(stringResource(R.string.map_distance, String.format(java.util.Locale.getDefault(), "%.1f", it)), color = colors.textSecondary, style = MaterialTheme.typography.bodySmall) }
         if (p.products.isNotEmpty()) {
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 p.products.forEach { product ->
@@ -353,6 +451,88 @@ private fun PreviewCard(
             Text(pluralStringResource(R.plurals.map_open_store, p.productCount, p.productCount))
         }
     }
+}
+
+@Composable
+private fun chipColors() = AssistChipDefaults.assistChipColors(containerColor = AzzaTheme.colors.bg)
+
+@Composable
+private fun filterColors() = FilterChipDefaults.filterChipColors(containerColor = AzzaTheme.colors.bg)
+
+/** The web's "Stores in this area" list, for the branches the map is showing. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun StoresInView(state: MapUiState, onDismiss: () -> Unit, onPick: (BranchMarker) -> Unit) {
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Text(
+            pluralStringResource(R.plurals.map_stores_here, state.markers.size, state.markers.size),
+            style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        )
+        when {
+            state.tooFarOut -> Text(stringResource(R.string.map_list_zoom_in), color = AzzaTheme.colors.textMuted, modifier = Modifier.padding(16.dp))
+            state.markers.isEmpty() -> Text(
+                stringResource(if (state.categoryId != null) R.string.map_list_empty_filtered else R.string.map_list_empty),
+                color = AzzaTheme.colors.textMuted,
+                modifier = Modifier.padding(16.dp),
+            )
+            else -> LazyColumn(Modifier.heightIn(max = 480.dp)) {
+                if (state.markers.size >= 200) {
+                    item { Text(stringResource(R.string.map_list_truncated), color = AzzaTheme.colors.textMuted, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = 16.dp)) }
+                }
+                items(state.markers, key = { it.branchId }) { m ->
+                    Row(
+                        Modifier.fillMaxWidth().clickable { onPick(m) }.padding(horizontal = 16.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Avatar(url = m.logoUrl, isStore = true, size = 40)
+                        Column(Modifier.weight(1f)) {
+                            Text(m.storeName, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(
+                                listOfNotNull(m.branchName.ifBlank { null }, m.address).joinToString(" · "),
+                                color = AzzaTheme.colors.textMuted,
+                                style = MaterialTheme.typography.bodySmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        Text(
+                            stringResource(if (m.status == "OPEN") R.string.map_open_now else if (m.status == "CLOSED") R.string.map_closed_now else R.string.map_hours_unknown),
+                            color = if (m.status == "OPEN") AzzaTheme.colors.success else AzzaTheme.colors.textMuted,
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Province, then city: the map moves to the city (the web's map section selectors). */
+@Composable
+private fun CityDialog(state: MapUiState, onProvince: (Area) -> Unit, onDismiss: () -> Unit, onCity: (Area) -> Unit) {
+    var province by remember { mutableStateOf<Area?>(null) }
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.map_choose_city)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                ChoiceMenu(stringResource(R.string.map_province), province?.name.orEmpty(), state.provinces.map { it.name }, { name ->
+                    state.provinces.firstOrNull { it.name == name }?.let { province = it; onProvince(it) }
+                }, Modifier.fillMaxWidth())
+                ChoiceMenu(stringResource(R.string.map_city), "", state.cities.map { it.name }, { name ->
+                    state.cities.firstOrNull { it.name == name }?.let(onCity)
+                }, Modifier.fillMaxWidth())
+                // A province on its own is somewhere to go too.
+                province?.takeIf { it.latitude != null }?.let { p ->
+                    TextButton(onClick = { onCity(p) }) { Text(stringResource(R.string.map_go_to_province, p.name)) }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.map_close)) } },
+    )
 }
 
 /**

@@ -17,6 +17,11 @@ data class BranchMarker(
     val longitude: Double,
     /** OPEN, CLOSED or UNKNOWN (no hours published). */
     val status: String,
+    val storeSlug: String = "",
+    val branchName: String = "",
+    val address: String? = null,
+    val logoUrl: String? = null,
+    val productCount: Int = 0,
 )
 
 data class BranchPreview(
@@ -28,6 +33,8 @@ data class BranchPreview(
     val phone: String?,
     val openStatus: String,
     val productCount: Int,
+    /** From the viewer, when their position was given. */
+    val distanceKm: Double? = null,
     val products: List<BranchPreviewProduct>,
 )
 
@@ -40,12 +47,18 @@ class MapRepository @Inject constructor(
     private val media: MediaUrlResolver,
     private val json: Json,
 ) {
-    suspend fun branches(north: Double, south: Double, east: Double, west: Double): Outcome<List<BranchMarker>> =
-        safeApiCall(json) { api.branches(north, south, east, west).data }.map { page ->
-            page.items.map { BranchMarker(it.branchId, it.storeName, it.latitude, it.longitude, it.status) }
+    suspend fun branches(north: Double, south: Double, east: Double, west: Double, categoryId: String? = null): Outcome<List<BranchMarker>> =
+        safeApiCall(json) { api.branches(north, south, east, west, categoryId = categoryId).data }.map { page ->
+            page.items.map {
+                BranchMarker(
+                    it.branchId, it.storeName, it.latitude, it.longitude, it.status,
+                    storeSlug = it.storeSlug, branchName = it.branchName, address = it.address?.ifBlank { null },
+                    logoUrl = media.resolve(it.logo), productCount = it.availableProductCount,
+                )
+            }
         }
 
-    suspend fun preview(branchId: String): Outcome<BranchPreview> = safeApiCall(json) { api.preview(branchId).data }.map { p ->
+    suspend fun preview(branchId: String, lat: Double? = null, lng: Double? = null): Outcome<BranchPreview> = safeApiCall(json) { api.preview(branchId, lat, lng).data }.map { p ->
         BranchPreview(
             storeSlug = p.storeSlug,
             storeName = p.storeName,
@@ -55,6 +68,7 @@ class MapRepository @Inject constructor(
             phone = p.phone,
             openStatus = p.openStatus,
             productCount = p.productCount,
+            distanceKm = p.distanceKm,
             products = p.products.map { BranchPreviewProduct(it.id, it.title, Money.fromMajor(it.price, it.currency), media.resolve(it.primaryImage)) },
         )
     }

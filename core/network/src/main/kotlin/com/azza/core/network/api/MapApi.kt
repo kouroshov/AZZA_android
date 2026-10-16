@@ -36,6 +36,7 @@ data class BranchPreviewDto(
     val address: String = "",
     val phone: String? = null,
     val openStatus: String = "UNKNOWN",
+    val distanceKm: Double? = null,
     val productCount: Int = 0,
     val products: List<BranchPreviewProductDto> = emptyList(),
 )
@@ -59,9 +60,15 @@ interface MapApi {
         @Query("east") east: Double,
         @Query("west") west: Double,
         @Query("take") take: Int = 200,
+        @Query("categoryId") categoryId: String? = null,
     ): ApiEnvelope<MapBranchesPageDto>
 
     /** The store preview a marker opens. Public. */
     @GET("map/branches/{branchId}")
-    suspend fun preview(@Path("branchId") branchId: String): ApiEnvelope<BranchPreviewDto>
+    suspend fun preview(
+        @Path("branchId") branchId: String,
+        /** The viewer's position, when known: apps/api answers the distance to it. */
+        @Query("lat") lat: Double? = null,
+        @Query("lng") lng: Double? = null,
+    ): ApiEnvelope<BranchPreviewDto>
 }

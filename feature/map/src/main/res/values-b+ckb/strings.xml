@@ -11,4 +11,19 @@
     </plurals>
     <string name="map_near_me">نزیک من</string>
     <string name="map_location_unavailable">شوێنەکەت بەردەست نییە. بپشکنە کە شوێن هەڵکراوە.</string>
+    <string name="map_choose_city">شار</string>
+    <string name="map_province">پارێزگا</string>
+    <string name="map_city">شار</string>
+    <string name="map_go_to_province">پیشاندانی هەموو %1$s</string>
+    <string name="map_category_all">هەموو</string>
+    <string name="map_list_zoom_in">بۆ بینینی لیستی فرۆشگاکان، لەسەر شار یان گەڕەکێک نزیک ببەوە.</string>
+    <string name="map_list_empty">لەم ناوچەیە هیچ فرۆشگایەک نییە.</string>
+    <string name="map_list_empty_filtered">هیچ فرۆشگایەک لەم ناوچەیە ئەم پۆلەی بەردەست نییە.</string>
+    <string name="map_list_truncated">پیشاندانی یەکەم ٢٠٠ لق — بۆ کەمکردنەوە نزیک ببەوە.</string>
+    <string name="map_distance">%1$s کیلۆمەتر دوور</string>
+    <string name="map_outside_iran">شوێنەکەت لە دەرەوەی ئێرانە، بۆیە نەخشەکە نەچووە ئەوێ.</string>
+    <plurals name="map_stores_here">
+        <item quantity="one">%1$d فرۆشگا لێرە</item>
+        <item quantity="other">%1$d فرۆشگا لێرە</item>
+    </plurals>
 </resources>

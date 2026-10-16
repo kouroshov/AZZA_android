@@ -10,4 +10,19 @@
     </plurals>
     <string name="map_near_me">نزدیک من</string>
     <string name="map_location_unavailable">مکان شما در دسترس نیست. روشن بودن موقعیت مکانی را بررسی کنید.</string>
+    <string name="map_choose_city">شهر</string>
+    <string name="map_province">استان</string>
+    <string name="map_city">شهر</string>
+    <string name="map_go_to_province">نمایش کل %1$s</string>
+    <string name="map_category_all">همه</string>
+    <string name="map_list_zoom_in">برای دیدن فهرست فروشگاه‌ها، روی یک شهر یا محله بزرگ‌نمایی کنید.</string>
+    <string name="map_list_empty">در این محدوده فروشگاهی نیست.</string>
+    <string name="map_list_empty_filtered">هیچ فروشگاهی در این محدوده این دسته را موجود ندارد.</string>
+    <string name="map_list_truncated">نمایش ۲۰۰ شعبهٔ اول — برای محدودتر کردن، بزرگ‌نمایی کنید.</string>
+    <string name="map_distance">%1$s کیلومتر فاصله</string>
+    <string name="map_outside_iran">موقعیت شما خارج از ایران است، پس نقشه به آنجا نرفت.</string>
+    <plurals name="map_stores_here">
+        <item quantity="one">%1$d فروشگاه اینجا</item>
+        <item quantity="other">%1$d فروشگاه اینجا</item>
+    </plurals>
 </resources>

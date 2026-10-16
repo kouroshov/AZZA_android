@@ -10,4 +10,19 @@
     </plurals>
     <string name="map_near_me">Near me</string>
     <string name="map_location_unavailable">Your location is not available. Check that location is on.</string>
+    <string name="map_choose_city">City</string>
+    <string name="map_province">Province</string>
+    <string name="map_city">City</string>
+    <string name="map_go_to_province">Show all of %1$s</string>
+    <string name="map_category_all">All</string>
+    <string name="map_list_zoom_in">Zoom into a city or neighbourhood to list the stores there.</string>
+    <string name="map_list_empty">No stores in this area.</string>
+    <string name="map_list_empty_filtered">No stores in this area have this category in stock.</string>
+    <string name="map_list_truncated">Showing the first 200 branches in view — zoom in to narrow it down.</string>
+    <string name="map_distance">%1$s km away</string>
+    <string name="map_outside_iran">Your location is outside Iran, so the map wasn\'t moved there.</string>
+    <plurals name="map_stores_here">
+        <item quantity="one">%1$d store here</item>
+        <item quantity="other">%1$d stores here</item>
+    </plurals>
 </resources>
