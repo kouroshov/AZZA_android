@@ -38,6 +38,14 @@ interface BookingApi {
     @PUT("appointments/{id}/contact")
     suspend fun setContact(@Path("id") id: String, @Body body: AppointmentContactRequest): ApiEnvelope<AppointmentDto>
 
+    /** Every appointment on one of the caller's calendars in a date range (at most a few weeks), all services. */
+    @GET("booking/calendar/appointments")
+    suspend fun calendarAppointments(
+        @Query("storeId") storeId: String?,
+        @Query("from") from: String,
+        @Query("to") to: String,
+    ): ApiEnvelope<CalendarAppointmentsDto>
+
     @POST("appointments/{id}/cancel")
     suspend fun cancel(@Path("id") id: String): ApiEnvelope<AppointmentDto>
 
@@ -50,3 +58,12 @@ interface BookingApi {
     @POST("orders/checkout")
     suspend fun checkoutDeposits(@Body body: DepositCheckoutRequest): ApiEnvelope<CheckoutResultDto>
 }
+
+@kotlinx.serialization.Serializable
+data class CalendarAppointmentsDto(
+    val calendarId: String? = null,
+    val timezone: String = "Asia/Tehran",
+    val from: String = "",
+    val to: String = "",
+    val appointments: List<com.azza.core.network.model.AppointmentDto> = emptyList(),
+)

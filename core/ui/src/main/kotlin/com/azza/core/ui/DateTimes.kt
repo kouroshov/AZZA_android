@@ -48,6 +48,25 @@ fun formatDayChip(day: String, locale: Locale = Locale.getDefault()): String {
     return SimpleDateFormat("EEE d", uLocale(locale)).apply { timeZone = TimeZone.getTimeZone("UTC") }.format(date)
 }
 
+/** The calendar day ("2026-10-16") an instant falls on in [timeZone]. */
+fun dayKey(iso: String, timeZone: String): String {
+    val date = parseInstant(iso) ?: return iso.take(10)
+    return SimpleDateFormat("yyyy-MM-dd", ULocale.US).apply { this.timeZone = TimeZone.getTimeZone(timeZone) }.format(date)
+}
+
+/** [day] ("2026-10-16") moved by [days]. */
+fun addDays(day: String, days: Int): String {
+    val f = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }
+    val c = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"))
+    c.time = f.parse(day) ?: return day
+    c.add(java.util.Calendar.DAY_OF_MONTH, days)
+    return f.format(c.time)
+}
+
+/** Today's date ("2026-10-16") in [timeZone]. */
+fun today(timeZone: String = "Asia/Tehran"): String =
+    java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { this.timeZone = java.util.TimeZone.getTimeZone(timeZone) }.format(java.util.Date())
+
 /** Minutes until an ISO instant, never negative — a hold's countdown. */
 fun minutesUntil(iso: String?, now: Long = System.currentTimeMillis()): Int? {
     val date = iso?.let(::parseInstant) ?: return null

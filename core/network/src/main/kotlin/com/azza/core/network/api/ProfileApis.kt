@@ -192,6 +192,8 @@ interface OwnListingsApi {
         @Query("storeId") storeId: String? = null,
         @Query("cursor") cursor: String? = null,
         @Query("take") take: Int = 30,
+        /** Words in the title (apps/api's `search`). */
+        @Query("search") search: String? = null,
     ): ApiEnvelope<ProductsPageDto>
 
     /** One of the caller's own listings, a moderation hold's cause and reason included; 404 for anyone else's. */

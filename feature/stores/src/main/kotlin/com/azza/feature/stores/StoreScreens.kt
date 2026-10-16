@@ -1,5 +1,7 @@
 package com.azza.feature.stores
 
+import androidx.compose.material.icons.outlined.EventNote
+import androidx.compose.material.icons.outlined.Inventory2
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -90,6 +92,9 @@ import kotlinx.serialization.Serializable
 @Serializable data class BranchStockRoute(val storeId: String, val branchId: String)
 @Serializable data class BranchLocationRoute(val storeId: String, val branchId: String)
 @Serializable data class TimetableRoute(val storeId: String)
+/** A calendar's week of appointments; [storeId] null = the personal calendar. */
+@Serializable data class CalendarWeekRoute(val storeId: String?)
+@Serializable data class StoreProductsRoute(val storeId: String)
 @Serializable data class BookingSettingsRoute(val productId: String)
 
 /** Where the store screens lead outside this module (the app wires them). */
@@ -114,6 +119,8 @@ fun NavGraphBuilder.storeScreens(nav: StoreNavigation) {
     composable<BranchStockRoute> { StockScreen(nav) }
     composable<BranchLocationRoute> { LocationScreen(nav) }
     composable<TimetableRoute> { TimetableScreen(nav) }
+    composable<CalendarWeekRoute> { CalendarWeekScreen(nav) }
+    composable<StoreProductsRoute> { StoreProductsScreen(nav) }
     composable<BookingSettingsRoute> { BookingSettingsScreen(nav) }
 }
 
@@ -312,19 +319,30 @@ fun StoreHomeScreen(nav: StoreNavigation, viewModel: StoreHomeViewModel = hiltVi
                 }
                 st.hold?.let { HoldCard(it.cause, it.reason, it.at, it.appealable, state.appeals, state.appealSending, state.appealError, viewModel::appeal) }
                 state.actionError?.let { Text(storeError(it), color = AzzaTheme.colors.error, modifier = Modifier.padding(horizontal = 16.dp)) }
-                if (!st.hasLocation && st.hold == null) {
-                    Text(
-                        stringResource(R.string.stores_no_location),
-                        color = AzzaTheme.colors.textSecondary,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                    )
+                val main = state.branches.firstOrNull { it.id == st.primaryBranchId } ?: state.branches.firstOrNull()
+                val noHours = main != null && main.week.all { it.closed }
+                if ((!st.hasLocation || noHours) && st.hold == null && main != null) {
+                    // A new store is not findable until it has a place and hours: say so, with the way there.
+                    Column(
+                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)
+                            .clip(RoundedCornerShape(12.dp)).background(AzzaTheme.colors.surface).padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text(stringResource(R.string.stores_setup_title), style = MaterialTheme.typography.titleSmall)
+                        Text(stringResource(R.string.stores_setup_body), style = MaterialTheme.typography.bodySmall, color = AzzaTheme.colors.textSecondary)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            if (!st.hasLocation) OutlinedButton(onClick = { nav.open(BranchLocationRoute(st.id, main.id)) }) { Text(stringResource(R.string.stores_set_location)) }
+                            if (noHours) OutlinedButton(onClick = { nav.open(BranchRoute(st.id, main.id)) }) { Text(stringResource(R.string.stores_set_hours)) }
+                        }
+                    }
                 }
                 HorizontalDivider(color = AzzaTheme.colors.navDivider, modifier = Modifier.padding(vertical = 8.dp))
                 ActionRow(Icons.Outlined.PostAdd, stringResource(R.string.stores_post)) { nav.postFromStore(st.id) }
+                ActionRow(Icons.Outlined.Inventory2, stringResource(R.string.stores_products_count, st.postCount)) { nav.open(StoreProductsRoute(st.id)) }
                 ActionRow(Icons.Outlined.Storefront, stringResource(R.string.stores_public_page)) { nav.openPublicStore(st.slug) }
                 ActionRow(Icons.Outlined.Edit, stringResource(R.string.stores_edit)) { nav.open(StoreEditRoute(st.id)) }
                 ActionRow(Icons.Outlined.CalendarMonth, stringResource(R.string.stores_timetable)) { nav.open(TimetableRoute(st.id)) }
+                ActionRow(Icons.Outlined.EventNote, stringResource(R.string.stores_appointments_week)) { nav.open(CalendarWeekRoute(st.id)) }
                 ActionRow(Icons.Outlined.Group, stringResource(R.string.stores_followers)) { nav.open(StoreFollowersRoute(st.id)) }
                 HorizontalDivider(color = AzzaTheme.colors.navDivider, modifier = Modifier.padding(vertical = 8.dp))
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {

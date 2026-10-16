@@ -25,6 +25,9 @@ import kotlinx.serialization.json.Json
  * be stale, booking inserts and the constraint decides — a lost race comes
  * back as 409 SLOT_TAKEN, never as a check-then-act here.
  */
+/** A provider's calendar over a few days: what the timetable's week grid shows. */
+data class CalendarWeek(val timezone: String, val from: String, val to: String, val appointments: List<Appointment>)
+
 @Singleton
 class BookingRepository @Inject constructor(
     private val api: BookingApi,
@@ -53,6 +56,12 @@ class BookingRepository @Inject constructor(
     suspend fun mine(): Outcome<List<Appointment>> = safeApiCall(json) { api.mine().data }.map { list -> list.map { it.toModel() } }
 
     suspend fun received(): Outcome<List<Appointment>> = safeApiCall(json) { api.received().data }.map { list -> list.map { it.toModel() } }
+
+    /** One calendar's appointments from [from] to [to] (YYYY-MM-DD), a store's or (null) the personal one. */
+    suspend fun calendarWeek(storeId: String?, from: String, to: String): Outcome<CalendarWeek> =
+        safeApiCall(json) { api.calendarAppointments(storeId, from, to).data }.map { d ->
+            CalendarWeek(d.timezone, d.from, d.to, d.appointments.map { it.toModel() })
+        }
 
     suspend fun cancel(id: String): Outcome<Appointment> = safeApiCall(json) { api.cancel(id).data }.map { it.toModel() }
 

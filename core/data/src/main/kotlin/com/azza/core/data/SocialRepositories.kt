@@ -78,8 +78,12 @@ class ProfilesRepository @Inject constructor(
         safeApiCall(json) { products.list(storeId = storeId, cursor = cursor).data }.map { it.toTiles() }
 
     /** The caller's own personal listings in every state (drafts and held ones too) — their own page only. */
-    suspend fun myPersonalPosts(cursor: String?): Outcome<Page<PostTile>> =
-        safeApiCall(json) { own.list(personal = true, cursor = cursor).data }.map { it.toTiles() }
+    suspend fun myPersonalPosts(cursor: String?, search: String = ""): Outcome<Page<PostTile>> =
+        safeApiCall(json) { own.list(personal = true, cursor = cursor, search = search.trim().ifBlank { null }).data }.map { it.toTiles() }
+
+    /** Every listing of one of the caller's stores, drafts and held ones included (the web's store "Products" tab). */
+    suspend fun myStorePosts(storeId: String, cursor: String?, search: String = ""): Outcome<Page<PostTile>> =
+        safeApiCall(json) { own.list(storeId = storeId, cursor = cursor, search = search.trim().ifBlank { null }).data }.map { it.toTiles() }
 
     private fun ProductsPageDto.toTiles() = Page(items.map { it.toTile() }, nextCursor, hasMore)
 

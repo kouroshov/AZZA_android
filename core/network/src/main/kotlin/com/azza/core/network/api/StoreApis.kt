@@ -54,6 +54,7 @@ data class OwnStoreDto(
     val status: String = "ACTIVE",
     val moderation: StoreHoldDto? = null,
     val location: LocationDto? = null,
+    val postCount: Int = 0,
 )
 
 /** Create and edit. A null field is left out (the app's Json drops nulls), so an edit changes only what it sends. */

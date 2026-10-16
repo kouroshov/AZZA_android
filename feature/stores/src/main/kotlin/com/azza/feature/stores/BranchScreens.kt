@@ -1,5 +1,7 @@
 package com.azza.feature.stores
 
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.ContentCopy
 import com.azza.core.ui.clock
 import com.azza.core.ui.dayName
 import com.azza.core.ui.weekOrder
@@ -170,6 +172,7 @@ fun BranchScreen(nav: StoreNavigation, viewModel: BranchViewModel = hiltViewMode
                             Text("–")
                             TextButton(onClick = { picking = day to false }) { Text(clock(day.closes)) }
                             Box(Modifier.weight(1f))
+                            IconButton(onClick = { viewModel.applyToAll(day) }) { Icon(Icons.Outlined.ContentCopy, stringResource(R.string.stores_apply_all_days)) }
                         }
                         Switch(checked = !day.closed, onCheckedChange = { open -> viewModel.setDay(day.copy(closed = !open)) })
                     }
@@ -234,6 +237,7 @@ fun StockScreen(nav: StoreNavigation, viewModel: StockViewModel = hiltViewModel(
         onPauseOrDispose { }
     }
     var editing by remember { mutableStateOf<Pair<String, Int>?>(null) }
+    var query by rememberSaveable { mutableStateOf("") }
     StorePage(stringResource(R.string.stores_stock), nav.back) {
         when (val s = state.lines) {
             Load.Loading -> LoadingState()
@@ -242,9 +246,20 @@ fun StockScreen(nav: StoreNavigation, viewModel: StockViewModel = hiltViewModel(
                 item {
                     Text(stringResource(R.string.stores_stock_intro), color = AzzaTheme.colors.textSecondary, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(16.dp))
                     state.error?.let { Text(storeError(it), color = AzzaTheme.colors.error, modifier = Modifier.padding(horizontal = 16.dp)) }
+                    if (s.value.size > 5) {
+                        OutlinedTextField(
+                            value = query,
+                            onValueChange = { query = it },
+                            placeholder = { Text(stringResource(R.string.stores_stock_search)) },
+                            leadingIcon = { Icon(Icons.Outlined.Search, null) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                        )
+                    }
                 }
                 if (s.value.isEmpty()) item { Text(stringResource(R.string.stores_stock_empty), color = AzzaTheme.colors.textMuted, modifier = Modifier.padding(16.dp)) }
-                items(s.value, key = { it.productId }) { line ->
+                val shown = s.value.filter { query.isBlank() || it.title.contains(query.trim(), ignoreCase = true) }
+                items(shown, key = { it.productId }) { line ->
                     Row(
                         Modifier.fillMaxWidth().clickable { editing = line.productId to line.quantity }.padding(horizontal = 16.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -252,6 +267,8 @@ fun StockScreen(nav: StoreNavigation, viewModel: StockViewModel = hiltViewModel(
                         Column(Modifier.weight(1f)) {
                             Text(line.title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.clickable { nav.openListing(line.productId) })
                             if (line.reserved > 0) Text(stringResource(R.string.stores_stock_reserved, line.reserved), style = MaterialTheme.typography.bodySmall, color = AzzaTheme.colors.textMuted)
+                            // Stock can be kept for a draft, but nobody can buy it yet.
+                            if (!line.published) Text(stringResource(R.string.stores_status_inactive), style = MaterialTheme.typography.labelSmall, color = AzzaTheme.colors.warning)
                         }
                         Text(if (state.savingId == line.productId) "…" else line.quantity.toString(), style = MaterialTheme.typography.titleMedium)
                     }
@@ -353,6 +370,18 @@ fun LocationScreen(nav: StoreNavigation, viewModel: LocationViewModel = hiltView
                 AreaMenu(stringResource(R.string.stores_province), state.province, state.provinces, viewModel::chooseProvince)
                 AreaMenu(stringResource(R.string.stores_city), state.city, state.cities, viewModel::chooseCity)
                 FormField(state.address, viewModel::editAddress, R.string.stores_address)
+                // Or the exact point, typed (e.g. copied from another maps app).
+                var lat by rememberSaveable { mutableStateOf("") }
+                var lng by rememberSaveable { mutableStateOf("") }
+                val typed = lat.toDoubleOrNull()?.takeIf { it in -90.0..90.0 }?.let { a -> lng.toDoubleOrNull()?.takeIf { it in -180.0..180.0 }?.let { a to it } }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(lat, { lat = it.filter { c -> c.isDigit() || c == '.' || c == '-' } }, label = { Text(stringResource(R.string.stores_latitude)) }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.weight(1f))
+                    OutlinedTextField(lng, { lng = it.filter { c -> c.isDigit() || c == '.' || c == '-' } }, label = { Text(stringResource(R.string.stores_longitude)) }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.weight(1f))
+                    TextButton(
+                        enabled = typed != null && map != null,
+                        onClick = { typed?.let { (a, o) -> map?.animateCamera(org.maplibre.android.camera.CameraUpdateFactory.newLatLngZoom(LatLng(a, o), 16.0)) } },
+                    ) { Text(stringResource(R.string.stores_go_to_point)) }
+                }
                 state.error?.let { Text(storeError(it), color = AzzaTheme.colors.error, style = MaterialTheme.typography.bodySmall) }
                 Button(
                     onClick = { map?.cameraPosition?.target?.let { viewModel.save(it.latitude, it.longitude) } },

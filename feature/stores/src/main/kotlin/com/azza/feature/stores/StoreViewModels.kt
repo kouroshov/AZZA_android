@@ -254,6 +254,9 @@ class BranchViewModel @Inject constructor(savedStateHandle: SavedStateHandle, pr
 
     fun setDay(day: DayHours) = edit { copy(week = week.map { if (it.dayOfWeek == day.dayOfWeek) day else it }) }
 
+    /** The web's "apply to all days": every day open with this day's hours. */
+    fun applyToAll(day: DayHours) = edit { copy(week = week.map { it.copy(opens = day.opens, closes = day.closes, closed = false) }) }
+
     fun addClosure(date: String, reason: String) = edit { copy(closures = (closures.filterNot { it.date == date } + Closure(date, reason)).sortedBy { it.date }) }
 
     fun removeClosure(date: String) = edit { copy(closures = closures.filterNot { it.date == date }) }

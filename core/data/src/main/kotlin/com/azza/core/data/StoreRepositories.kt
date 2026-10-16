@@ -61,6 +61,8 @@ data class ManagedStore(
     val status: String,
     val hold: StoreHold?,
     val hasLocation: Boolean,
+    /** Live listings (drafts and held ones not counted). */
+    val postCount: Int = 0,
 )
 
 /** What the store form edits. */
@@ -96,7 +98,7 @@ data class Branch(
 )
 
 /** A store listing and how many of it this branch holds. */
-data class StockLine(val productId: String, val title: String, val quantity: Int, val reserved: Int)
+data class StockLine(val productId: String, val title: String, val quantity: Int, val reserved: Int, val published: Boolean = true)
 
 data class TimeWindow(val dayOfWeek: Int, val start: Int, val end: Int)
 
@@ -251,7 +253,7 @@ class StoresRepository @Inject constructor(
             }
             page.items.filter { it.offeringKind == "GOOD" }.forEach { p ->
                 val line = held[p.id]
-                listings += StockLine(p.id, p.title, line?.quantity ?: 0, line?.reserved ?: 0)
+                listings += StockLine(p.id, p.title, line?.quantity ?: 0, line?.reserved ?: 0, published = p.status == "ACTIVE")
             }
             cursor = page.nextCursor.takeIf { page.hasMore }
         } while (cursor != null)
@@ -325,6 +327,7 @@ class StoresRepository @Inject constructor(
         status = status,
         hold = moderation?.let { StoreHold(it.cause, it.reason, it.at) },
         hasLocation = location != null,
+        postCount = postCount,
     )
 
     private fun BranchDetailDto.toModel(): Branch {
