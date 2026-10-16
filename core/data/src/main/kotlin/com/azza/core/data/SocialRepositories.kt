@@ -132,10 +132,10 @@ class GeographyRepository @Inject constructor(
     val chosenCity: Flow<Area?> = preferences.city.map { it?.let { c -> Area(c.id, c.name) } }
 
     suspend fun provinces(): Outcome<List<Area>> =
-        safeApiCall(json) { api.provinces().data }.map { list -> list.map { Area(it.id, it.name) }.sortedBy { it.name } }
+        safeApiCall(json) { api.provinces().data }.map { list -> list.map { Area(it.id, it.name, it.center?.lat, it.center?.lng) }.sortedBy { it.name } }
 
     suspend fun cities(provinceId: String): Outcome<List<Area>> =
-        safeApiCall(json) { api.cities(provinceId).data }.map { list -> list.map { Area(it.id, it.name) }.sortedBy { it.name } }
+        safeApiCall(json) { api.cities(provinceId).data }.map { list -> list.map { Area(it.id, it.name, it.center?.lat, it.center?.lng) }.sortedBy { it.name } }
 
     suspend fun chooseCity(city: Area?) = preferences.setCity(city?.let { ChosenCity(it.id, it.name) })
 }

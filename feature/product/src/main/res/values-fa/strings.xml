@@ -50,4 +50,5 @@
     <string name="appeal_too_short">لطفاً دست‌کم %1$d نویسه بنویسید.</string>
     <string name="appeal_error_duplicate">قبلاً به این تصمیم اعتراض کرده‌اید.</string>
     <string name="appeal_error_not_available">دیگر نمی‌شود به این مورد اعتراض کرد.</string>
+    <string name="product_booking_settings">تنظیمات نوبت‌دهی</string>
 </resources>

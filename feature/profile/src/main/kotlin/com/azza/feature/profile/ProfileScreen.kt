@@ -66,11 +66,12 @@ fun NavGraphBuilder.profileScreen(
     onOpenProduct: (String) -> Unit,
     onEditProfile: () -> Unit,
     onOpenFollowList: (followers: Boolean) -> Unit,
+    onOpenStores: () -> Unit,
     onBack: () -> Unit,
     onOpenUser: (String) -> Unit,
     onOpenStore: (String) -> Unit,
 ) {
-    composable<ProfileRoute> { ProfileScreen(onSignIn, onOpenProduct, onEditProfile, onOpenFollowList) }
+    composable<ProfileRoute> { ProfileScreen(onSignIn, onOpenProduct, onEditProfile, onOpenFollowList, onOpenStores) }
     composable<FollowListRoute> { FollowListScreen(onBack, onOpenUser, onOpenStore) }
 }
 
@@ -80,6 +81,7 @@ fun ProfileScreen(
     onOpenProduct: (String) -> Unit,
     onEditProfile: () -> Unit,
     onOpenFollowList: (followers: Boolean) -> Unit,
+    onOpenStores: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -95,7 +97,7 @@ fun ProfileScreen(
             if (s.error == AppError.Unauthenticated) SignedOut(onSignIn) else ErrorState(s.error, onRetry = { viewModel.retry() })
         is ProfileUiState.Ready -> {
             val me by viewModel.me.collectAsStateWithLifecycle()
-            Profile(me ?: s.user, viewModel, onOpenProduct, onEditProfile, onOpenFollowList)
+            Profile(me ?: s.user, viewModel, onOpenProduct, onEditProfile, onOpenFollowList, onOpenStores)
         }
     }
 }
@@ -108,6 +110,7 @@ private fun Profile(
     onOpenProduct: (String) -> Unit,
     onEditProfile: () -> Unit,
     onOpenFollowList: (followers: Boolean) -> Unit,
+    onOpenStores: () -> Unit,
 ) {
     val followers by viewModel.followerCount.collectAsStateWithLifecycle()
     val following by viewModel.followingCount.collectAsStateWithLifecycle()
@@ -137,8 +140,10 @@ private fun Profile(
                     }
                 }
                 // Signing out lives in Settings (the ⋮ menu), as on the web.
-                OutlinedButton(onClick = onEditProfile, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.profile_edit))
+                // The web's actions slot: Edit profile, and the stores you run.
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = onEditProfile, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.profile_edit)) }
+                    OutlinedButton(onClick = onOpenStores, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.profile_stores)) }
                 }
             }
         }

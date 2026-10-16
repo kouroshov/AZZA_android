@@ -102,6 +102,9 @@ class CreateListingViewModel @Inject constructor(
     /** Set when the screen was opened as EditListingRoute. */
     private val editId: String? = savedStateHandle.get<String>("productId")
 
+    /** Set when the screen was opened as CreateForStoreRoute. */
+    private val startStoreId: String? = savedStateHandle.get<String>("storeId")
+
     private val _state = MutableStateFlow(CreateUiState())
     val state: StateFlow<CreateUiState> = _state.asStateFlow()
 
@@ -113,6 +116,7 @@ class CreateListingViewModel @Inject constructor(
     init {
         if (editId != null) loadForEdit(editId) else viewModelScope.launch {
             (listings.myStores() as? Outcome.Success)?.let { r -> _state.update { it.copy(stores = r.value) } }
+            startStoreId?.takeIf { id -> _state.value.stores.any { it.id == id } }?.let(::postAs)
         }
     }
 

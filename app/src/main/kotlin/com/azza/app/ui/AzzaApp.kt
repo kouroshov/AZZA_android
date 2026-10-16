@@ -1,5 +1,11 @@
 package com.azza.app.ui
 
+import com.azza.feature.create.CreateForStoreRoute
+import com.azza.feature.stores.storeScreens
+import com.azza.feature.stores.StoreNavigation
+import com.azza.feature.stores.MyStoresRoute
+import com.azza.feature.stores.CreateStoreRoute
+import com.azza.feature.stores.BookingSettingsRoute
 import com.azza.feature.settings.EmailRoute
 import com.azza.feature.settings.AddressesRoute
 import com.azza.feature.settings.AddressEditRoute
@@ -190,6 +196,17 @@ fun AzzaApp(
                 onOpenAuthor = openAuthor,
                 onScan = { navController.navigate(ScanRoute) },
             )
+            storeScreens(
+                StoreNavigation(
+                    back = { navController.popBackStack() },
+                    open = { route -> navController.navigate(route) },
+                    openReplacingForm = { route -> navController.navigate(route) { popUpTo<CreateStoreRoute> { inclusive = true } } },
+                    openPublicStore = openStore,
+                    openUser = openUser,
+                    openListing = { id -> navController.navigate(ProductRoute(id)) },
+                    postFromStore = { id -> navController.navigate(CreateForStoreRoute(id)) },
+                ),
+            )
             scanScreen(
                 onBack = { navController.popBackStack() },
                 // The listing replaces the scanner, so Back from it returns to Explore.
@@ -206,12 +223,14 @@ fun AzzaApp(
                 onOpenBasket = { navController.navigate(BasketRoute()) { launchSingleTop = true } },
                 onEdit = { id -> navController.navigate(EditListingRoute(id)) },
                 onOpenAppointments = { navController.navigate(BasketRoute(tab = BasketTab.APPOINTMENTS.ordinal)) },
+                onBookingSettings = { id -> navController.navigate(BookingSettingsRoute(id)) },
             )
             profileScreen(
                 onSignIn = signIn,
                 onOpenProduct = { id -> navController.navigate(ProductRoute(id, source = "PROFILE")) },
                 onEditProfile = { navController.navigate(EditProfileRoute) },
                 onOpenFollowList = { followers -> navController.navigate(FollowListRoute(followers)) },
+                onOpenStores = { navController.navigate(MyStoresRoute) },
                 onBack = { navController.popBackStack() },
                 onOpenUser = openUser,
                 onOpenStore = openStore,

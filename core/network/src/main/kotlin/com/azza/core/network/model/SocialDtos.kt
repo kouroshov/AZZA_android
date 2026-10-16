@@ -55,4 +55,7 @@ data class IdDto(val id: String)
 // ---------- geography (GET /geography/provinces[/:id/cities]) ----------
 
 @Serializable
-data class AreaDto(val id: String, val name: String, val type: String = "")
+data class AreaDto(val id: String, val name: String, val type: String = "", val center: LatLngDto? = null)
+
+@Serializable
+data class LatLngDto(val lat: Double, val lng: Double)

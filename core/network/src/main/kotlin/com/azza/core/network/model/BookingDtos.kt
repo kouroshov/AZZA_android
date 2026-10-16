@@ -8,6 +8,11 @@ import kotlinx.serialization.Serializable
 data class BookingSetupDto(
     val productId: String,
     val durationMinutes: Int,
+    val slotIntervalMinutes: Int = 0,
+    val bufferBeforeMinutes: Int = 0,
+    val bufferAfterMinutes: Int = 0,
+    val minNoticeMinutes: Int = 0,
+    val maxAdvanceDays: Int = 60,
     val timezone: String = "Asia/Tehran",
     val payOnSite: Boolean = true,
     val depositPercent: Int = 0,

@@ -268,6 +268,39 @@ fonts, fingerprint unlock, the smaller "Not in 3x" items).
   default, so a request field with a default value is never sent. Request
   DTOs must not default what apps/api requires (`AddressRequest`).
 
+### 5b — stores ✅ (2026-10-16)
+
+- **Your stores** (own profile → "Your stores"): the list, and "Create a
+  store" when the account has a seller subscription (apps/api's
+  eligibility; otherwise it says so).
+- **Create / edit a store**: name, username (its page's address), what it
+  does (the occupation search), phone, description.
+- **The store's own page**: photo (change / remove), followers (count and
+  the owner-only list), "New post from this store" (the listing form opens
+  with that store chosen), the public page, edit, the timetable, branches.
+  A suspended store shows why, with the appeal form when an admin decided
+  it (`ADMIN_SUSPENDED`); one closed with its owner's account cannot be
+  appealed on its own.
+- **Branches**: add one; per branch its name, phone, active switch, opening
+  hours per day (time pickers, week starting on the locale's first day),
+  closed days, and **where it is**: a map with a fixed pin (moving to the
+  chosen province and city), plus the address. apps/api checks the point
+  against the city.
+- **Stock per branch**: every physical listing of the store with its count
+  at this branch (0 when not stocked yet); a tap sets it.
+- **Timetable**: ONE per store for all its timed services — the working
+  week as windows per day, and days off (a whole day in the calendar's own
+  zone). "Extra open" exceptions set on the web are kept untouched.
+- **Booking settings** of one service (from the timetable, or from the
+  listing's owner view): session length, step, gaps before/after, notice,
+  how far ahead, deposit %.
+- apps/api (web repo, branch `api/android-5b`): `GET /stores/mine` now
+  carries the store's status and a hold's cause and reason (never who
+  decided).
+- Found on the way: apps/api pages branch stock at most 60 per request;
+  the area list has each province's and city's centre (now used to move the
+  map); the occupation list has no "bakery".
+
 ## Before the first release
 
 - Confirm the `applicationId` (`com.azza.app` now — permanent once uploaded).

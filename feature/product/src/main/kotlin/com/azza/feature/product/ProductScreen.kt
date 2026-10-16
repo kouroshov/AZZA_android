@@ -1,5 +1,6 @@
 package com.azza.feature.product
 
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material.icons.outlined.Share
 import com.azza.core.ui.LocalWebLinks
 import com.azza.core.ui.shareLink
@@ -84,6 +85,7 @@ fun NavGraphBuilder.productScreen(
     onOpenBasket: () -> Unit,
     onEdit: (String) -> Unit,
     onOpenAppointments: () -> Unit,
+    onBookingSettings: (String) -> Unit,
 ) {
     composable<ProductRoute> {
         ProductScreen(
@@ -92,6 +94,7 @@ fun NavGraphBuilder.productScreen(
             onOpenBasket = onOpenBasket,
             onEdit = onEdit,
             onOpenAppointments = onOpenAppointments,
+            onBookingSettings = onBookingSettings,
         )
     }
 }
@@ -103,6 +106,7 @@ fun ProductScreen(
     onOpenBasket: () -> Unit,
     onEdit: (String) -> Unit,
     onOpenAppointments: () -> Unit,
+    onBookingSettings: (String) -> Unit,
     viewModel: ProductViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -198,7 +202,17 @@ fun ProductScreen(
             when (val s = state) {
                 ProductUiState.Loading -> LoadingState()
                 is ProductUiState.Failed -> ErrorState(s.error, onRetry = viewModel::load)
-                is ProductUiState.Ready -> ProductBody(s.product, top = { if (isMine) OwnerStatus(s.product, appeal, viewModel::appeal) }) {
+                is ProductUiState.Ready -> ProductBody(s.product, top = {
+                    if (isMine) {
+                        OwnerStatus(s.product, appeal, viewModel::appeal)
+                        // A timed service's own settings (length, gaps, notice, deposit); the week is the store's timetable.
+                        if (s.product.offeringKind == OfferingKind.BOOKABLE && s.product.hold == null) {
+                            OutlinedButton(onClick = { onBookingSettings(s.product.id) }, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
+                                Text(stringResource(R.string.product_booking_settings))
+                            }
+                        }
+                    }
+                }) {
                     // A bookable listing is booked on its timetable, not through the basket (BOOKING_REQUIRED);
                     // you cannot book yourself (BOOKING_SELF_NOT_ALLOWED).
                     if (s.product.offeringKind == OfferingKind.BOOKABLE && !isMine) {

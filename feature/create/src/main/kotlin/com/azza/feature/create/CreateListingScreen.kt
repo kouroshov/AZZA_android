@@ -82,11 +82,15 @@ import kotlinx.serialization.Serializable
 /** The web's Dashboard ("+"): the one place a post is created. */
 @Serializable data object CreateRoute
 
+/** The same form, opened from a store's page: "Post as" starts on that store. */
+@Serializable data class CreateForStoreRoute(val storeId: String)
+
 /** The same form, for a listing you own (the "⋯ › Edit" of the web's cards). */
 @Serializable data class EditListingRoute(val productId: String)
 
 fun NavGraphBuilder.createScreen(onPosted: (String) -> Unit, onSaved: () -> Unit, onDeleted: () -> Unit) {
     composable<CreateRoute> { CreateListingScreen(onPosted = onPosted, onDeleted = onDeleted) }
+    composable<CreateForStoreRoute> { CreateListingScreen(onPosted = onPosted, onDeleted = onDeleted) }
     composable<EditListingRoute> { CreateListingScreen(onPosted = { onSaved() }, onDeleted = onDeleted) }
 }
 

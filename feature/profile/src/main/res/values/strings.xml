@@ -27,4 +27,5 @@
     <string name="follow_list_followers_empty">Nobody follows you yet.</string>
     <string name="follow_list_following_empty">You do not follow anyone yet.</string>
     <string name="profile_edit">Edit profile</string>
+    <string name="profile_stores">Your stores</string>
 </resources>
