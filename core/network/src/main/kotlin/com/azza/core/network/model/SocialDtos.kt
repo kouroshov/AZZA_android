@@ -58,4 +58,15 @@ data class IdDto(val id: String)
 data class AreaDto(val id: String, val name: String, val type: String = "", val center: LatLngDto? = null)
 
 @Serializable
+data class PlaceHitDto(
+    val id: String,
+    val name: String,
+    val type: String = "",
+    val province: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val source: String = "local",
+)
+
+@Serializable
 data class LatLngDto(val lat: Double, val lng: Double)

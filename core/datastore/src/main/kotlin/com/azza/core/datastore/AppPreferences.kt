@@ -23,11 +23,39 @@ data class ChosenCity(val id: String, val name: String)
 class AppPreferences @Inject constructor(@ApplicationContext context: Context) {
     private val store = context.preferencesStore
 
-    /** The Explore page's City tab. */
-    val city: Flow<ChosenCity?> = store.data.map { prefs ->
-        val id = prefs[CITY_ID] ?: return@map null
-        ChosenCity(id, prefs[CITY_NAME].orEmpty())
+    /**
+     * The cities the Explore page's City tab shows, in the order chosen
+     * (the web's multi-city selector). A device that remembered one city
+     * before this keeps it.
+     */
+    val cities: Flow<List<ChosenCity>> = store.data.map { prefs ->
+        prefs[CITIES]?.let(::decodeCities) ?: prefs[CITY_ID]?.let { listOf(ChosenCity(it, prefs[CITY_NAME].orEmpty())) }.orEmpty()
     }
+
+    suspend fun setCities(cities: List<ChosenCity>) {
+        store.edit { prefs ->
+            prefs.remove(CITY_ID)
+            prefs.remove(CITY_NAME)
+            prefs[CITIES] = encodeCities(cities)
+        }
+    }
+
+    /** "Previous selections" in the city picker: newest first, at most 10 (the web keeps 10 too). */
+    val recentCities: Flow<List<ChosenCity>> = store.data.map { prefs -> prefs[RECENT_CITIES]?.let(::decodeCities).orEmpty() }
+
+    suspend fun recordRecentCities(confirmed: List<ChosenCity>) {
+        store.edit { prefs ->
+            val existing = prefs[RECENT_CITIES]?.let(::decodeCities).orEmpty()
+            val merged = (confirmed + existing.filterNot { e -> confirmed.any { it.id == e.id } }).take(10)
+            prefs[RECENT_CITIES] = encodeCities(merged)
+        }
+    }
+
+    private fun encodeCities(cities: List<ChosenCity>) =
+        cities.joinToString(LINE) { it.id + FIELD + it.name.replace(FIELD, " ").replace(LINE, " ") }
+
+    private fun decodeCities(raw: String): List<ChosenCity> =
+        raw.split(LINE).mapNotNull { line -> line.split(FIELD, limit = 2).takeIf { it.size == 2 && it[0].isNotBlank() }?.let { ChosenCity(it[0], it[1]) } }
 
     /** "DARK" / "LIGHT" / "SYSTEM"; null = never chosen (dark, like the web). */
     val theme: Flow<String?> = store.data.map { it[THEME] }
@@ -89,21 +117,14 @@ class AppPreferences @Inject constructor(@ApplicationContext context: Context) {
         }
     }
 
-    suspend fun setCity(city: ChosenCity?) {
-        store.edit { prefs ->
-            if (city == null) {
-                prefs.remove(CITY_ID)
-                prefs.remove(CITY_NAME)
-            } else {
-                prefs[CITY_ID] = city.id
-                prefs[CITY_NAME] = city.name
-            }
-        }
-    }
-
     private companion object {
         val CITY_ID = stringPreferencesKey("explore_city_id")
         val CITY_NAME = stringPreferencesKey("explore_city_name")
+        val CITIES = stringPreferencesKey("explore_cities")
+        val RECENT_CITIES = stringPreferencesKey("explore_recent_cities")
+        // Record / unit separators: never part of a city's name.
+        const val LINE = "\u001E"
+        const val FIELD = "\u001F"
         val THEME = stringPreferencesKey("theme")
         val PHONE_NOTIFICATIONS = booleanPreferencesKey("phone_notifications")
         val NOTIFIED_UP_TO = stringPreferencesKey("notified_up_to")

@@ -35,3 +35,6 @@ data class PostTile(
 
 /** A province or city. [latitude]/[longitude]: its centre, when apps/api knows it (to move a map there). */
 data class Area(val id: String, val name: String, val latitude: Double? = null, val longitude: Double? = null)
+
+/** A city-search hit: a city to pick, or a province to open. */
+data class PlaceHit(val area: Area, val isProvince: Boolean, val provinceName: String?)

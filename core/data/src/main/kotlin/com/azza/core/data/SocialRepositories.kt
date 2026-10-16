@@ -1,5 +1,6 @@
 package com.azza.core.data
 
+import com.azza.core.model.PlaceHit
 import com.azza.core.network.api.OwnListingsApi
 import com.azza.core.common.ApplicationScope
 import com.azza.core.common.Outcome
@@ -128,8 +129,11 @@ class GeographyRepository @Inject constructor(
     private val preferences: AppPreferences,
     private val json: Json,
 ) {
-    /** The city the Explore page's City tab shows, remembered on this device. */
-    val chosenCity: Flow<Area?> = preferences.city.map { it?.let { c -> Area(c.id, c.name) } }
+    /** The cities the Explore page's City tab shows, remembered on this device. */
+    val chosenCities: Flow<List<Area>> = preferences.cities.map { list -> list.map { Area(it.id, it.name) } }
+
+    /** The picker's "previous selections". */
+    val recentCities: Flow<List<Area>> = preferences.recentCities.map { list -> list.map { Area(it.id, it.name) } }
 
     suspend fun provinces(): Outcome<List<Area>> =
         safeApiCall(json) { api.provinces().data }.map { list -> list.map { Area(it.id, it.name, it.center?.lat, it.center?.lng) }.sortedBy { it.name } }
@@ -137,5 +141,17 @@ class GeographyRepository @Inject constructor(
     suspend fun cities(provinceId: String): Outcome<List<Area>> =
         safeApiCall(json) { api.cities(provinceId).data }.map { list -> list.map { Area(it.id, it.name, it.center?.lat, it.center?.lng) }.sortedBy { it.name } }
 
-    suspend fun chooseCity(city: Area?) = preferences.setCity(city?.let { ChosenCity(it.id, it.name) })
+    suspend fun chooseCities(cities: List<Area>) {
+        val chosen = cities.map { ChosenCity(it.id, it.name) }
+        preferences.setCities(chosen)
+        if (chosen.isNotEmpty()) preferences.recordRecentCities(chosen)
+    }
+
+    /** AZZA's own provinces and cities only: an outside geocoder's hit has no area to filter by. */
+    suspend fun search(query: String): Outcome<List<PlaceHit>> =
+        safeApiCall(json) { api.search(query).data }.map { hits ->
+            hits.filter { it.source == "local" && (it.type == "CITY" || it.type == "PROVINCE") }.map {
+                PlaceHit(Area(it.id, it.name, it.latitude, it.longitude), isProvince = it.type == "PROVINCE", provinceName = it.province)
+            }
+        }
 }

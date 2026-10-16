@@ -3,6 +3,7 @@ package com.azza.core.network.api
 import kotlinx.serialization.Serializable
 import com.azza.core.network.model.AddCartItemRequest
 import com.azza.core.network.model.AreaDto
+import com.azza.core.network.model.PlaceHitDto
 import com.azza.core.network.model.FollowingSetDto
 import com.azza.core.network.model.ProductsPageDto
 import com.azza.core.network.model.PublicProfileDto
@@ -100,6 +101,10 @@ interface GeographyApi {
 
     @GET("geography/provinces/{provinceId}/cities")
     suspend fun cities(@Path("provinceId") provinceId: String): ApiEnvelope<List<AreaDto>>
+
+    /** Provinces and cities by name (the web's city search); `source = nominatim` hits are not AZZA areas. */
+    @GET("geography/search")
+    suspend fun search(@Query("q") q: String): ApiEnvelope<List<PlaceHitDto>>
 }
 
 interface DiscoveryApi {
@@ -211,6 +216,12 @@ interface SearchApi {
         @Query("q") q: String?,
         @Query("sort") sort: String?,
         @Query("cursor") cursor: String?,
+        @Query("categoryId") categoryId: String? = null,
+        @Query("condition") condition: String? = null,
+        @Query("availability") availability: String? = null,
+        /** Major units, as typed (apps/api converts). */
+        @Query("priceMin") priceMin: String? = null,
+        @Query("priceMax") priceMax: String? = null,
         @Query("take") take: Int = 20,
     ): ApiEnvelope<SearchPageDto<SearchProductDto>>
 

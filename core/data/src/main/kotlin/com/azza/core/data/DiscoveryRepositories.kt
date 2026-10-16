@@ -1,5 +1,6 @@
 package com.azza.core.data
 
+import com.azza.core.model.SearchFilters
 import com.azza.core.network.model.NotificationsPageDto
 import com.azza.core.common.ApplicationScope
 import com.azza.core.common.Outcome
@@ -32,17 +33,27 @@ class SearchRepository @Inject constructor(
     private val media: MediaUrlResolver,
     private val json: Json,
 ) {
-    suspend fun products(query: String, sort: SearchSort, cursor: String?): Outcome<Page<SearchProduct>> =
-        safeApiCall(json) { api.products(query.ifBlank { null }, sort.apiValue, cursor).data }
-            .map { Page(it.items.map { p -> p.toModel(media) }, it.nextCursor, it.hasMore) }
+    suspend fun products(query: String, sort: SearchSort, cursor: String?, filters: SearchFilters = SearchFilters()): Outcome<Page<SearchProduct>> =
+        safeApiCall(json) {
+            api.products(
+                q = query.ifBlank { null },
+                sort = sort.apiValue,
+                cursor = cursor,
+                categoryId = filters.categoryId,
+                condition = filters.condition?.name,
+                availability = filters.availability?.name,
+                priceMin = filters.priceMin.trim().ifBlank { null },
+                priceMax = filters.priceMax.trim().ifBlank { null },
+            ).data
+        }.map { Page(it.items.map { p -> p.toModel(media) }, it.nextCursor, it.hasMore, total = it.total) }
 
     suspend fun users(query: String, cursor: String?): Outcome<Page<SearchUser>> =
         safeApiCall(json) { api.users(query.ifBlank { null }, cursor).data }
-            .map { Page(it.items.map { u -> u.toModel(media) }, it.nextCursor, it.hasMore) }
+            .map { Page(it.items.map { u -> u.toModel(media) }, it.nextCursor, it.hasMore, total = it.total) }
 
     suspend fun stores(query: String, cursor: String?): Outcome<Page<SearchStore>> =
         safeApiCall(json) { api.stores(query.ifBlank { null }, cursor).data }
-            .map { Page(it.items.map { s -> s.toModel(media) }, it.nextCursor, it.hasMore) }
+            .map { Page(it.items.map { s -> s.toModel(media) }, it.nextCursor, it.hasMore, total = it.total) }
 }
 
 /**

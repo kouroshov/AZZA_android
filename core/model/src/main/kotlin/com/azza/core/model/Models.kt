@@ -91,4 +91,6 @@ data class Page<T>(
     val hasMore: Boolean,
     /** Set when this is the saved copy shown offline: when it was saved (epoch ms). */
     val savedAt: Long? = null,
+    /** How many there are in all, when the list says (search does). */
+    val total: Int? = null,
 )

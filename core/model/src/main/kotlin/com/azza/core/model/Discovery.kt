@@ -36,6 +36,23 @@ enum class SearchSort(val apiValue: String) {
     RELEVANCE("relevance"), NEWEST("newest"), PRICE_ASC("price_asc"), PRICE_DESC("price_desc"), POPULAR("popular")
 }
 
+/**
+ * The product search's filters (the web's Filters panel). Prices are major
+ * units as typed; blank = no bound.
+ */
+data class SearchFilters(
+    val categoryId: String? = null,
+    val categoryName: LocalizedText? = null,
+    val condition: ItemCondition? = null,
+    val availability: Availability? = null,
+    val priceMin: String = "",
+    val priceMax: String = "",
+) {
+    val count: Int
+        get() = listOf(categoryId != null, condition != null, availability != null, priceMin.isNotBlank() || priceMax.isNotBlank()).count { it }
+    val isEmpty: Boolean get() = count == 0
+}
+
 enum class FavoriteUnavailable { DELETED, UNPUBLISHED, OUT_OF_STOCK }
 
 data class FavoriteItem(

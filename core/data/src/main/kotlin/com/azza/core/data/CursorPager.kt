@@ -23,6 +23,8 @@ data class PagedState<T>(
     val error: AppError? = null,
     /** Offline: the first page is the saved copy from this time (epoch ms); no further pages. */
     val savedAt: Long? = null,
+    /** The list's full size, when its first page says. */
+    val total: Int? = null,
 )
 
 /**
@@ -53,6 +55,7 @@ class CursorPager<T>(
                     hasMore = result.value.hasMore && result.value.savedAt == null,
                     loadingFirst = false,
                     savedAt = result.value.savedAt,
+                    total = result.value.total,
                 )
                 is Outcome.Failure -> _state.update { it.copy(loadingFirst = false, refreshing = false, error = result.error) }
             }
