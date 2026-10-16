@@ -333,8 +333,43 @@ fonts, fingerprint unlock, the smaller "Not in 3x" items).
   back with it (they were only readable by the website, from the database).
 
 Still not built (no endpoint, or a product decision): a person's stores on
-their public page, the map's category filter and store list, clustering,
-the occupation step when posting, a "you are here" dot on the map.
+their public page, clustering, a "you are here" dot on the map.
+
+### 5d — the parity audit, closed ✅ (2026-10-16)
+
+Every page and tool of the website was listed and checked against the app;
+every gap except the admin panel (kept website-only, by decision) is now
+built:
+
+- **Product page:** the category's specifications, free-form features, a
+  quantity stepper with the total, the owner's stock per branch, the
+  listing's barcode (view and print), "open the timetable".
+- **Search and market:** filters (category, condition, availability, price
+  range) with the result count; browsing by category with no query (the
+  web's marketplace); several Explore cities at once, "All Iran", previous
+  choices and a city search; seller badge on people.
+- **Stores:** the public store page's hours, branches, "run by", post count;
+  a public branch page (address, hours, closures, what it has, maps, call,
+  share); the owner's products list (every state, search), the week of
+  appointments (done / no-show / cancel), hours for every day at once,
+  typed coordinates, stock search and "not published", a setup prompt.
+- **Account:** the full sign-up (photo, mobile, province and city, confirm
+  password, live username check); mobile and city on Edit profile; the
+  emailed reset-password and confirm-email links open in the app; leaving
+  an edited profile asks first.
+- **Orders and notifications:** All / Personal / per-store filters; a
+  printable shipping label (A6, Persian and Latin); chosen options on order
+  lines; "saved money" in the basket.
+- **Own profile:** long-press a post for Edit / Barcode / Delete / Select,
+  then one discount or delete for all selected ("N done, M failed" — one
+  request per post, as on the web); post count; share; follow buttons in
+  the follower lists; press-and-hold Profile to jump to a store.
+- **Map:** category filter, the stores in view, a province/city chooser,
+  the distance from you, the "outside Iran" notice.
+- **Posting:** the occupation step and its suggested categories, free-form
+  features, photos moved later or made the cover, search in your own posts.
+- apps/api (web repo, PR #41, merged into `master` 2026-10-16): post counts
+  on a person's page and a store's, and a store's owner.
 
 ## Before the first release
 
