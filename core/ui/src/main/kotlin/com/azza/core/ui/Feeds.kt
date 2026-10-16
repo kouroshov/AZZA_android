@@ -1,5 +1,6 @@
 package com.azza.core.ui
 
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -125,5 +126,24 @@ private fun PostSquare(tile: PostTile, modifier: Modifier, onOpen: () -> Unit) {
                 .background(Color.Black.copy(alpha = 0.45f))
                 .padding(horizontal = 6.dp, vertical = 2.dp),
         )
+        if (tile.status != "ACTIVE") {
+            Text(
+                stringResource(
+                    when (tile.status) {
+                        "DRAFT" -> R.string.tile_draft
+                        "SOLD" -> R.string.tile_sold
+                        "REJECTED" -> R.string.tile_taken_down
+                        else -> R.string.tile_not_live
+                    },
+                ),
+                style = AzzaTextStyles.productMeta,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .background(if (tile.status == "REJECTED") AzzaTheme.colors.error else Color.Black.copy(alpha = 0.6f))
+                    .padding(horizontal = 6.dp, vertical = 2.dp),
+            )
+        }
     }
 }

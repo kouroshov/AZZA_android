@@ -1,5 +1,9 @@
 package com.azza.core.network.di
 
+import com.azza.core.network.api.ProfileApi
+import com.azza.core.network.api.FollowListsApi
+import com.azza.core.network.api.AppealsApi
+import com.azza.core.network.api.OwnListingsApi
 import com.azza.core.network.ApiBaseUrl
 import com.azza.core.network.BareClient
 import com.azza.core.network.ClientUserAgent
@@ -178,4 +182,20 @@ internal object NetworkModule {
     @Provides
     @Singleton
     fun provideReportsApi(retrofit: Retrofit): ReportsApi = retrofit.create(ReportsApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideProfileApi(retrofit: Retrofit): ProfileApi = retrofit.create(ProfileApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideFollowListsApi(retrofit: Retrofit): FollowListsApi = retrofit.create(FollowListsApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideAppealsApi(retrofit: Retrofit): AppealsApi = retrofit.create(AppealsApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideOwnListingsApi(retrofit: Retrofit): OwnListingsApi = retrofit.create(OwnListingsApi::class.java)
 }

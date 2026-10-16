@@ -1,5 +1,9 @@
 package com.azza.app.ui
 
+import com.azza.feature.settings.EmailRoute
+import com.azza.feature.settings.AddressesRoute
+import com.azza.feature.settings.AddressEditRoute
+import com.azza.feature.profile.FollowListRoute
 import android.Manifest
 import android.content.Intent
 import android.os.Build
@@ -203,7 +207,15 @@ fun AzzaApp(
                 onEdit = { id -> navController.navigate(EditListingRoute(id)) },
                 onOpenAppointments = { navController.navigate(BasketRoute(tab = BasketTab.APPOINTMENTS.ordinal)) },
             )
-            profileScreen(onSignIn = signIn, onOpenProduct = { id -> navController.navigate(ProductRoute(id, source = "PROFILE")) })
+            profileScreen(
+                onSignIn = signIn,
+                onOpenProduct = { id -> navController.navigate(ProductRoute(id, source = "PROFILE")) },
+                onEditProfile = { navController.navigate(EditProfileRoute) },
+                onOpenFollowList = { followers -> navController.navigate(FollowListRoute(followers)) },
+                onBack = { navController.popBackStack() },
+                onOpenUser = openUser,
+                onOpenStore = openStore,
+            )
             basketScreens(
                 onSignIn = signIn,
                 onBrowse = { navigateTab(navController, SearchRoute) },
@@ -250,6 +262,9 @@ fun AzzaApp(
                 onOpenTicket = { id -> navController.navigate(TicketRoute(id)) },
                 // The new thread replaces the form, so Back returns to the list.
                 onTicketCreated = { id -> navController.navigate(TicketRoute(id)) { popUpTo<NewTicketRoute> { inclusive = true } } },
+                onEmail = { navController.navigate(EmailRoute) },
+                onAddresses = { navController.navigate(AddressesRoute) },
+                onEditAddress = { id -> navController.navigate(AddressEditRoute(id)) },
             )
         }
     }

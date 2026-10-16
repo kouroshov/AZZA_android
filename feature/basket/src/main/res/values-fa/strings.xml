@@ -120,4 +120,5 @@
     <string name="appt_status_expired">منقضی</string>
     <string name="appt_with">با %1$s</string>
     <string name="appt_note">یادداشت: %1$s</string>
+    <string name="checkout_saved_addresses">نشانی‌های ذخیره‌شده</string>
 </resources>

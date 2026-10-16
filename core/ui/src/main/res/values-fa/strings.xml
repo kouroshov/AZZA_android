@@ -31,4 +31,8 @@
     <string name="share">اشتراک‌گذاری</string>
     <string name="offline_saved_copy">آفلاین — نمایش نسخهٔ ذخیره‌شده از %1$s</string>
     <string name="offline_just_now">همین حالا</string>
+    <string name="tile_draft">پیش‌نویس</string>
+    <string name="tile_sold">فروخته‌شده</string>
+    <string name="tile_taken_down">برداشته‌شده</string>
+    <string name="tile_not_live">غیرفعال</string>
 </resources>

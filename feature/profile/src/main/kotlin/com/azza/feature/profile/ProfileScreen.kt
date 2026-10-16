@@ -1,5 +1,6 @@
 package com.azza.feature.profile
 
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
@@ -60,12 +61,27 @@ import kotlinx.serialization.Serializable
 
 @Serializable data object ProfileRoute
 
-fun NavGraphBuilder.profileScreen(onSignIn: () -> Unit, onOpenProduct: (String) -> Unit) {
-    composable<ProfileRoute> { ProfileScreen(onSignIn = onSignIn, onOpenProduct = onOpenProduct) }
+fun NavGraphBuilder.profileScreen(
+    onSignIn: () -> Unit,
+    onOpenProduct: (String) -> Unit,
+    onEditProfile: () -> Unit,
+    onOpenFollowList: (followers: Boolean) -> Unit,
+    onBack: () -> Unit,
+    onOpenUser: (String) -> Unit,
+    onOpenStore: (String) -> Unit,
+) {
+    composable<ProfileRoute> { ProfileScreen(onSignIn, onOpenProduct, onEditProfile, onOpenFollowList) }
+    composable<FollowListRoute> { FollowListScreen(onBack, onOpenUser, onOpenStore) }
 }
 
 @Composable
-fun ProfileScreen(onSignIn: () -> Unit, onOpenProduct: (String) -> Unit, viewModel: ProfileViewModel = hiltViewModel()) {
+fun ProfileScreen(
+    onSignIn: () -> Unit,
+    onOpenProduct: (String) -> Unit,
+    onEditProfile: () -> Unit,
+    onOpenFollowList: (followers: Boolean) -> Unit,
+    viewModel: ProfileViewModel = hiltViewModel(),
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     // Back from posting, editing or deleting a listing: the grid re-reads, keeping what is on screen meanwhile.
     LifecycleResumeEffect(viewModel) {
@@ -77,13 +93,24 @@ fun ProfileScreen(onSignIn: () -> Unit, onOpenProduct: (String) -> Unit, viewMod
         ProfileUiState.SignedOut -> SignedOut(onSignIn)
         is ProfileUiState.Failed ->
             if (s.error == AppError.Unauthenticated) SignedOut(onSignIn) else ErrorState(s.error, onRetry = { viewModel.retry() })
-        is ProfileUiState.Ready -> Profile(s.user, viewModel, onOpenProduct, onLogout = { viewModel.logout() })
+        is ProfileUiState.Ready -> {
+            val me by viewModel.me.collectAsStateWithLifecycle()
+            Profile(me ?: s.user, viewModel, onOpenProduct, onEditProfile, onOpenFollowList)
+        }
     }
 }
 
 /** The profile header's slots in their phone order: handle, photo, name/bio, then actions (web §4); then Posts | Favorites. */
 @Composable
-private fun Profile(user: User, viewModel: ProfileViewModel, onOpenProduct: (String) -> Unit, onLogout: () -> Unit) {
+private fun Profile(
+    user: User,
+    viewModel: ProfileViewModel,
+    onOpenProduct: (String) -> Unit,
+    onEditProfile: () -> Unit,
+    onOpenFollowList: (followers: Boolean) -> Unit,
+) {
+    val followers by viewModel.followerCount.collectAsStateWithLifecycle()
+    val following by viewModel.followingCount.collectAsStateWithLifecycle()
     val colors = AzzaTheme.colors
     var tab by rememberSaveable { mutableIntStateOf(0) }
     val favorites by viewModel.favorites.state.collectAsStateWithLifecycle()
@@ -97,15 +124,21 @@ private fun Profile(user: User, viewModel: ProfileViewModel, onOpenProduct: (Str
         item(key = "header") {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Text(handle(user.username), style = MaterialTheme.typography.titleMedium, color = colors.textPrimary)
-                Avatar(url = user.avatarUrl, size = 80)
+                // Photo with the counters beside it (the web's phone header, §4).
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                    Avatar(url = user.avatarUrl, size = 80)
+                    Counter(followers?.toString() ?: "–", stringResource(R.string.follow_list_followers)) { onOpenFollowList(true) }
+                    Counter(following.toString(), stringResource(R.string.follow_list_following)) { onOpenFollowList(false) }
+                }
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(user.displayName, style = MaterialTheme.typography.titleSmall, color = colors.textPrimary)
                     user.bio?.takeIf { it.isNotBlank() }?.let {
                         Text(it, style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
                     }
                 }
-                OutlinedButton(onClick = onLogout, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.profile_sign_out))
+                // Signing out lives in Settings (the ⋮ menu), as on the web.
+                OutlinedButton(onClick = onEditProfile, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.profile_edit))
                 }
             }
         }
@@ -177,5 +210,16 @@ private fun SignedOut(onSignIn: () -> Unit) {
             color = AzzaTheme.colors.textSecondary,
         )
         Button(onClick = onSignIn) { Text(stringResource(R.string.profile_sign_in)) }
+    }
+}
+
+@Composable
+private fun Counter(value: String, label: String, onClick: () -> Unit) {
+    Column(
+        Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onClick).padding(horizontal = 6.dp, vertical = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text(label, style = MaterialTheme.typography.bodySmall, color = AzzaTheme.colors.textSecondary)
     }
 }

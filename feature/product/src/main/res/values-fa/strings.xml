@@ -29,4 +29,25 @@
     <string name="booking_error_slot_taken">این ساعت همین حالا رزرو شد. ساعت‌های آزاد باقی‌مانده را ببینید.</string>
     <string name="booking_error_not_available">این ساعت دیگر در دسترس نیست. لطفاً ساعت دیگری انتخاب کنید.</string>
     <string name="booking_error_self">نمی‌توانید با خودتان قرار ملاقات بگذارید.</string>
+    <string name="owner_draft">پیش‌نویس</string>
+    <string name="owner_draft_note">فقط شما این آگهی را می‌بینید. از «ویرایش» منتشرش کنید.</string>
+    <string name="owner_sold">فروخته‌شده</string>
+    <string name="owner_not_live">در حال فروش نیست</string>
+    <string name="owner_held_moderation">توسط نظارت برداشته شده</string>
+    <string name="owner_held_account">تا زمان تعلیق حساب شما پنهان است</string>
+    <string name="owner_held_store">پنهان تا وقتی فروشگاهش معلق است</string>
+    <string name="owner_held_note">فقط شما این آگهی را می‌بینید. در حال فروش نیست و در جست‌وجو و فیدها نمایش داده نمی‌شود.</string>
+    <string name="owner_held_reason">دلیل: %1$s</string>
+    <string name="appeal_button">اعتراض به این تصمیم</string>
+    <string name="appeal_message_label">چرا باید دوباره بررسی شود؟</string>
+    <string name="appeal_message_placeholder">توضیح دهید بررسی‌کننده چه چیزی را ممکن است ندیده باشد. دقیق بنویسید.</string>
+    <string name="appeal_one_chance">به هر تصمیم فقط یک بار می‌توانید اعتراض کنید. پاسخ نهایی است.</string>
+    <string name="appeal_send">ارسال اعتراض</string>
+    <string name="appeal_sending">در حال ارسال…</string>
+    <string name="appeal_waiting">اعتراض شما در %1$s ارسال شد و منتظر بررسی است.</string>
+    <string name="appeal_rejected">اعتراض شما در %1$s بررسی شد و تصمیم پابرجاست.</string>
+    <string name="appeal_answer">پاسخ: %1$s</string>
+    <string name="appeal_too_short">لطفاً دست‌کم %1$d نویسه بنویسید.</string>
+    <string name="appeal_error_duplicate">قبلاً به این تصمیم اعتراض کرده‌اید.</string>
+    <string name="appeal_error_not_available">دیگر نمی‌شود به این مورد اعتراض کرد.</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.azza.core.data
 
+import com.azza.core.network.api.OwnListingsApi
 import com.azza.core.network.model.FeedPageDto
 import com.azza.core.network.model.ProductDto
 import com.azza.core.common.Outcome
@@ -62,7 +63,11 @@ class ProductRepository @Inject constructor(
     private val media: MediaUrlResolver,
     private val json: Json,
     private val offline: OfflineCache,
+    private val own: OwnListingsApi,
 ) {
+    /** One of the caller's own listings in any state — a hold's cause and reason included (GET /products/mine/:id). */
+    suspend fun ownProduct(id: String): Outcome<ProductDetail> = safeApiCall(json) { own.byId(id).data }.map { it.toModel(media) }
+
     /** The last [OPENED_KEPT] listings opened stay readable offline (personal: they are a history). */
     suspend fun product(id: String, source: String? = null): Outcome<ProductDetail> =
         offline.load("product:$id", personal = true, ProductDto.serializer(), keepNewest = OPENED_KEPT) {

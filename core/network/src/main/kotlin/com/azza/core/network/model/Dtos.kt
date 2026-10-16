@@ -54,6 +54,8 @@ data class MeDto(
     val email: String,
     val username: String,
     val profile: ProfileDto? = null,
+    /** The last username change; a new one is allowed 30 days after it. */
+    val usernameChangedAt: String? = null,
 )
 
 @Serializable
@@ -127,6 +129,11 @@ data class ProductDto(
     val condition: String? = null,
     val status: String = "ACTIVE",
     val attributeValues: List<AttributeValueDto> = emptyList(),
+    // A moderation hold (all null when there is none). Only the owner's
+    // route (GET /products/mine/:id) ever answers with one set.
+    val moderatedAt: String? = null,
+    val moderationCause: String? = null,
+    val moderationReason: String? = null,
 )
 
 @Serializable

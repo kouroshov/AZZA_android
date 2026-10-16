@@ -29,4 +29,25 @@
     <string name="booking_error_slot_taken">Someone just took that time. Here are the times still free.</string>
     <string name="booking_error_not_available">That time is no longer available. Please pick another one.</string>
     <string name="booking_error_self">You cannot book an appointment with yourself.</string>
+    <string name="owner_draft">Draft</string>
+    <string name="owner_draft_note">Only you can see this listing. Publish it from Edit.</string>
+    <string name="owner_sold">Sold</string>
+    <string name="owner_not_live">Not on sale</string>
+    <string name="owner_held_moderation">Taken down by moderation</string>
+    <string name="owner_held_account">Hidden while your account is suspended</string>
+    <string name="owner_held_store">Hidden while its store is suspended</string>
+    <string name="owner_held_note">Only you can see this listing. It is not on sale and does not appear in search or feeds.</string>
+    <string name="owner_held_reason">Reason: %1$s</string>
+    <string name="appeal_button">Appeal this decision</string>
+    <string name="appeal_message_label">Why should this be looked at again?</string>
+    <string name="appeal_message_placeholder">Explain what the reviewer may have missed. Be specific.</string>
+    <string name="appeal_one_chance">You can appeal a decision once. The answer is final.</string>
+    <string name="appeal_send">Send appeal</string>
+    <string name="appeal_sending">Sending…</string>
+    <string name="appeal_waiting">Your appeal was sent on %1$s and is waiting to be reviewed.</string>
+    <string name="appeal_rejected">Your appeal was reviewed on %1$s and the decision stands.</string>
+    <string name="appeal_answer">Answer: %1$s</string>
+    <string name="appeal_too_short">Please write at least %1$d characters.</string>
+    <string name="appeal_error_duplicate">You have already appealed this decision.</string>
+    <string name="appeal_error_not_available">This can no longer be appealed.</string>
 </resources>

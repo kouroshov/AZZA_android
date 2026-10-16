@@ -109,6 +109,7 @@ fun ProductScreen(
     val isFavorite by viewModel.isFavorite.collectAsStateWithLifecycle()
     val adding by viewModel.adding.collectAsStateWithLifecycle()
     val isMine by viewModel.isMine.collectAsStateWithLifecycle()
+    val appeal by viewModel.appeal.collectAsStateWithLifecycle()
     LifecycleResumeEffect(viewModel) {
         viewModel.refreshQuietly()
         onPauseOrDispose { }
@@ -150,10 +151,10 @@ fun ProductScreen(
                 },
                 actions = {
                     val ready = state as? ProductUiState.Ready
-                    if (ready != null && isMine) {
+                    if (ready != null && isMine && ready.product.hold == null) {
                         TextButton(onClick = { onEdit(ready.product.id) }) { Text(stringResource(R.string.product_edit)) }
                     }
-                    if (ready != null) {
+                    if (ready != null && ready.product.status == "ACTIVE") {
                         val url = LocalWebLinks.current.product(ready.product.id)
                         IconButton(onClick = { shareLink(context, ready.product.title, url) }) {
                             Icon(Icons.Outlined.Share, contentDescription = stringResource(com.azza.core.ui.R.string.share))
@@ -181,7 +182,7 @@ fun ProductScreen(
             val ready = state as? ProductUiState.Ready
             // Only a physical good goes through the basket; checkout refuses a
             // bookable line (BOOKING_REQUIRED) — that is booked on a timetable.
-            if (ready != null && ready.product.offeringKind == OfferingKind.GOOD && !isMine) {
+            if (ready != null && ready.product.offeringKind == OfferingKind.GOOD && !isMine && ready.product.status == "ACTIVE") {
                 val soldOut = ready.product.quantityAvailable == 0
                 Button(
                     onClick = viewModel::addToBasket,
@@ -197,7 +198,7 @@ fun ProductScreen(
             when (val s = state) {
                 ProductUiState.Loading -> LoadingState()
                 is ProductUiState.Failed -> ErrorState(s.error, onRetry = viewModel::load)
-                is ProductUiState.Ready -> ProductBody(s.product) {
+                is ProductUiState.Ready -> ProductBody(s.product, top = { if (isMine) OwnerStatus(s.product, appeal, viewModel::appeal) }) {
                     // A bookable listing is booked on its timetable, not through the basket (BOOKING_REQUIRED);
                     // you cannot book yourself (BOOKING_SELF_NOT_ALLOWED).
                     if (s.product.offeringKind == OfferingKind.BOOKABLE && !isMine) {
@@ -211,9 +212,10 @@ fun ProductScreen(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ProductBody(product: ProductDetail, extra: @Composable () -> Unit = {}) {
+private fun ProductBody(product: ProductDetail, top: @Composable () -> Unit = {}, extra: @Composable () -> Unit = {}) {
     val colors = AzzaTheme.colors
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+        top()
         val images = product.imageUrls
         Box(Modifier.fillMaxWidth().aspectRatio(1f).background(colors.surface)) {
             if (images.isNotEmpty()) {
@@ -259,7 +261,8 @@ private fun ProductBody(product: ProductDetail, extra: @Composable () -> Unit = 
                     )
                 }
             }
-            product.quantityAvailable?.let { qty ->
+            // Stock means nothing on a listing that is not on sale.
+            product.quantityAvailable?.takeIf { product.status == "ACTIVE" }?.let { qty ->
                 Text(
                     if (qty > 0) stringResource(R.string.product_in_stock) else stringResource(R.string.product_out_of_stock),
                     style = MaterialTheme.typography.bodySmall,

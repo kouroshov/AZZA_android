@@ -1,5 +1,9 @@
 package com.azza.feature.profile
 
+import com.azza.core.data.FollowRepository
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.azza.core.common.AppError
@@ -33,16 +37,32 @@ class ProfileViewModel @Inject constructor(
     private val users: UserRepository,
     private val favoritesRepository: FavoritesRepository,
     private val profiles: ProfilesRepository,
+    follow: FollowRepository,
 ) : ViewModel() {
+
+    /** The signed-in person as last read — an edit elsewhere (photo, name, username) shows here at once. */
+    val me: StateFlow<User?> = users.currentUser
+
+    /** Whom I follow: the in-memory set the Follow buttons already use. */
+    val followingCount: StateFlow<Int> = combine(follow.followedUsers, follow.followedStores) { u, s -> u.size + s.size }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
+
+    private val _followerCount = MutableStateFlow<Int?>(null)
+    val followerCount: StateFlow<Int?> = _followerCount.asStateFlow()
 
     /** The web's profile shows the owner's favourites; so does this page. */
     val favorites = CursorPager<FavoriteItem>(viewModelScope, { it.productId }) { favoritesRepository.page(it) }
 
     private var myId: String? = null
 
-    /** The listings on my personal page (not my stores'), newest first. */
+    /**
+     * The listings on my personal page (not my stores'), newest first — in
+     * EVERY state: drafts, sold, and ones taken down are mine to see and
+     * open (GET /products/mine), as the web's own profile shows them.
+     */
     val posts = CursorPager<PostTile>(viewModelScope, { it.id }) { cursor ->
-        profiles.personalPosts(myId ?: return@CursorPager Outcome.Failure(AppError.Unauthenticated), cursor)
+        if (myId == null) return@CursorPager Outcome.Failure(AppError.Unauthenticated)
+        profiles.myPersonalPosts(cursor)
     }
 
     /** Unfavourite from the list: the row goes once apps/api agrees. */
@@ -71,6 +91,7 @@ class ProfileViewModel @Inject constructor(
                 myId = result.value.id
                 posts.refresh()
                 favorites.refresh()
+                loadFollowerCount(result.value.username)
             }
             is Outcome.Failure -> ProfileUiState.Failed(result.error)
         }
@@ -80,6 +101,12 @@ class ProfileViewModel @Inject constructor(
         if (_state.value !is ProfileUiState.Ready) return
         posts.refresh(showSpinner = true)
         favorites.refresh(showSpinner = true)
+        me.value?.username?.let(::loadFollowerCount)
+    }
+
+    /** The public count, as every visitor sees it. */
+    private fun loadFollowerCount(username: String) = viewModelScope.launch {
+        (profiles.user(username) as? Outcome.Success)?.let { _followerCount.value = it.value.followerCount }
     }
 
     fun logout() = viewModelScope.launch { auth.logout() }

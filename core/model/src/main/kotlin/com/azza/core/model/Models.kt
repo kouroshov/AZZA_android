@@ -8,6 +8,7 @@ data class User(
     val lastName: String,
     val avatarUrl: String?,
     val bio: String?,
+    val usernameChangedAt: String? = null,
 ) {
     val displayName: String
         get() = "$firstName $lastName".trim().ifEmpty { username }
@@ -50,7 +51,20 @@ data class ProductDetail(
     val quantityAvailable: Int?,
     val offeringKind: OfferingKind,
     val favoriteCount: Int,
+    /** apps/api's ProductStatus (DRAFT, ACTIVE, SOLD, REJECTED, …). */
+    val status: String = "ACTIVE",
+    /** Set only on the owner's view of a listing an admin (or a suspension) took down. */
+    val hold: ListingHold? = null,
 )
+
+/**
+ * Why a listing is down. [cause]: ADMIN_UNPUBLISHED (a decision about this
+ * listing — the only one its owner can appeal), SELLER_SUSPENDED or
+ * STORE_SUSPENDED (it went down with the account or the store).
+ */
+data class ListingHold(val cause: String, val reason: String?, val at: String) {
+    val appealable: Boolean get() = cause == "ADMIN_UNPUBLISHED"
+}
 
 data class LocalizedText(val fa: String, val en: String) {
     fun forLanguage(language: String): String = if (language == "fa" || language == "ckb") fa else en

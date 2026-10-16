@@ -22,4 +22,9 @@
         <item quantity="one">follower</item>
         <item quantity="other">followers</item>
     </plurals>
+    <string name="follow_list_followers">Followers</string>
+    <string name="follow_list_following">Following</string>
+    <string name="follow_list_followers_empty">Nobody follows you yet.</string>
+    <string name="follow_list_following_empty">You do not follow anyone yet.</string>
+    <string name="profile_edit">Edit profile</string>
 </resources>

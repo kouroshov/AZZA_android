@@ -22,4 +22,9 @@
         <item quantity="one">دنبال‌کننده</item>
         <item quantity="other">دنبال‌کننده</item>
     </plurals>
+    <string name="follow_list_followers">دنبال‌کننده‌ها</string>
+    <string name="follow_list_following">دنبال‌شده‌ها</string>
+    <string name="follow_list_followers_empty">هنوز کسی شما را دنبال نمی‌کند.</string>
+    <string name="follow_list_following_empty">هنوز کسی را دنبال نمی‌کنید.</string>
+    <string name="profile_edit">ویرایش پروفایل</string>
 </resources>

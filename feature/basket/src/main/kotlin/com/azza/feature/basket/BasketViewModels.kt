@@ -1,5 +1,7 @@
 package com.azza.feature.basket
 
+import com.azza.core.data.Address
+import com.azza.core.data.MyAccountRepository
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -100,12 +102,30 @@ data class CheckoutUiState(
 class CheckoutViewModel @Inject constructor(
     cartRepository: CartRepository,
     private val orders: OrdersRepository,
+    private val account: MyAccountRepository,
 ) : ViewModel() {
 
     val cart: StateFlow<Cart?> = cartRepository.cart
 
     private val _state = MutableStateFlow(CheckoutUiState())
     val state: StateFlow<CheckoutUiState> = _state.asStateFlow()
+
+    /** The person's saved addresses (Settings → Addresses): one tap fills the form; the default fills it at once. */
+    private val _saved = MutableStateFlow<List<Address>>(emptyList())
+    val savedAddresses: StateFlow<List<Address>> = _saved.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            val saved = (account.addresses() as? Outcome.Success)?.value.orEmpty()
+            _saved.value = saved
+            val s = _state.value
+            if (s.fullName.isBlank() && s.address.isBlank()) saved.firstOrNull { it.isDefault }?.let(::useAddress)
+        }
+    }
+
+    fun useAddress(a: Address) = _state.update {
+        it.copy(fullName = a.recipientName, phone = a.phone.orEmpty(), address = a.oneLine, postalCode = a.postalCode.orEmpty(), error = null)
+    }
 
     fun edit(transform: CheckoutUiState.() -> CheckoutUiState) = _state.update { it.transform().copy(error = null) }
 

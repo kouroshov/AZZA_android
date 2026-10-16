@@ -233,6 +233,41 @@ provider); this round builds 4a–4d below; biometric unlock waits.
 - Biometric unlock of the stored session; camera-first listing creation;
   real push (replacing the poll) once a provider is chosen.
 
+## Phase 5 — closing the gap with the website (in parts)
+
+Decided 2026-10-16: everything the website does should also be in the app.
+5a the rest of the account; 5b stores (create, manage, branches, stock,
+posting from a store, the booking calendar); 5c the leftovers (Kurdish,
+fonts, fingerprint unlock, the smaller "Not in 3x" items).
+
+### 5a — the rest of the account ✅ (2026-10-16)
+
+- **Own profile** in the web's phone layout: photo with the follower and
+  following counters beside it (tap → the list), "Edit profile" (sign out
+  is in Settings, as on the web). The grid shows the owner's listings in
+  EVERY state — drafts, sold, taken down — with a label on each.
+- **Owner's view of a listing**: a draft says so; one taken down shows why
+  (cause and reason), with the web's appeal form when the decision was
+  about this listing (`ADMIN_UNPUBLISHED`) — one appeal per decision, its
+  status and the answer afterwards. A held listing has no Edit (it is
+  locked) and no buy/share. Opening it from anywhere works: when the
+  public page answers 404, a signed-in owner gets the owner's view.
+- **Edit profile**: photo (change / remove, shrunk like listing photos),
+  username (checked as you type; once every 30 days, the old one retired),
+  name and bio.
+- **Settings → Email address**: request a change (the link goes to the
+  new address and is opened on the website), see it pending, cancel.
+- **Settings → Addresses**: add, edit, delete, a default one. Checkout
+  fills in the default and offers the others as one tap.
+- **Followers / Following** lists (your own; apps/api keeps everyone
+  else's private).
+- apps/api (web repo, branch `api/android-5a`): `GET /products/mine` and
+  `GET /products/mine/:id` — the owner's own listings in every state; the
+  website reads the database directly for the same thing.
+- Found on the way: the app's Json leaves out a property equal to its
+  default, so a request field with a default value is never sent. Request
+  DTOs must not default what apps/api requires (`AddressRequest`).
+
 ## Before the first release
 
 - Confirm the `applicationId` (`com.azza.app` now — permanent once uploaded).

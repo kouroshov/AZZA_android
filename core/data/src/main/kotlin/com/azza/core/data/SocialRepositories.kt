@@ -1,5 +1,6 @@
 package com.azza.core.data
 
+import com.azza.core.network.api.OwnListingsApi
 import com.azza.core.common.ApplicationScope
 import com.azza.core.common.Outcome
 import com.azza.core.common.map
@@ -38,6 +39,7 @@ class ProfilesRepository @Inject constructor(
     private val users: UsersApi,
     private val stores: StoresApi,
     private val products: ProductsApi,
+    private val own: OwnListingsApi,
     private val mediaUrls: MediaUrlResolver,
     private val json: Json,
 ) {
@@ -56,6 +58,10 @@ class ProfilesRepository @Inject constructor(
     suspend fun storePosts(storeId: String, cursor: String?): Outcome<Page<PostTile>> =
         safeApiCall(json) { products.list(storeId = storeId, cursor = cursor).data }.map { it.toTiles() }
 
+    /** The caller's own personal listings in every state (drafts and held ones too) — their own page only. */
+    suspend fun myPersonalPosts(cursor: String?): Outcome<Page<PostTile>> =
+        safeApiCall(json) { own.list(personal = true, cursor = cursor).data }.map { it.toTiles() }
+
     private fun ProductsPageDto.toTiles() = Page(items.map { it.toTile() }, nextCursor, hasMore)
 
     private fun ProductDto.toTile() = PostTile(
@@ -64,6 +70,7 @@ class ProfilesRepository @Inject constructor(
         imageUrl = media.firstOrNull { it.mediaType == "IMAGE" }?.let { mediaUrls.resolve(it.url ?: it.storageKey) },
         price = Money(priceAmountMinor, currency),
         discountPercentage = discountPercentage,
+        status = status,
     )
 }
 

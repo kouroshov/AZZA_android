@@ -23,6 +23,14 @@ data class StorePage(
 )
 
 /** One square in a profile's grid of posts. */
-data class PostTile(val id: String, val title: String, val imageUrl: String?, val price: Money, val discountPercentage: Double?)
+data class PostTile(
+    val id: String,
+    val title: String,
+    val imageUrl: String?,
+    val price: Money,
+    val discountPercentage: Double?,
+    /** Shown on the owner's own grid only: DRAFT, SOLD, REJECTED (held)… */
+    val status: String = "ACTIVE",
+)
 
 data class Area(val id: String, val name: String)

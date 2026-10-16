@@ -31,4 +31,8 @@
     <string name="share">Share</string>
     <string name="offline_saved_copy">Offline — showing what was saved %1$s</string>
     <string name="offline_just_now">just now</string>
+    <string name="tile_draft">Draft</string>
+    <string name="tile_sold">Sold</string>
+    <string name="tile_taken_down">Taken down</string>
+    <string name="tile_not_live">Not live</string>
 </resources>

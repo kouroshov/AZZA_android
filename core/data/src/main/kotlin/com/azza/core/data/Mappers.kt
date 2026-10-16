@@ -1,5 +1,6 @@
 package com.azza.core.data
 
+import com.azza.core.model.ListingHold
 import com.azza.core.model.Availability
 import com.azza.core.model.LocalizedText
 import com.azza.core.model.Money
@@ -21,6 +22,7 @@ internal fun MeDto.toModel(media: MediaUrlResolver) = User(
     lastName = profile?.lastName.orEmpty(),
     avatarUrl = media.resolve(profile?.avatarMediaKey),
     bio = profile?.bio,
+    usernameChangedAt = usernameChangedAt,
 )
 
 /** Same rule as the web card: a store's post shows the store, anything else the account that posted it. */
@@ -58,4 +60,6 @@ internal fun ProductDto.toModel(media: MediaUrlResolver) = ProductDetail(
     quantityAvailable = inventory?.let { (it.quantity - it.reservedQuantity).coerceAtLeast(0) },
     offeringKind = runCatching { OfferingKind.valueOf(offeringKind) }.getOrDefault(OfferingKind.UNKNOWN),
     favoriteCount = favoriteCount,
+    status = status,
+    hold = moderatedAt?.let { at -> moderationCause?.let { cause -> ListingHold(cause, moderationReason, at) } },
 )

@@ -1,5 +1,7 @@
 package com.azza.feature.product
 
+import com.azza.core.data.AppealsRepository
+import kotlinx.coroutines.flow.update
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -49,6 +51,7 @@ class ProductViewModel @Inject constructor(
     private val favorites: FavoritesRepository,
     private val auth: AuthRepository,
     private val reports: ReportsRepository,
+    private val appealsRepository: AppealsRepository,
     users: UserRepository,
 ) : ViewModel() {
 
@@ -90,8 +93,8 @@ class ProductViewModel @Inject constructor(
     fun load() {
         _state.value = ProductUiState.Loading
         viewModelScope.launch {
-            _state.value = when (val result = products.product(route.productId, route.source)) {
-                is Outcome.Success -> ProductUiState.Ready(result.value)
+            _state.value = when (val result = fetch(route.source)) {
+                is Outcome.Success -> ProductUiState.Ready(result.value).also { loadAppeals(it.product) }
                 is Outcome.Failure -> ProductUiState.Failed(result.error)
             }
         }
@@ -100,7 +103,44 @@ class ProductViewModel @Inject constructor(
     /** Re-reads without a spinner — coming back from editing it, the page must show the new version. */
     fun refreshQuietly() = viewModelScope.launch {
         if (_state.value !is ProductUiState.Ready) return@launch
-        (products.product(route.productId) as? Outcome.Success)?.let { _state.value = ProductUiState.Ready(it.value) }
+        (fetch(null) as? Outcome.Success)?.let { _state.value = ProductUiState.Ready(it.value) }
+    }
+
+    /**
+     * The public page first. A listing taken down answers 404 to everyone —
+     * its owner included — so a signed-in caller then asks for the owner's
+     * view, which answers only if the listing is theirs (with why it is down).
+     */
+    private suspend fun fetch(source: String?): Outcome<ProductDetail> {
+        val result = products.product(route.productId, source)
+        val notFound = (result as? Outcome.Failure)?.error.let { it is AppError.Api && it.status == 404 }
+        if (notFound && auth.isSignedIn.first()) {
+            (products.ownProduct(route.productId) as? Outcome.Success)?.let { return it }
+        }
+        return result
+    }
+
+    private val _appeal = MutableStateFlow(AppealUi())
+    val appeal: StateFlow<AppealUi> = _appeal.asStateFlow()
+
+    private fun loadAppeals(product: ProductDetail) {
+        if (product.hold?.appealable != true) return
+        _appeal.value = AppealUi(loading = true)
+        viewModelScope.launch {
+            val appeals = (appealsRepository.forProduct(product.id) as? Outcome.Success)?.value.orEmpty()
+            _appeal.value = AppealUi(appeals = appeals)
+        }
+    }
+
+    fun appeal(message: String) {
+        if (_appeal.value.sending || message.trim().length < APPEAL_MIN) return
+        _appeal.update { it.copy(sending = true, error = null) }
+        viewModelScope.launch {
+            when (val r = appealsRepository.appealProduct(route.productId, message)) {
+                is Outcome.Success -> _appeal.update { it.copy(sending = false, appeals = listOf(r.value) + it.appeals) }
+                is Outcome.Failure -> _appeal.update { it.copy(sending = false, error = r.error) }
+            }
+        }
     }
 
     fun toggleFavorite() = viewModelScope.launch {

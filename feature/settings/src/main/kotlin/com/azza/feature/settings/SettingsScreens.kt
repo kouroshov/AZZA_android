@@ -1,10 +1,13 @@
 package com.azza.feature.settings
 
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Home
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -86,8 +89,14 @@ fun NavGraphBuilder.settingsScreens(
     onNewTicket: () -> Unit,
     onOpenTicket: (String) -> Unit,
     onTicketCreated: (String) -> Unit,
+    onEmail: () -> Unit,
+    onAddresses: () -> Unit,
+    onEditAddress: (String?) -> Unit,
 ) {
-    composable<SettingsRoute> { SettingsScreen(onBack, onSignIn, onEditProfile, onSupport) }
+    composable<SettingsRoute> { SettingsScreen(onBack, onSignIn, onEditProfile, onSupport, onEmail, onAddresses) }
+    composable<EmailRoute> { EmailScreen(onBack) }
+    composable<AddressesRoute> { AddressesScreen(onBack, onEditAddress) }
+    composable<AddressEditRoute> { AddressEditScreen(onBack) }
     composable<EditProfileRoute> { EditProfileScreen(onBack) }
     composable<SupportRoute> { SupportListScreen(onBack, onNewTicket, onOpenTicket) }
     composable<NewTicketRoute> { NewTicketScreen(onBack, onTicketCreated) }
@@ -95,7 +104,7 @@ fun NavGraphBuilder.settingsScreens(
 }
 
 @Composable
-private fun Page(title: String, onBack: () -> Unit, content: @Composable () -> Unit) {
+internal fun SettingsPage(title: String, onBack: () -> Unit, content: @Composable BoxScope.() -> Unit) {
     Scaffold(
         containerColor = AzzaTheme.colors.bg,
         topBar = {
@@ -115,6 +124,8 @@ fun SettingsScreen(
     onSignIn: () -> Unit,
     onEditProfile: () -> Unit,
     onSupport: () -> Unit,
+    onEmail: () -> Unit,
+    onAddresses: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val signedIn by viewModel.signedIn.collectAsStateWithLifecycle()
@@ -122,10 +133,12 @@ fun SettingsScreen(
     val phoneNotifications by viewModel.phoneNotifications.collectAsStateWithLifecycle()
     // The per-app language, as Android stores it (AppCompat keeps it below Android 13).
     val current = AppCompatDelegate.getApplicationLocales().toLanguageTags()
-    Page(stringResource(R.string.settings_title), onBack) {
+    SettingsPage(stringResource(R.string.settings_title), onBack) {
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = 8.dp)) {
             if (signedIn) {
                 Row(stringResource(R.string.settings_edit_profile), Icons.Outlined.Edit, onEditProfile)
+                Row(stringResource(R.string.account_email_title), Icons.Outlined.Email, onEmail)
+                Row(stringResource(R.string.account_addresses_title), Icons.Outlined.Home, onAddresses)
                 Row(stringResource(R.string.settings_support), Icons.AutoMirrored.Outlined.HelpOutline, onSupport)
                 HorizontalDivider(color = AzzaTheme.colors.navDivider, modifier = Modifier.padding(vertical = 8.dp))
             }
@@ -195,8 +208,10 @@ private fun Section(title: String, content: @Composable () -> Unit) {
 fun EditProfileScreen(onBack: () -> Unit, viewModel: EditProfileViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     LaunchedEffect(state.saved) { if (state.saved) onBack() }
-    Page(stringResource(R.string.settings_edit_profile), onBack) {
+    SettingsPage(stringResource(R.string.settings_edit_profile), onBack) {
         Column(Modifier.fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            IdentitySection()
+            HorizontalDivider(color = AzzaTheme.colors.navDivider)
             Field(state.firstName, { v -> viewModel.edit { copy(firstName = v.take(60)) } }, R.string.settings_first_name)
             Field(state.lastName, { v -> viewModel.edit { copy(lastName = v.take(60)) } }, R.string.settings_last_name)
             val bioLength = state.bio.codePointCount(0, state.bio.length)
@@ -237,7 +252,7 @@ fun SupportListScreen(onBack: () -> Unit, onNewTicket: () -> Unit, onOpenTicket:
     }
     val listState = rememberLazyListState()
     LoadMoreEffect(listState, state.items.size, viewModel.pager::loadMore)
-    Page(stringResource(R.string.settings_support), onBack) {
+    SettingsPage(stringResource(R.string.settings_support), onBack) {
         Column(Modifier.fillMaxSize()) {
             Text(stringResource(R.string.support_intro), color = AzzaTheme.colors.textSecondary, modifier = Modifier.padding(16.dp))
             Button(onClick = onNewTicket, modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth()) { Text(stringResource(R.string.support_new_ticket)) }
@@ -273,7 +288,7 @@ fun SupportListScreen(onBack: () -> Unit, onNewTicket: () -> Unit, onOpenTicket:
 fun NewTicketScreen(onBack: () -> Unit, onCreated: (String) -> Unit, viewModel: NewTicketViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     LaunchedEffect(state.createdId) { state.createdId?.let(onCreated) }
-    Page(stringResource(R.string.support_new_ticket_title), onBack) {
+    SettingsPage(stringResource(R.string.support_new_ticket_title), onBack) {
         Column(Modifier.fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(stringResource(R.string.support_category), style = MaterialTheme.typography.labelMedium, color = AzzaTheme.colors.textSecondary)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -297,7 +312,7 @@ fun TicketScreen(onBack: () -> Unit, viewModel: TicketViewModel = hiltViewModel(
     val state by viewModel.state.collectAsStateWithLifecycle()
     var confirmClose by remember { mutableStateOf(false) }
     val ticket = state.ticket
-    Page(ticket?.let { "#${it.number} · ${it.subject}" }.orEmpty(), onBack) {
+    SettingsPage(ticket?.let { "#${it.number} · ${it.subject}" }.orEmpty(), onBack) {
         when {
             state.loading -> LoadingState()
             ticket == null -> ErrorState(state.error ?: AppError.Network, onRetry = { viewModel.load() })

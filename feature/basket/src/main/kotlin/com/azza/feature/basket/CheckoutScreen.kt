@@ -1,5 +1,7 @@
 package com.azza.feature.basket
 
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.material3.FilterChip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -82,6 +84,19 @@ fun CheckoutScreen(
         Text(stringResource(R.string.checkout_heading), style = MaterialTheme.typography.headlineSmall)
         Text(stringResource(R.string.checkout_subheading), color = AzzaTheme.colors.textSecondary)
 
+        val saved by viewModel.savedAddresses.collectAsStateWithLifecycle()
+        if (saved.isNotEmpty()) {
+            Text(stringResource(R.string.checkout_saved_addresses), style = MaterialTheme.typography.labelMedium, color = AzzaTheme.colors.textSecondary)
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                saved.forEach { a ->
+                    FilterChip(
+                        selected = state.address == a.oneLine,
+                        onClick = { viewModel.useAddress(a) },
+                        label = { Text(a.label?.takeIf { it.isNotBlank() } ?: a.recipientName) },
+                    )
+                }
+            }
+        }
         Field(state.fullName, { viewModel.edit { copy(fullName = it) } }, R.string.checkout_full_name, capitalize = true)
         Field(state.phone, { viewModel.edit { copy(phone = it) } }, R.string.checkout_phone, KeyboardType.Phone)
         Field(state.address, { viewModel.edit { copy(address = it) } }, R.string.checkout_address, singleLine = false)
