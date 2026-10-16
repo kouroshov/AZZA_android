@@ -1,5 +1,8 @@
 package com.azza.feature.stores
 
+import com.azza.core.ui.clock
+import com.azza.core.ui.dayName
+import com.azza.core.ui.weekOrder
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.foundation.clickable
@@ -83,16 +86,6 @@ import org.maplibre.android.maps.Style
 
 // ---------------------------------------------------------------- small shared pieces
 
-/** apps/api numbers days 0 = Sunday … 6 = Saturday; shown from the locale's first day (Saturday in Persian). */
-internal fun weekOrder(locale: Locale = Locale.getDefault()): List<Int> {
-    val first = Calendar.getInstance(locale).firstDayOfWeek - 1
-    return (0..6).map { (first + it) % 7 }
-}
-
-internal fun dayName(day: Int, locale: Locale = Locale.getDefault()): String = DateFormatSymbols.getInstance(locale).weekdays[day + 1]
-
-/** 540 → "09:00", in the locale's digits. */
-internal fun clock(minutes: Int): String = String.format(Locale.getDefault(), "%02d:%02d", (minutes / 60) % 24, minutes % 60)
 
 /** A time chooser: [onPick] gets minutes from midnight. */
 @OptIn(ExperimentalMaterial3Api::class)

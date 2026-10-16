@@ -14,6 +14,7 @@ data class PublicProfileDto(
     val cityName: String? = null,
     val isSeller: Boolean = false,
     val followerCount: Int = 0,
+    val postCount: Int = 0,
 )
 
 // ---------- stores (GET /stores/:idOrSlug) ----------
@@ -29,7 +30,15 @@ data class StoreDto(
     val avatarUrl: String? = null,
     val openStatus: String = "UNKNOWN",
     val branchPhone: String? = null,
+    val postCount: Int = 0,
+    val owner: StoreOwnerDto? = null,
+    val hours: List<com.azza.core.network.api.HoursDto> = emptyList(),
+    val occupation: com.azza.core.network.api.StoreOccupationDto? = null,
+    val location: com.azza.core.network.api.LocationDto? = null,
 )
+
+@Serializable
+data class StoreOwnerDto(val username: String, val displayName: String = "")
 
 // ---------- product lists (GET /products) — Prisma rows, keyset-paged ----------
 

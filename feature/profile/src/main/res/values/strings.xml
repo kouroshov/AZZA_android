@@ -28,4 +28,25 @@
     <string name="follow_list_following_empty">You do not follow anyone yet.</string>
     <string name="profile_edit">Edit profile</string>
     <string name="profile_stores">Your stores</string>
+    <string name="profile_hours_closed">Closed</string>
+    <string name="profile_hours_today">Today: %1$s</string>
+    <string name="profile_hours_week">Opening hours</string>
+    <string name="profile_branch_not_found">This branch could not be found.</string>
+    <string name="profile_open_in_maps">Open in maps</string>
+    <string name="profile_closures">Upcoming closures</string>
+    <string name="profile_available_here">Available at this branch</string>
+    <string name="profile_nothing_here">Nothing is listed at this branch yet.</string>
+    <string name="profile_run_by">Run by %1$s</string>
+    <plurals name="profile_posts">
+        <item quantity="one">post</item>
+        <item quantity="other">posts</item>
+    </plurals>
+    <plurals name="profile_branches">
+        <item quantity="one">%1$d branch</item>
+        <item quantity="other">%1$d branches</item>
+    </plurals>
+    <plurals name="profile_more_available">
+        <item quantity="one">%1$d more at the store</item>
+        <item quantity="other">%1$d more at the store</item>
+    </plurals>
 </resources>

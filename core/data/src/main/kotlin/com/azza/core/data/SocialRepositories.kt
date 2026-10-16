@@ -1,5 +1,7 @@
 package com.azza.core.data
 
+import com.azza.core.model.LocalizedText
+import com.azza.core.model.OpenHours
 import com.azza.core.model.PlaceHit
 import com.azza.core.network.api.OwnListingsApi
 import com.azza.core.common.ApplicationScope
@@ -45,11 +47,27 @@ class ProfilesRepository @Inject constructor(
     private val json: Json,
 ) {
     suspend fun user(username: String): Outcome<PublicProfile> = safeApiCall(json) { users.byUsername(username).data }.map {
-        PublicProfile(it.id, it.username, it.displayName.ifBlank { it.username }, mediaUrls.resolve(it.avatarUrl), it.bio, it.cityName, it.followerCount)
+        PublicProfile(it.id, it.username, it.displayName.ifBlank { it.username }, mediaUrls.resolve(it.avatarUrl), it.bio, it.cityName, it.followerCount, it.postCount)
     }
 
     suspend fun store(idOrSlug: String): Outcome<StorePage> = safeApiCall(json) { stores.get(idOrSlug).data }.map {
-        StorePage(it.id, it.ownerId, it.slug, it.name, it.description, mediaUrls.resolve(it.avatarUrl), it.followerCount, it.openStatus)
+        StorePage(
+            id = it.id,
+            ownerId = it.ownerId,
+            slug = it.slug,
+            name = it.name,
+            description = it.description,
+            avatarUrl = mediaUrls.resolve(it.avatarUrl),
+            followerCount = it.followerCount,
+            openStatus = it.openStatus,
+            postCount = it.postCount,
+            ownerUsername = it.owner?.username,
+            ownerName = it.owner?.displayName?.ifBlank { null },
+            phone = it.branchPhone?.ifBlank { null },
+            occupation = it.occupation?.let { o -> LocalizedText(o.name.fa.ifBlank { o.name.en }, o.name.en.ifBlank { o.code }) },
+            address = it.location?.address?.ifBlank { null },
+            hours = it.hours.map { h -> OpenHours(h.dayOfWeek, h.opensMinute, h.closesMinute, h.isClosed || h.opensMinute == null) },
+        )
     }
 
     /** The listings on a person's personal page, not their stores' (as the web's /u/[username]). */

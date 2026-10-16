@@ -1,5 +1,10 @@
 package com.azza.feature.profile
 
+import androidx.compose.material.icons.outlined.Phone
+import androidx.compose.material.icons.outlined.Place
+import androidx.compose.ui.platform.LocalConfiguration
+import com.azza.core.data.StoresRepository
+import com.azza.core.data.Branch
 import androidx.compose.material.icons.outlined.Share
 import com.azza.core.ui.LocalWebLinks
 import com.azza.core.ui.shareLink
@@ -173,9 +178,14 @@ class StoreProfileViewModel @Inject constructor(
     private val follow: FollowRepository,
     private val auth: AuthRepository,
     private val reports: ReportsRepository,
+    private val stores: StoresRepository,
     users: UserRepository,
 ) : ViewModel() {
     private val idOrSlug = savedStateHandle.toRoute<StoreProfileRoute>().idOrSlug
+
+    private val _branches = MutableStateFlow<List<Branch>>(emptyList())
+    /** Its active branches (public), for the branch list. */
+    val branches: StateFlow<List<Branch>> = _branches.asStateFlow()
 
     private val _state = MutableStateFlow<Loadable<StorePage>>(Loadable.Loading)
     val state: StateFlow<Loadable<StorePage>> = _state.asStateFlow()
@@ -204,7 +214,13 @@ class StoreProfileViewModel @Inject constructor(
     fun load() = viewModelScope.launch {
         _state.value = Loadable.Loading
         _state.value = when (val r = profiles.store(idOrSlug)) {
-            is Outcome.Success -> Loadable.Ready(r.value).also { storeId = r.value.id; posts.refresh() }
+            is Outcome.Success -> Loadable.Ready(r.value).also {
+                storeId = r.value.id
+                posts.refresh()
+                viewModelScope.launch {
+                    _branches.value = (stores.branches(r.value.id) as? Outcome.Success)?.value.orEmpty().filter { it.status == "ACTIVE" }
+                }
+            }
             is Outcome.Failure -> Loadable.Failed(r.error)
         }
     }
@@ -259,6 +275,7 @@ fun UserProfileScreen(
                         followers = s.value.followerCount,
                         button = button,
                         onFollow = viewModel::toggleFollow,
+                        posts = s.value.postCount,
                     )
                 }
             }
@@ -271,9 +288,13 @@ fun StoreProfileScreen(
     onBack: () -> Unit,
     onOpenProduct: (String) -> Unit,
     onSignIn: () -> Unit,
+    onOpen: (Any) -> Unit,
     viewModel: StoreProfileViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val branches by viewModel.branches.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val language = LocalConfiguration.current.locales[0].language
     val button by viewModel.followButton.collectAsStateWithLifecycle()
     LaunchedEffect(viewModel) { viewModel.signInRequired.collect { onSignIn() } }
     val title = (state as? Loadable.Ready)?.value?.slug?.let(::handle).orEmpty()
@@ -285,21 +306,32 @@ fun StoreProfileScreen(
             Loadable.Loading -> LoadingState()
             is Loadable.Failed -> notFoundOrError(s.error, R.string.profile_store_not_found, viewModel::load)
             is Loadable.Ready -> PostsPage(viewModel.posts, onOpenProduct) {
+                val store = s.value
                 item(key = "header") {
-                    val open = when (s.value.openStatus) {
-                        "OPEN" -> stringResource(R.string.profile_store_open)
-                        "CLOSED" -> stringResource(R.string.profile_store_closed)
-                        else -> null
-                    }
                     ProfileHeader(
-                        avatarUrl = s.value.avatarUrl,
+                        avatarUrl = store.avatarUrl,
                         isStore = true,
-                        name = s.value.name,
-                        lines = listOfNotNull(open, s.value.description?.takeIf { it.isNotBlank() }),
-                        followers = s.value.followerCount,
+                        name = store.name,
+                        lines = listOfNotNull(store.occupation?.forLanguage(language), store.description?.takeIf { it.isNotBlank() }),
+                        followers = store.followerCount,
                         button = button,
                         onFollow = viewModel::toggleFollow,
+                        posts = store.postCount,
                     )
+                }
+                item(key = "info") {
+                    Column {
+                        store.address?.let { InfoLine(Icons.Outlined.Place, it) }
+                        store.phone?.let { phone -> InfoLine(Icons.Outlined.Phone, phone) { dial(context, phone) } }
+                        if (store.hours.isNotEmpty()) HoursCard(store.hours, store.openStatus)
+                        else if (store.openStatus != "UNKNOWN") Row(Modifier.padding(horizontal = 16.dp)) { OpenBadge(store.openStatus) }
+                        store.ownerUsername?.let { owner ->
+                            Box(Modifier.padding(top = 8.dp)) { RunBy(store.ownerName, owner) { onOpen(UserProfileRoute(owner)) } }
+                        }
+                        BranchesSection(branches) { b ->
+                            onOpen(BranchPageRoute(store.id, b.id, store.slug, store.name))
+                        }
+                    }
                 }
             }
         }
@@ -369,10 +401,21 @@ internal fun ProfileHeader(
     followers: Int,
     button: FollowButton,
     onFollow: () -> Unit,
+    posts: Int? = null,
 ) {
     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(20.dp)) {
             Avatar(url = avatarUrl, isStore = isStore, size = 80)
+            if (posts != null) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(posts.toString(), style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        pluralStringResource(R.plurals.profile_posts, posts),
+                        color = AzzaTheme.colors.textSecondary,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(followers.toString(), style = MaterialTheme.typography.titleMedium)
                 Text(
@@ -408,7 +451,9 @@ fun NavGraphBuilder.publicProfileScreens(
     onBack: () -> Unit,
     onOpenProduct: (String) -> Unit,
     onSignIn: () -> Unit,
+    onOpen: (Any) -> Unit,
 ) {
     composable<UserProfileRoute> { UserProfileScreen(onBack, onOpenProduct, onSignIn) }
-    composable<StoreProfileRoute> { StoreProfileScreen(onBack, onOpenProduct, onSignIn) }
+    composable<StoreProfileRoute> { StoreProfileScreen(onBack, onOpenProduct, onSignIn, onOpen) }
+    composable<BranchPageRoute> { BranchPageScreen(onBack, onOpenStore = { onOpen(StoreProfileRoute(it)) }, onOpenProduct = onOpenProduct) }
 }

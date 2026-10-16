@@ -28,4 +28,25 @@
     <string name="follow_list_following_empty">هنوز کسی را دنبال نمی‌کنید.</string>
     <string name="profile_edit">ویرایش پروفایل</string>
     <string name="profile_stores">فروشگاه‌های شما</string>
+    <string name="profile_hours_closed">تعطیل</string>
+    <string name="profile_hours_today">امروز: %1$s</string>
+    <string name="profile_hours_week">ساعت کاری</string>
+    <string name="profile_branch_not_found">این شعبه پیدا نشد.</string>
+    <string name="profile_open_in_maps">نمایش روی نقشه</string>
+    <string name="profile_closures">تعطیلی‌های پیش رو</string>
+    <string name="profile_available_here">موجود در این شعبه</string>
+    <string name="profile_nothing_here">هنوز چیزی در این شعبه نیست.</string>
+    <string name="profile_run_by">مدیریت: %1$s</string>
+    <plurals name="profile_posts">
+        <item quantity="one">پست</item>
+        <item quantity="other">پست</item>
+    </plurals>
+    <plurals name="profile_branches">
+        <item quantity="one">%1$d شعبه</item>
+        <item quantity="other">%1$d شعبه</item>
+    </plurals>
+    <plurals name="profile_more_available">
+        <item quantity="one">%1$d مورد دیگر در فروشگاه</item>
+        <item quantity="other">%1$d مورد دیگر در فروشگاه</item>
+    </plurals>
 </resources>

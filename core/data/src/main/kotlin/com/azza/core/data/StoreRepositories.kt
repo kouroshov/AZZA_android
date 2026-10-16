@@ -83,6 +83,8 @@ data class Branch(
     val id: String,
     val storeId: String,
     val name: String,
+    /** Its address on the website (/stores/<store>/branches/<slug>). */
+    val slug: String = "",
     val status: String,
     val phone: String?,
     val timezone: String,
@@ -331,6 +333,7 @@ class StoresRepository @Inject constructor(
             id = id,
             storeId = storeId,
             name = name,
+            slug = slug,
             status = status,
             phone = phone,
             timezone = timezone,

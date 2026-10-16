@@ -8,6 +8,8 @@ data class PublicProfile(
     val bio: String?,
     val cityName: String?,
     val followerCount: Int,
+    /** Live posts on the personal page. */
+    val postCount: Int = 0,
 )
 
 data class StorePage(
@@ -20,7 +22,19 @@ data class StorePage(
     val followerCount: Int,
     /** apps/api's open-now verdict: OPEN, CLOSED or UNKNOWN (no hours recorded). */
     val openStatus: String,
+    val postCount: Int = 0,
+    /** Who runs the store (the web's "Run by"). */
+    val ownerUsername: String? = null,
+    val ownerName: String? = null,
+    val phone: String? = null,
+    val occupation: LocalizedText? = null,
+    val address: String? = null,
+    /** The main branch's week, Sunday (0) first; empty = no hours published. */
+    val hours: List<OpenHours> = emptyList(),
 )
+
+/** One day of a published week; [opens]/[closes] are minutes from midnight. */
+data class OpenHours(val dayOfWeek: Int, val opens: Int?, val closes: Int?, val closed: Boolean)
 
 /** One square in a profile's grid of posts. */
 data class PostTile(

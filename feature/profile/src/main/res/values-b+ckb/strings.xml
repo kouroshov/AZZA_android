@@ -29,4 +29,25 @@
     <string name="follow_list_following_empty">هێشتا شوێنی کەس ناکەویت.</string>
     <string name="profile_edit">دەستکاری پرۆفایل</string>
     <string name="profile_stores">فرۆشگاکانت</string>
+    <string name="profile_hours_closed">داخراوە</string>
+    <string name="profile_hours_today">ئەمڕۆ: %1$s</string>
+    <string name="profile_hours_week">کاتی کارکردن</string>
+    <string name="profile_branch_not_found">ئەم لقە نەدۆزرایەوە.</string>
+    <string name="profile_open_in_maps">کردنەوە لە نەخشە</string>
+    <string name="profile_closures">داخرانەکانی داهاتوو</string>
+    <string name="profile_available_here">بەردەستە لەم لقە</string>
+    <string name="profile_nothing_here">هێشتا هیچ شتێک لەم لقە نییە.</string>
+    <string name="profile_run_by">بەڕێوەبەر: %1$s</string>
+    <plurals name="profile_posts">
+        <item quantity="one">پۆست</item>
+        <item quantity="other">پۆست</item>
+    </plurals>
+    <plurals name="profile_branches">
+        <item quantity="one">%1$d لق</item>
+        <item quantity="other">%1$d لق</item>
+    </plurals>
+    <plurals name="profile_more_available">
+        <item quantity="one">%1$d دانەی تر لە فرۆشگا</item>
+        <item quantity="other">%1$d دانەی تر لە فرۆشگا</item>
+    </plurals>
 </resources>

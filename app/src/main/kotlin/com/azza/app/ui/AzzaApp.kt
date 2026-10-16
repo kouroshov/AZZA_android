@@ -217,6 +217,7 @@ fun AzzaApp(
                 onBack = navController::popBackStack,
                 onOpenProduct = { id -> navController.navigate(ProductRoute(id, source = "PROFILE")) },
                 onSignIn = signIn,
+                onOpen = { route -> navController.navigate(route) },
             )
             productScreen(
                 onBack = navController::popBackStack,
