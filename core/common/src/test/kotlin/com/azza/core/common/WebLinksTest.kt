@@ -24,10 +24,18 @@ class WebLinksTest {
     @Test
     fun `leaves every other link to the browser`() {
         assertThat(links.parse("https://other.example/store/1")).isNull()
-        assertThat(links.parse("https://azza.example/stores/bakery/branches/main")).isNull()
         assertThat(links.parse("https://azza.example/store")).isNull()
         assertThat(links.parse("https://azza.example/admin/users")).isNull()
         assertThat(links.parse("not a link")).isNull()
+    }
+
+    @Test
+    fun `opens a branch and the two emailed links`() {
+        assertThat(links.parse("https://azza.example/stores/bakery/branches/main")).isEqualTo(WebDestination.Branch("bakery", "main"))
+        assertThat(links.parse("https://azza.example/reset-password?token=abc%2B1")).isEqualTo(WebDestination.ResetPassword("abc+1"))
+        assertThat(links.parse("https://azza.example/fa/confirm-email-change?x=1&token=t0k")).isEqualTo(WebDestination.ConfirmEmailChange("t0k"))
+        assertThat(links.parse("https://azza.example/reset-password")).isNull()
+        assertThat(links.parse("https://azza.example/stores/bakery/edit/main")).isNull()
     }
 
     @Test

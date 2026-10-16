@@ -129,4 +129,5 @@
     <string name="stores_setup_title">راه‌اندازی فروشگاه را کامل کنید</string>
     <string name="stores_setup_body">مشتری‌ها فروشگاه را روی نقشه پیدا می‌کنند و ساعت کارش را می‌بینند. مکان و ساعت کاری را وارد کنید.</string>
     <string name="stores_set_hours">تعیین ساعت کاری</string>
+    <string name="stores_posts_short">%1$d پست</string>
 </resources>

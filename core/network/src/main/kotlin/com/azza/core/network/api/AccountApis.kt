@@ -15,10 +15,23 @@ import retrofit2.http.Query
 
 /** PATCH /users/me — only the fields sent are changed (UpdateProfileDto). */
 @Serializable
-data class UpdateProfileRequest(val firstName: String? = null, val lastName: String? = null, val bio: String? = null)
+data class UpdateProfileRequest(
+    val firstName: String? = null,
+    val lastName: String? = null,
+    val bio: String? = null,
+    val phoneNumber: String? = null,
+    val province: String? = null,
+    val city: String? = null,
+)
 
 @Serializable
 data class ForgotPasswordRequest(val email: String)
+
+@Serializable
+data class ResetPasswordRequest(val token: String, val newPassword: String)
+
+@Serializable
+data class TokenRequest(val token: String)
 
 interface AccountApi {
     @PATCH("users/me")
@@ -27,6 +40,14 @@ interface AccountApi {
     /** Public; the same answer whether or not the account exists (no enumeration). */
     @POST("auth/forgot-password")
     suspend fun forgotPassword(@Body body: ForgotPasswordRequest): ApiEnvelope<JsonElement>
+
+    /** Public: the emailed token is the proof. Every session of the account ends. */
+    @POST("auth/reset-password")
+    suspend fun resetPassword(@Body body: ResetPasswordRequest): ApiEnvelope<JsonElement>
+
+    /** Public: the emailed token is the proof. */
+    @POST("auth/email-change/confirm")
+    suspend fun confirmEmailChange(@Body body: TokenRequest): ApiEnvelope<JsonElement>
 }
 
 // ---------- support tickets (apps/api/src/admin/tickets — the member side, /tickets) ----------

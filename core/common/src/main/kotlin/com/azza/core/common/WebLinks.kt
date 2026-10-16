@@ -9,6 +9,12 @@ sealed interface WebDestination {
     data class Product(val id: String) : WebDestination
     data class User(val username: String) : WebDestination
     data class Store(val slug: String) : WebDestination
+    /** A store's branch page (/stores/<store>/branches/<branch>). */
+    data class Branch(val storeSlug: String, val branchSlug: String) : WebDestination
+    /** The emailed "choose a new password" link. */
+    data class ResetPassword(val token: String) : WebDestination
+    /** The emailed "confirm your new address" link. */
+    data class ConfirmEmailChange(val token: String) : WebDestination
 }
 
 /**
@@ -34,6 +40,18 @@ class WebLinks(baseUrl: String) {
         if (uri.scheme != "https" && uri.scheme != origin.scheme) return null
         var parts = (uri.rawPath ?: "").split('/').filter { it.isNotEmpty() }
         if (parts.firstOrNull() in LOCALES) parts = parts.drop(1)
+        // The two emailed links carry a one-time token in the query.
+        if (parts.size == 1 && parts[0] in TOKEN_PAGES) {
+            val token = (uri.rawQuery ?: "").split('&').firstNotNullOfOrNull { kv ->
+                kv.split('=', limit = 2).takeIf { it.size == 2 && it[0] == "token" }?.let { runCatching { URLDecoder.decode(it[1], "UTF-8") }.getOrNull() }
+            }?.takeIf { it.isNotBlank() } ?: return null
+            return if (parts[0] == "reset-password") WebDestination.ResetPassword(token) else WebDestination.ConfirmEmailChange(token)
+        }
+        if (parts.size == 4 && parts[0] == "stores" && parts[2] == "branches") {
+            val store = runCatching { URLDecoder.decode(parts[1], "UTF-8") }.getOrNull()?.takeIf { it.isNotBlank() } ?: return null
+            val branch = runCatching { URLDecoder.decode(parts[3], "UTF-8") }.getOrNull()?.takeIf { it.isNotBlank() } ?: return null
+            return WebDestination.Branch(store, branch)
+        }
         if (parts.size != 2) return null
         val value = runCatching { URLDecoder.decode(parts[1], "UTF-8") }.getOrNull()?.takeIf { it.isNotBlank() } ?: return null
         return when (parts[0]) {
@@ -48,5 +66,6 @@ class WebLinks(baseUrl: String) {
 
     private companion object {
         val LOCALES = setOf("en", "fa", "ckb")
+        val TOKEN_PAGES = setOf("reset-password", "confirm-email-change")
     }
 }

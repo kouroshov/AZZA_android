@@ -41,6 +41,10 @@
                 <data android:pathPattern="/.*/store/.*" />
                 <data android:pathPattern="/.*/u/.*" />
                 <data android:pathPattern="/.*/stores/.*" />
+                <data android:pathPrefix="/reset-password" />
+                <data android:pathPrefix="/confirm-email-change" />
+                <data android:pathPattern="/.*/reset-password" />
+                <data android:pathPattern="/.*/confirm-email-change" />
             </intent-filter>
         </activity>
 

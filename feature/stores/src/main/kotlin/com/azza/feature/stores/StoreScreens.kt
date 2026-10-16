@@ -202,7 +202,11 @@ private fun StoreRow(store: ManagedStore, onClick: () -> Unit) {
         Column(Modifier.weight(1f)) {
             Text(store.name, style = MaterialTheme.typography.titleSmall)
             Text(
-                listOfNotNull(handle(store.slug), stringResource(R.string.stores_suspended).takeIf { store.hold != null }).joinToString(" · "),
+                listOfNotNull(
+                    handle(store.slug),
+                    stringResource(R.string.stores_posts_short, store.postCount),
+                    stringResource(R.string.stores_suspended).takeIf { store.hold != null },
+                ).joinToString(" · "),
                 style = MaterialTheme.typography.bodySmall,
                 color = if (store.hold != null) AzzaTheme.colors.error else AzzaTheme.colors.textMuted,
             )

@@ -95,4 +95,12 @@
     <string name="settings_app_lock">قوفڵ بە پەنجەمۆر</string>
     <string name="settings_app_lock_hint">کاتێک AZZA دەکرێتەوە و دوای خولەکێک دووری، پەنجەمۆر یان قوفڵی شاشە داوا دەکرێت.</string>
     <string name="settings_app_lock_confirm">پشتڕاستی بکەرەوە کە خۆتی</string>
+    <string name="settings_phone">ژمارەی مۆبایل</string>
+    <string name="settings_phone_invalid">ژمارەی مۆبایلی ئێران بنووسە: ٠٩ و نۆ ژمارەی تر.</string>
+    <string name="settings_province">پارێزگا</string>
+    <string name="settings_city">شار</string>
+    <string name="settings_discard_title">بەبێ پاشەکەوت دەچیتە دەرەوە؟</string>
+    <string name="settings_discard_body">ئەو گۆڕانکارییانەی لێرە کردت لەدەست دەچن.</string>
+    <string name="settings_discard">دەرچوون</string>
+    <string name="settings_keep_editing">بەردەوامبوون لە دەستکاری</string>
 </resources>

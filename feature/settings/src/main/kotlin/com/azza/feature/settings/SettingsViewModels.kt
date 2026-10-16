@@ -1,5 +1,9 @@
 package com.azza.feature.settings
 
+import com.azza.core.ui.latinDigits
+import com.azza.core.ui.isIranMobile
+import com.azza.core.model.Area
+import com.azza.core.data.GeographyRepository
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -56,6 +60,9 @@ data class EditProfileState(
     val firstName: String = "",
     val lastName: String = "",
     val bio: String = "",
+    val phone: String = "",
+    val province: String = "",
+    val city: String = "",
     val saving: Boolean = false,
     val saved: Boolean = false,
     val error: AppError? = null,
@@ -67,21 +74,61 @@ const val BIO_MAX = 150
 @HiltViewModel
 class EditProfileViewModel @Inject constructor(
     private val account: AccountRepository,
+    private val geography: GeographyRepository,
     users: UserRepository,
 ) : ViewModel() {
-    private val _state = MutableStateFlow(
-        users.currentUser.value.let { EditProfileState(it?.firstName.orEmpty(), it?.lastName.orEmpty(), it?.bio.orEmpty()) },
-    )
+    private val initial = users.currentUser.value.let {
+        EditProfileState(
+            it?.firstName.orEmpty(), it?.lastName.orEmpty(), it?.bio.orEmpty(),
+            it?.phoneNumber.orEmpty(), it?.province.orEmpty(), it?.city.orEmpty(),
+        )
+    }
+    private val _state = MutableStateFlow(initial)
     val state: StateFlow<EditProfileState> = _state.asStateFlow()
+
+    /** Something typed that is not saved yet: leaving asks first. */
+    fun hasChanges(): Boolean = _state.value.let {
+        it.firstName != initial.firstName || it.lastName != initial.lastName || it.bio != initial.bio ||
+            it.phone != initial.phone || it.province != initial.province || it.city != initial.city
+    } && !_state.value.saved
+
+    private val _provinces = MutableStateFlow<List<Area>>(emptyList())
+    val provinces: StateFlow<List<Area>> = _provinces.asStateFlow()
+    private val _cities = MutableStateFlow<List<Area>>(emptyList())
+    val cities: StateFlow<List<Area>> = _cities.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            (geography.provinces() as? Outcome.Success)?.let { _provinces.value = it.value }
+            loadCities(_state.value.province)
+        }
+    }
+
+    fun chooseProvince(name: String) {
+        if (name == _state.value.province) return
+        edit { copy(province = name, city = "") }
+        loadCities(name)
+    }
+
+    private fun loadCities(provinceName: String) {
+        _cities.value = emptyList()
+        val p = _provinces.value.firstOrNull { it.name == provinceName } ?: return
+        viewModelScope.launch { (geography.cities(p.id) as? Outcome.Success)?.let { _cities.value = it.value } }
+    }
 
     fun edit(transform: EditProfileState.() -> EditProfileState) = _state.update { it.transform().copy(error = null, saved = false) }
 
     fun save() {
         val s = _state.value
         if (s.saving || s.firstName.isBlank()) return
+        if (s.phone.isNotBlank() && !isIranMobile(s.phone)) return
         _state.update { it.copy(saving = true) }
         viewModelScope.launch {
-            when (val r = account.updateProfile(s.firstName, s.lastName, s.bio)) {
+            // A field left as it was is not sent: an empty value would not mean "no change".
+            val phone = latinDigits(s.phone.trim()).takeIf { it != initial.phone && it.isNotEmpty() }
+            val province = s.province.takeIf { it != initial.province && it.isNotEmpty() }
+            val city = s.city.takeIf { it != initial.city && it.isNotEmpty() }
+            when (val r = account.updateProfile(s.firstName, s.lastName, s.bio, phone, province, city)) {
                 is Outcome.Success -> _state.update { it.copy(saving = false, saved = true) }
                 is Outcome.Failure -> _state.update { it.copy(saving = false, error = r.error) }
             }

@@ -19,6 +19,8 @@ data class RegisterRequest(
     val firstName: String,
     val lastName: String,
     val phoneNumber: String? = null,
+    val province: String? = null,
+    val city: String? = null,
 )
 
 @Serializable
@@ -64,6 +66,9 @@ data class ProfileDto(
     val lastName: String = "",
     val avatarMediaKey: String? = null,
     val bio: String? = null,
+    val phoneNumber: String? = null,
+    val province: String? = null,
+    val city: String? = null,
 )
 
 // ---------- discovery (GET /explore) — FeedPageResponseDto ----------

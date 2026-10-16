@@ -130,4 +130,5 @@
     <string name="stores_setup_title">ڕێکخستنی فرۆشگاکەت تەواو بکە</string>
     <string name="stores_setup_body">کڕیاران فرۆشگا لەسەر نەخشە دەدۆزنەوە و کاتی کارکردنی دەبینن. شوێن و کاتی کارکردن زیاد بکە.</string>
     <string name="stores_set_hours">دیاریکردنی کاتی کارکردن</string>
+    <string name="stores_posts_short">%1$d پۆست</string>
 </resources>

@@ -97,4 +97,12 @@
     <string name="settings_app_lock">Lock with fingerprint</string>
     <string name="settings_app_lock_hint">Ask for your fingerprint or screen lock when AZZA is opened, and after a minute away.</string>
     <string name="settings_app_lock_confirm">Confirm it is you</string>
+    <string name="settings_phone">Mobile number</string>
+    <string name="settings_phone_invalid">Enter an Iranian mobile number: 09 and nine more digits.</string>
+    <string name="settings_province">Province</string>
+    <string name="settings_city">City</string>
+    <string name="settings_discard_title">Leave without saving?</string>
+    <string name="settings_discard_body">What you changed here will be lost.</string>
+    <string name="settings_discard">Leave</string>
+    <string name="settings_keep_editing">Keep editing</string>
 </resources>

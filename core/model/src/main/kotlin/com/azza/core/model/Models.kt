@@ -9,6 +9,9 @@ data class User(
     val avatarUrl: String?,
     val bio: String?,
     val usernameChangedAt: String? = null,
+    val phoneNumber: String? = null,
+    val province: String? = null,
+    val city: String? = null,
 ) {
     val displayName: String
         get() = "$firstName $lastName".trim().ifEmpty { username }

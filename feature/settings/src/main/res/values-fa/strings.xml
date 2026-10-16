@@ -94,4 +94,12 @@
     <string name="settings_app_lock">قفل با اثر انگشت</string>
     <string name="settings_app_lock_hint">هنگام باز کردن AZZA و بعد از یک دقیقه دوری، اثر انگشت یا قفل صفحه خواسته می‌شود.</string>
     <string name="settings_app_lock_confirm">تأیید کنید که خودتان هستید</string>
+    <string name="settings_phone">شمارهٔ موبایل</string>
+    <string name="settings_phone_invalid">شمارهٔ موبایل ایران را وارد کنید: ۰۹ و نُه رقم دیگر.</string>
+    <string name="settings_province">استان</string>
+    <string name="settings_city">شهر</string>
+    <string name="settings_discard_title">بدون ذخیره خارج می‌شوید؟</string>
+    <string name="settings_discard_body">تغییراتی که اینجا دادید از بین می‌رود.</string>
+    <string name="settings_discard">خروج</string>
+    <string name="settings_keep_editing">ادامهٔ ویرایش</string>
 </resources>

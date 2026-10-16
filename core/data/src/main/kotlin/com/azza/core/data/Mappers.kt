@@ -25,6 +25,9 @@ internal fun MeDto.toModel(media: MediaUrlResolver) = User(
     avatarUrl = media.resolve(profile?.avatarMediaKey),
     bio = profile?.bio,
     usernameChangedAt = usernameChangedAt,
+    phoneNumber = profile?.phoneNumber,
+    province = profile?.province,
+    city = profile?.city,
 )
 
 /** Same rule as the web card: a store's post shows the store, anything else the account that posted it. */

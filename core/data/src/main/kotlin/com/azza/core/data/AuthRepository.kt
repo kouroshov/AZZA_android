@@ -38,6 +38,9 @@ class AuthRepository @Inject constructor(
         password: String,
         firstName: String,
         lastName: String,
+        phoneNumber: String? = null,
+        province: String? = null,
+        city: String? = null,
     ): Outcome<Unit> =
         safeApiCall(json) {
             api.register(
@@ -47,6 +50,9 @@ class AuthRepository @Inject constructor(
                     password = password,
                     firstName = firstName.trim(),
                     lastName = lastName.trim(),
+                    phoneNumber = phoneNumber?.trim()?.ifEmpty { null },
+                    province = province?.ifEmpty { null },
+                    city = city?.ifEmpty { null },
                 ),
             ).data
         }

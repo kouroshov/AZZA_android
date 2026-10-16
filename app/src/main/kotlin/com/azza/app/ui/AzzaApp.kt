@@ -140,6 +140,10 @@ fun AzzaApp(
                 is WebDestination.Product -> navController.navigate(ProductRoute(to.id))
                 is WebDestination.User -> navController.navigate(UserProfileRoute(to.username))
                 is WebDestination.Store -> navController.navigate(StoreProfileRoute(to.slug))
+                // The store page lists its branches; a branch's own page needs its ids.
+                is WebDestination.Branch -> navController.navigate(StoreProfileRoute(to.storeSlug))
+                is WebDestination.ResetPassword -> navController.navigate(com.azza.feature.auth.ResetPasswordRoute(to.token))
+                is WebDestination.ConfirmEmailChange -> navController.navigate(com.azza.feature.auth.ConfirmEmailRoute(to.token))
                 // A page the app has no screen for: the browser, never this app again.
                 null -> openInBrowser(context, link)
             }

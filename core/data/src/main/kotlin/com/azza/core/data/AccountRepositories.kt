@@ -1,5 +1,7 @@
 package com.azza.core.data
 
+import com.azza.core.network.api.TokenRequest
+import com.azza.core.network.api.ResetPasswordRequest
 import com.azza.core.common.Outcome
 import com.azza.core.common.map
 import com.azza.core.datastore.AppPreferences
@@ -49,8 +51,25 @@ class AccountRepository @Inject constructor(
     suspend fun setNotificationPermissionAsked() = preferences.setNotificationPermissionAsked()
 
     /** Saves name and bio; the cached current user is refreshed so every screen shows the new one. */
-    suspend fun updateProfile(firstName: String, lastName: String, bio: String): Outcome<User> =
-        safeApiCall(json) { api.updateProfile(UpdateProfileRequest(firstName.trim(), lastName.trim(), bio.trim())).data }
+    suspend fun resetPassword(token: String, newPassword: String): Outcome<Unit> =
+        safeApiCall(json) { api.resetPassword(ResetPasswordRequest(token, newPassword)) }.map { }
+
+    suspend fun confirmEmailChange(token: String): Outcome<Unit> =
+        safeApiCall(json) { api.confirmEmailChange(TokenRequest(token)) }.map { }
+
+    suspend fun updateProfile(
+        firstName: String,
+        lastName: String,
+        bio: String,
+        phoneNumber: String? = null,
+        province: String? = null,
+        city: String? = null,
+    ): Outcome<User> =
+        safeApiCall(json) {
+            api.updateProfile(
+                UpdateProfileRequest(firstName.trim(), lastName.trim(), bio.trim(), phoneNumber?.trim(), province, city),
+            ).data
+        }
             .map { it.toModel(media) }
             .also { if (it is Outcome.Success) users.me() }
 

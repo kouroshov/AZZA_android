@@ -1,5 +1,10 @@
 package com.azza.feature.settings
 
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.KeyboardOptions
+import com.azza.core.ui.isIranMobile
+import com.azza.core.ui.ChoiceMenu
+import androidx.activity.compose.BackHandler
 import com.azza.core.ui.AppUnlock
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Home
@@ -227,8 +232,14 @@ private fun Section(title: String, content: @Composable () -> Unit) {
 @Composable
 fun EditProfileScreen(onBack: () -> Unit, viewModel: EditProfileViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val provinces by viewModel.provinces.collectAsStateWithLifecycle()
+    val cities by viewModel.cities.collectAsStateWithLifecycle()
     LaunchedEffect(state.saved) { if (state.saved) onBack() }
-    SettingsPage(stringResource(R.string.settings_edit_profile), onBack) {
+    var leaving by remember { mutableStateOf(false) }
+    val tryBack = { if (viewModel.hasChanges()) leaving = true else onBack() }
+    BackHandler(enabled = viewModel.hasChanges()) { leaving = true }
+    if (leaving) DiscardDialog(onKeep = { leaving = false }, onDiscard = { leaving = false; onBack() })
+    SettingsPage(stringResource(R.string.settings_edit_profile), tryBack) {
         Column(Modifier.fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             IdentitySection()
             HorizontalDivider(color = AzzaTheme.colors.navDivider)
@@ -244,6 +255,19 @@ fun EditProfileScreen(onBack: () -> Unit, viewModel: EditProfileViewModel = hilt
                 textStyle = MaterialTheme.typography.bodyLarge.copy(textDirection = TextDirection.Content),
                 modifier = Modifier.fillMaxWidth(),
             )
+            val phoneBad = state.phone.isNotBlank() && !isIranMobile(state.phone)
+            OutlinedTextField(
+                value = state.phone,
+                onValueChange = { v -> viewModel.edit { copy(phone = v.take(14)) } },
+                label = { Text(stringResource(R.string.settings_phone)) },
+                isError = phoneBad,
+                supportingText = if (phoneBad) { { Text(stringResource(R.string.settings_phone_invalid)) } } else null,
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            ChoiceMenu(stringResource(R.string.settings_province), state.province, provinces.map { it.name }, viewModel::chooseProvince, Modifier.fillMaxWidth())
+            ChoiceMenu(stringResource(R.string.settings_city), state.city, cities.map { it.name }, { c -> viewModel.edit { copy(city = c) } }, Modifier.fillMaxWidth())
             state.error?.let { Text(errorMessage(it), color = AzzaTheme.colors.error) }
             Button(onClick = viewModel::save, enabled = !state.saving && state.firstName.isNotBlank(), modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.settings_save))
@@ -423,4 +447,16 @@ private fun ticketError(e: AppError): String = when ((e as? AppError.Api)?.code)
     "TICKET_CLOSED" -> stringResource(R.string.support_error_closed)
     "TICKET_LIMIT_REACHED" -> stringResource(R.string.support_error_limit)
     else -> errorMessage(e)
+}
+
+/** "Leave without saving?" — what the web's unsaved-changes guard asks. */
+@Composable
+internal fun DiscardDialog(onKeep: () -> Unit, onDiscard: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onKeep,
+        title = { Text(stringResource(R.string.settings_discard_title)) },
+        text = { Text(stringResource(R.string.settings_discard_body)) },
+        confirmButton = { TextButton(onClick = onDiscard) { Text(stringResource(R.string.settings_discard), color = AzzaTheme.colors.error) } },
+        dismissButton = { TextButton(onClick = onKeep) { Text(stringResource(R.string.settings_keep_editing)) } },
+    )
 }
