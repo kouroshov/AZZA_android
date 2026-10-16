@@ -53,4 +53,15 @@
     <string name="product_booking_settings">تنظیمات نوبت‌دهی</string>
     <string name="product_options">گزینه‌ها</string>
     <string name="product_options_hint">برای هر کالا. قیمت‌ها هنگام پرداخت قطعی می‌شوند.</string>
+    <string name="product_barcode">بارکد</string>
+    <string name="product_quantity_less">یکی کمتر</string>
+    <string name="product_quantity_more">یکی بیشتر</string>
+    <string name="product_add_with_total">افزودن به سبد · %1$s</string>
+    <string name="product_view_calendar">باز کردن برنامهٔ نوبت‌دهی</string>
+    <string name="product_specifications">مشخصات</string>
+    <string name="product_yes">بله</string>
+    <string name="product_no">خیر</string>
+    <string name="product_your_stock">موجودی شما</string>
+    <string name="product_stock_line">%1$d موجود · %2$d رزروشده · %3$d در دسترس</string>
+    <string name="product_not_stocked">هنوز موجودی ثبت نشده.</string>
 </resources>

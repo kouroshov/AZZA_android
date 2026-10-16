@@ -35,4 +35,9 @@
     <string name="tile_sold">فروخته‌شده</string>
     <string name="tile_taken_down">برداشته‌شده</string>
     <string name="tile_not_live">غیرفعال</string>
+    <string name="barcode_title">بارکد</string>
+    <string name="barcode_missing">این آگهی بارکد ندارد.</string>
+    <string name="barcode_hint">هنگام ساخت آگهی ساخته شده و هرگز تغییر نمی‌کند.</string>
+    <string name="barcode_print">چاپ</string>
+    <string name="barcode_close">بستن</string>
 </resources>

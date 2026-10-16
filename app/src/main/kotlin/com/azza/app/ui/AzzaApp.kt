@@ -1,5 +1,6 @@
 package com.azza.app.ui
 
+import com.azza.feature.stores.TimetableRoute
 import com.azza.feature.create.CreateForStoreRoute
 import com.azza.feature.stores.storeScreens
 import com.azza.feature.stores.StoreNavigation
@@ -224,6 +225,10 @@ fun AzzaApp(
                 onEdit = { id -> navController.navigate(EditListingRoute(id)) },
                 onOpenAppointments = { navController.navigate(BasketRoute(tab = BasketTab.APPOINTMENTS.ordinal)) },
                 onBookingSettings = { id -> navController.navigate(BookingSettingsRoute(id)) },
+                onOpenTimetable = { storeId ->
+                    if (storeId != null) navController.navigate(TimetableRoute(storeId))
+                    else navController.navigate(BasketRoute(tab = BasketTab.APPOINTMENTS.ordinal))
+                },
             )
             profileScreen(
                 onSignIn = signIn,

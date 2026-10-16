@@ -259,6 +259,20 @@ class StoresRepository @Inject constructor(
     suspend fun setQuantity(storeId: String, branchId: String, productId: String, quantity: Int): Outcome<Unit> =
         safeApiCall(json) { api.setQuantity(storeId, branchId, productId, SetQuantityRequest(quantity)) }
 
+    /** One listing's stock at every branch of its store (0 where it is not stocked). */
+    suspend fun stockByBranch(storeId: String, productId: String): Outcome<List<Pair<Branch, StockLine>>> {
+        val branches = when (val r = branches(storeId)) {
+            is Outcome.Success -> r.value
+            is Outcome.Failure -> return r
+        }
+        return Outcome.Success(
+            branches.map { b ->
+                val line = (safeApiCall(json) { api.stockAt(storeId, b.id, productId).data } as? Outcome.Success)?.value
+                b to StockLine(productId, "", line?.quantity ?: 0, line?.reserved ?: 0)
+            },
+        )
+    }
+
     // ---- the timetable (the store's; per-service settings)
 
     suspend fun timetable(storeId: String): Outcome<Timetable> = safeApiCall(json) { calendar.get(storeId).data }.map { it.toModel() }

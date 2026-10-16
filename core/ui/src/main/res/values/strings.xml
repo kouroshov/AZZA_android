@@ -35,4 +35,9 @@
     <string name="tile_sold">Sold</string>
     <string name="tile_taken_down">Taken down</string>
     <string name="tile_not_live">Not live</string>
+    <string name="barcode_title">Barcode</string>
+    <string name="barcode_missing">This post has no barcode.</string>
+    <string name="barcode_hint">Made when the post was created, and never changes.</string>
+    <string name="barcode_print">Print</string>
+    <string name="barcode_close">Close</string>
 </resources>

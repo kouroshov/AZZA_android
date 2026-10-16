@@ -36,4 +36,9 @@
     <string name="tile_sold">فرۆشرا</string>
     <string name="tile_taken_down">لابراوە</string>
     <string name="tile_not_live">چالاک نییە</string>
+    <string name="barcode_title">بارکۆد</string>
+    <string name="barcode_missing">ئەم پۆستە بارکۆدی نییە.</string>
+    <string name="barcode_hint">لە کاتی دروستکردنی پۆستەکەدا دروست کراوە و هەرگیز ناگۆڕێت.</string>
+    <string name="barcode_print">چاپکردن</string>
+    <string name="barcode_close">داخستن</string>
 </resources>

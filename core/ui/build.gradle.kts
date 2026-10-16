@@ -17,4 +17,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     // The app lock (AppUnlock): fingerprint / face, or the phone's screen lock.
     api(libs.androidx.biometric)
+    // Printing a barcode label (PrintHelper).
+    implementation(libs.androidx.print)
 }

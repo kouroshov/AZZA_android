@@ -178,6 +178,14 @@ interface StoreManageApi {
         @Query("take") take: Int = 60,
     ): ApiEnvelope<BranchStockPageDto>
 
+    /** One listing's stock at one branch; 404 when it is not stocked there. */
+    @GET("stores/{storeId}/branches/{branchId}/inventory/{productId}")
+    suspend fun stockAt(
+        @Path("storeId") storeId: String,
+        @Path("branchId") branchId: String,
+        @Path("productId") productId: String,
+    ): ApiEnvelope<BranchStockDto>
+
     /** 204: the branch now holds exactly [SetQuantityRequest.quantity] of that listing. */
     @PUT("stores/{storeId}/branches/{branchId}/inventory/{productId}")
     suspend fun setQuantity(

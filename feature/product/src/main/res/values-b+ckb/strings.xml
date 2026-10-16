@@ -54,4 +54,15 @@
     <string name="product_booking_settings">ڕێکخستنەکانی حیجز</string>
     <string name="product_options">هەڵبژاردنەکان</string>
     <string name="product_options_hint">بۆ هەر کاڵایەک. نرخەکان لە کاتی پارەداندا جێگیر دەکرێن.</string>
+    <string name="product_barcode">بارکۆد</string>
+    <string name="product_quantity_less">یەکێک کەمتر</string>
+    <string name="product_quantity_more">یەکێک زیاتر</string>
+    <string name="product_add_with_total">زیادکردن بۆ سەبەتە · %1$s</string>
+    <string name="product_view_calendar">کردنەوەی خشتەی حیجز</string>
+    <string name="product_specifications">تایبەتمەندییەکان</string>
+    <string name="product_yes">بەڵێ</string>
+    <string name="product_no">نەخێر</string>
+    <string name="product_your_stock">کاڵای بەردەستت</string>
+    <string name="product_stock_line">%1$d هەیە · %2$d گیراوە · %3$d بەردەست</string>
+    <string name="product_not_stocked">هێشتا کاڵا تۆمار نەکراوە.</string>
 </resources>

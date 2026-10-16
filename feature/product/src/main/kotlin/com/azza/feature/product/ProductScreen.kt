@@ -1,5 +1,14 @@
 package com.azza.feature.product
 
+import androidx.compose.material.icons.outlined.QrCode2
+import androidx.compose.material.icons.outlined.Remove
+import androidx.compose.material.icons.outlined.Add
+import com.azza.core.ui.BarcodeDialog
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.shape.RoundedCornerShape
 import com.azza.core.model.ProductOption
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material.icons.outlined.Share
@@ -87,6 +96,7 @@ fun NavGraphBuilder.productScreen(
     onEdit: (String) -> Unit,
     onOpenAppointments: () -> Unit,
     onBookingSettings: (String) -> Unit,
+    onOpenTimetable: (storeId: String?) -> Unit,
 ) {
     composable<ProductRoute> {
         ProductScreen(
@@ -96,6 +106,7 @@ fun NavGraphBuilder.productScreen(
             onEdit = onEdit,
             onOpenAppointments = onOpenAppointments,
             onBookingSettings = onBookingSettings,
+            onOpenTimetable = onOpenTimetable,
         )
     }
 }
@@ -108,6 +119,7 @@ fun ProductScreen(
     onEdit: (String) -> Unit,
     onOpenAppointments: () -> Unit,
     onBookingSettings: (String) -> Unit,
+    onOpenTimetable: (storeId: String?) -> Unit,
     viewModel: ProductViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -116,6 +128,9 @@ fun ProductScreen(
     val isMine by viewModel.isMine.collectAsStateWithLifecycle()
     val appeal by viewModel.appeal.collectAsStateWithLifecycle()
     val chosenOptions by viewModel.options.collectAsStateWithLifecycle()
+    val quantity by viewModel.quantity.collectAsStateWithLifecycle()
+    val branchStock by viewModel.branchStock.collectAsStateWithLifecycle()
+    var showBarcode by remember { mutableStateOf(false) }
     LifecycleResumeEffect(viewModel) {
         viewModel.refreshQuietly()
         onPauseOrDispose { }
@@ -140,6 +155,10 @@ fun ProductScreen(
         }
     }
 
+    if (showBarcode) {
+        val p = (state as? ProductUiState.Ready)?.product
+        if (p != null) BarcodeDialog(p.barcode, p.title, onDismiss = { showBarcode = false })
+    }
     if (reporting) {
         ReportDialog(ReportTarget.PRODUCT, onDismiss = { reporting = false }, submit = viewModel::report)
     }
@@ -157,6 +176,11 @@ fun ProductScreen(
                 },
                 actions = {
                     val ready = state as? ProductUiState.Ready
+                    if (ready != null && isMine && ready.product.storeId != null && ready.product.barcode != null) {
+                        IconButton(onClick = { showBarcode = true }) {
+                            Icon(Icons.Outlined.QrCode2, contentDescription = stringResource(R.string.product_barcode))
+                        }
+                    }
                     if (ready != null && isMine && ready.product.hold == null) {
                         TextButton(onClick = { onEdit(ready.product.id) }) { Text(stringResource(R.string.product_edit)) }
                     }
@@ -190,12 +214,35 @@ fun ProductScreen(
             // bookable line (BOOKING_REQUIRED) — that is booked on a timetable.
             if (ready != null && ready.product.offeringKind == OfferingKind.GOOD && !isMine && ready.product.status == "ACTIVE") {
                 val soldOut = ready.product.quantityAvailable == 0
-                Button(
-                    onClick = viewModel::addToBasket,
-                    enabled = !adding && !soldOut,
-                    modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(16.dp).height(48.dp),
+                // Price × quantity, with the chosen options for each item (the web's "Total with options").
+                val unit = ready.product.price.discounted(ready.product.discountPercentage).amountMinor +
+                    ready.product.options.sumOf { o -> o.extra.amountMinor * (chosenOptions[o.id] ?: 0) }
+                val total = com.azza.core.model.Money(unit * quantity, ready.product.price.currency)
+                Row(
+                    Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text(stringResource(if (soldOut) R.string.product_out_of_stock else R.string.product_add_to_cart))
+                    if (!soldOut) {
+                        IconButton(onClick = { viewModel.setQuantity(quantity - 1) }, enabled = quantity > 1) {
+                            Icon(Icons.Outlined.Remove, stringResource(R.string.product_quantity_less))
+                        }
+                        Text(quantity.toString(), style = MaterialTheme.typography.titleMedium)
+                        IconButton(
+                            onClick = { viewModel.setQuantity(quantity + 1) },
+                            enabled = quantity < (ready.product.quantityAvailable ?: 99).coerceAtMost(99),
+                        ) { Icon(Icons.Outlined.Add, stringResource(R.string.product_quantity_more)) }
+                    }
+                    Button(
+                        onClick = viewModel::addToBasket,
+                        enabled = !adding && !soldOut,
+                        modifier = Modifier.weight(1f).height(48.dp),
+                    ) {
+                        Text(
+                            if (soldOut) stringResource(R.string.product_out_of_stock)
+                            else stringResource(R.string.product_add_with_total, total.format()),
+                        )
+                    }
                 }
             }
         },
@@ -209,9 +256,14 @@ fun ProductScreen(
                         OwnerStatus(s.product, appeal, viewModel::appeal)
                         // A timed service's own settings (length, gaps, notice, deposit); the week is the store's timetable.
                         if (s.product.offeringKind == OfferingKind.BOOKABLE && s.product.hold == null) {
-                            OutlinedButton(onClick = { onBookingSettings(s.product.id) }, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
-                                Text(stringResource(R.string.product_booking_settings))
+                            Row(Modifier.padding(horizontal = 12.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedButton(onClick = { onBookingSettings(s.product.id) }) { Text(stringResource(R.string.product_booking_settings)) }
+                                OutlinedButton(onClick = { onOpenTimetable(s.product.storeId) }) { Text(stringResource(R.string.product_view_calendar)) }
                             }
+                        }
+                        if (s.product.offeringKind == OfferingKind.GOOD) {
+                            LaunchedEffect(s.product.id) { viewModel.loadOwnerStock(s.product) }
+                            OwnerStock(s.product, branchStock)
                         }
                     }
                 }) {
@@ -292,6 +344,7 @@ private fun ProductBody(product: ProductDetail, top: @Composable () -> Unit = {}
             if (!product.description.isNullOrBlank()) {
                 Text(product.description!!, style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
             }
+            Specifications(product)
         }
         extra()
     }
@@ -323,6 +376,63 @@ private fun OptionsPicker(options: List<ProductOption>, chosen: Map<String, Int>
                     TextButton(onClick = { onChange(o.id, (n - 1).coerceAtLeast(0)) }, enabled = n > 0) { Text("−") }
                     Text(n.toString())
                     TextButton(onClick = { onChange(o.id, (n + 1).coerceAtMost(o.maxQuantity)) }, enabled = n < o.maxQuantity) { Text("+") }
+                }
+            }
+        }
+    }
+}
+
+/** The web's "Specifications": the category's typed details, then a legacy listing's free-form features. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun Specifications(product: ProductDetail) {
+    if (product.specs.isEmpty() && product.features.isEmpty()) return
+    val fa = LocalConfiguration.current.locales[0].language.let { it == "fa" || it == "ckb" }
+    Column(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(stringResource(R.string.product_specifications), style = MaterialTheme.typography.titleSmall)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            product.specs.forEach { spec ->
+                val value = spec.yes?.let { stringResource(if (it) R.string.product_yes else R.string.product_no) }
+                    ?: ((if (fa) spec.valueFa else spec.valueEn) + (spec.unit?.let { " $it" } ?: ""))
+                SpecCell(if (fa) spec.labelFa else spec.labelEn, value)
+            }
+            product.features.forEach { (name, value) -> SpecCell(name, value) }
+        }
+    }
+}
+
+@Composable
+private fun SpecCell(label: String, value: String) {
+    Column(
+        Modifier.clip(RoundedCornerShape(10.dp)).background(AzzaTheme.colors.surfaceRaised).padding(horizontal = 12.dp, vertical = 6.dp),
+    ) {
+        Text(label, style = MaterialTheme.typography.labelSmall, color = AzzaTheme.colors.textMuted)
+        Text(value, style = MaterialTheme.typography.bodyMedium.copy(textDirection = androidx.compose.ui.text.style.TextDirection.Content), fontWeight = FontWeight.SemiBold)
+    }
+}
+
+/** The web's OwnerStockPanel: a personal listing's count, or each branch's for a store listing. */
+@Composable
+private fun OwnerStock(product: ProductDetail, branches: List<Pair<com.azza.core.data.Branch, com.azza.core.data.StockLine>>?) {
+    Column(
+        Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp).clip(RoundedCornerShape(12.dp))
+            .background(AzzaTheme.colors.surfaceRaised).padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(stringResource(R.string.product_your_stock), style = MaterialTheme.typography.titleSmall)
+        if (product.storeId == null) {
+            val q = product.stockQuantity ?: 0
+            val r = product.stockReserved ?: 0
+            Text(stringResource(R.string.product_stock_line, q, r, (q - r).coerceAtLeast(0)), style = MaterialTheme.typography.bodySmall)
+        } else {
+            when {
+                branches == null -> Text("…", style = MaterialTheme.typography.bodySmall)
+                branches.all { it.second.quantity == 0 } -> Text(stringResource(R.string.product_not_stocked), style = MaterialTheme.typography.bodySmall)
+                else -> branches.forEach { (b, line) ->
+                    Text(
+                        b.name + " · " + stringResource(R.string.product_stock_line, line.quantity, line.reserved, (line.quantity - line.reserved).coerceAtLeast(0)),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
                 }
             }
         }

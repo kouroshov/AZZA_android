@@ -56,7 +56,18 @@ data class ProductDetail(
     /** Set only on the owner's view of a listing an admin (or a suspension) took down. */
     val hold: ListingHold? = null,
     val options: List<ProductOption> = emptyList(),
+    /** The category's typed details, in order (the web's "Specifications"). */
+    val specs: List<Spec> = emptyList(),
+    /** A legacy listing's free-form features (name → value). */
+    val features: List<Pair<String, String>> = emptyList(),
+    val barcode: String? = null,
+    /** A personal listing's stock (a store's lives per branch). */
+    val stockQuantity: Int? = null,
+    val stockReserved: Int? = null,
 )
+
+/** One typed detail; [yes] set for a yes/no attribute (worded by the UI). */
+data class Spec(val labelEn: String, val labelFa: String, val valueEn: String, val valueFa: String, val unit: String?, val yes: Boolean? = null)
 
 /** A seller's option on a listing; [maxQuantity] per ONE item (1 = once). */
 data class ProductOption(val id: String, val name: String, val extra: Money, val maxQuantity: Int)

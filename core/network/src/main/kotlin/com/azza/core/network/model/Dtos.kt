@@ -136,6 +136,11 @@ data class ProductDto(
     val moderationReason: String? = null,
     /** The seller's options ("extra sauce"), in their order. */
     val options: List<ProductOptionDto> = emptyList(),
+    /** Free-form features of a listing posted before typed attributes (attributesSchemaHash null). */
+    val attributesCache: kotlinx.serialization.json.JsonElement? = null,
+    val attributesSchemaHash: String? = null,
+    /** EAN-13 made by the database for every listing. */
+    val barcode: String? = null,
 )
 
 @Serializable
@@ -165,7 +170,15 @@ data class AttributeValueDto(
 )
 
 @Serializable
-data class AttributeRefDto(val slug: String, val dataType: String = "TEXT")
+data class AttributeRefDto(
+    val slug: String,
+    val dataType: String = "TEXT",
+    val name: String = "",
+    val nameFa: String? = null,
+    val unit: String? = null,
+    /** ENUM / MULTI_ENUM choices: [{ value, label: { en, fa } }]. */
+    val options: kotlinx.serialization.json.JsonElement? = null,
+)
 
 @Serializable
 data class ProductMediaDto(

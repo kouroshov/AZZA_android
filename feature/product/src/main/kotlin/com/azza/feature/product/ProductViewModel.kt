@@ -55,6 +55,7 @@ class ProductViewModel @Inject constructor(
     private val reports: ReportsRepository,
     private val appealsRepository: AppealsRepository,
     private val basketOptions: BasketOptions,
+    private val stores: com.azza.core.data.StoresRepository,
     users: UserRepository,
 ) : ViewModel() {
 
@@ -158,11 +159,30 @@ class ProductViewModel @Inject constructor(
 
     fun setOption(optionId: String, count: Int) = _options.update { it + (optionId to count) }
 
+    /** How many to add to the basket (the web's quantity card), capped by what is available. */
+    private val _quantity = MutableStateFlow(1)
+    val quantity: StateFlow<Int> = _quantity.asStateFlow()
+
+    fun setQuantity(n: Int) {
+        val max = (_state.value as? ProductUiState.Ready)?.product?.quantityAvailable ?: 99
+        _quantity.value = n.coerceIn(1, max.coerceIn(1, 99))
+    }
+
+    /** The owner's view of a store listing's stock: each branch, held and reserved. */
+    private val _branchStock = MutableStateFlow<List<Pair<com.azza.core.data.Branch, com.azza.core.data.StockLine>>?>(null)
+    val branchStock: StateFlow<List<Pair<com.azza.core.data.Branch, com.azza.core.data.StockLine>>?> = _branchStock.asStateFlow()
+
+    fun loadOwnerStock(product: ProductDetail) {
+        val storeId = product.storeId ?: return
+        if (_branchStock.value != null) return
+        viewModelScope.launch { (stores.stockByBranch(storeId, product.id) as? Outcome.Success)?.let { _branchStock.value = it.value } }
+    }
+
     fun addToBasket() = viewModelScope.launch {
         if (_adding.value) return@launch
         if (!auth.isSignedIn.first()) return@launch _events.send(ProductEvent.SignInRequired)
         _adding.value = true
-        when (val result = cart.add(route.productId)) {
+        when (val result = cart.add(route.productId, _quantity.value)) {
             is Outcome.Success -> {
                 val product = (_state.value as? ProductUiState.Ready)?.product
                 val chosen = product?.options.orEmpty().mapNotNull { o ->
