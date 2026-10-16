@@ -122,6 +122,10 @@ class ListingRepository @Inject constructor(
     suspend fun deletePhoto(productId: String, mediaId: String): Outcome<Unit> =
         safeApiCall(json) { api.deletePhoto(productId, mediaId) }
 
+    /** One field of an edit: the listing's own discount (0–100), as the web's bulk bar sends it. */
+    suspend fun setDiscount(productId: String, percent: Int): Outcome<Unit> =
+        safeApiCall(json) { api.update(productId, kotlinx.serialization.json.buildJsonObject { put("discountPercentage", kotlinx.serialization.json.JsonPrimitive(percent)) }) }.map { }
+
     /** A soft delete: apps/api's DELETED status (allowed from any state, even a moderation hold). */
     suspend fun delete(productId: String): Outcome<Unit> =
         safeApiCall(json) { api.setStatus(productId, ProductStatusRequest("DELETED")) }.map { }

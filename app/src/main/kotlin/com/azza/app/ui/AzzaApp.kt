@@ -1,5 +1,16 @@
 package com.azza.app.ui
 
+import com.azza.feature.stores.StoreHomeRoute
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
 import com.azza.feature.stores.TimetableRoute
 import com.azza.feature.create.CreateForStoreRoute
 import com.azza.feature.stores.storeScreens
@@ -181,7 +192,7 @@ fun AzzaApp(
                 onNotifications = { navController.navigate(NotificationsRoute) { launchSingleTop = true } },
                 onMore = { navController.navigate(SettingsRoute) { launchSingleTop = true } },
             ) },
-        bottomBar = { if (showChrome) AzzaBottomBar(destination, navController, basketCount, signedIn) },
+        bottomBar = { if (showChrome) AzzaBottomBar(destination, navController, basketCount, signedIn, appViewModel) },
     ) { padding ->
         NavHost(
             navController = navController,
@@ -210,6 +221,7 @@ fun AzzaApp(
                     openUser = openUser,
                     openListing = { id -> navController.navigate(ProductRoute(id)) },
                     postFromStore = { id -> navController.navigate(CreateForStoreRoute(id)) },
+                    editListing = { id -> navController.navigate(EditListingRoute(id)) },
                 ),
             )
             scanScreen(
@@ -244,6 +256,7 @@ fun AzzaApp(
                 onBack = { navController.popBackStack() },
                 onOpenUser = openUser,
                 onOpenStore = openStore,
+                onEditListing = { id -> navController.navigate(EditListingRoute(id)) },
             )
             basketScreens(
                 onSignIn = signIn,
@@ -325,7 +338,10 @@ private fun AzzaTopBar(unread: Int, onNotifications: () -> Unit, onMore: () -> U
 }
 
 @Composable
-private fun AzzaBottomBar(current: NavDestination?, navController: NavHostController, basketCount: Int, signedIn: Boolean) {
+private fun AzzaBottomBar(current: NavDestination?, navController: NavHostController, basketCount: Int, signedIn: Boolean, appViewModel: AppViewModel) {
+    val myStores by appViewModel.myStores.collectAsStateWithLifecycle()
+    var switcher by remember { mutableStateOf(false) }
+    val haptics = LocalHapticFeedback.current
     NavigationBar(containerColor = AzzaTheme.colors.bg) {
         TopLevelDestination.entries.filter { signedIn || !it.signedInOnly }.forEach { item ->
             val selected = current.isOn(item)
@@ -333,8 +349,39 @@ private fun AzzaBottomBar(current: NavDestination?, navController: NavHostContro
                 selected = selected,
                 onClick = { navigateTab(navController, item.route) },
                 icon = {
-                    CountBadge(if (item == TopLevelDestination.BASKET) basketCount else 0) {
-                        Icon(if (selected) item.selectedIcon else item.icon, contentDescription = stringResource(item.label))
+                    if (item == TopLevelDestination.PROFILE && signedIn) {
+                        // The web's ProfileNavItem: a tap opens the personal page; press and hold
+                        // lists it with every store the person runs (touch has no hover chevron).
+                        Box(
+                            Modifier.pointerInput(Unit) {
+                                detectTapGestures(
+                                    onTap = { navigateTab(navController, item.route) },
+                                    onLongPress = {
+                                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        appViewModel.loadMyStores()
+                                        switcher = true
+                                    },
+                                )
+                            },
+                        ) {
+                            Icon(if (selected) item.selectedIcon else item.icon, contentDescription = stringResource(item.label))
+                            DropdownMenu(expanded = switcher, onDismissRequest = { switcher = false }) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.switcher_personal)) },
+                                    onClick = { switcher = false; navigateTab(navController, item.route) },
+                                )
+                                myStores.forEach { (id, name) ->
+                                    DropdownMenuItem(
+                                        text = { Text(name) },
+                                        onClick = { switcher = false; navController.navigate(StoreHomeRoute(id)) },
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        CountBadge(if (item == TopLevelDestination.BASKET) basketCount else 0) {
+                            Icon(if (selected) item.selectedIcon else item.icon, contentDescription = stringResource(item.label))
+                        }
                     }
                 },
                 alwaysShowLabel = false,

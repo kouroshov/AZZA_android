@@ -1,5 +1,7 @@
 package com.azza.feature.profile
 
+import com.azza.core.data.OwnerPostsActions
+import com.azza.core.data.ListingRepository
 import com.azza.core.data.FollowRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -38,6 +40,7 @@ class ProfileViewModel @Inject constructor(
     private val favoritesRepository: FavoritesRepository,
     private val profiles: ProfilesRepository,
     follow: FollowRepository,
+    listings: ListingRepository,
 ) : ViewModel() {
 
     /** The signed-in person as last read — an edit elsewhere (photo, name, username) shows here at once. */
@@ -49,6 +52,13 @@ class ProfileViewModel @Inject constructor(
 
     private val _followerCount = MutableStateFlow<Int?>(null)
     val followerCount: StateFlow<Int?> = _followerCount.asStateFlow()
+
+    /** Live posts on the personal page, as every visitor counts them. */
+    private val _postCount = MutableStateFlow<Int?>(null)
+    val postCount: StateFlow<Int?> = _postCount.asStateFlow()
+
+    /** Select / discount / delete on the grid (the web's OwnerPosts). */
+    val owner = OwnerPostsActions(viewModelScope, listings) { refreshLists() }
 
     /** The web's profile shows the owner's favourites; so does this page. */
     val favorites = CursorPager<FavoriteItem>(viewModelScope, { it.productId }) { favoritesRepository.page(it) }
@@ -106,7 +116,10 @@ class ProfileViewModel @Inject constructor(
 
     /** The public count, as every visitor sees it. */
     private fun loadFollowerCount(username: String) = viewModelScope.launch {
-        (profiles.user(username) as? Outcome.Success)?.let { _followerCount.value = it.value.followerCount }
+        (profiles.user(username) as? Outcome.Success)?.let {
+            _followerCount.value = it.value.followerCount
+            _postCount.value = it.value.postCount
+        }
     }
 
     fun logout() = viewModelScope.launch { auth.logout() }

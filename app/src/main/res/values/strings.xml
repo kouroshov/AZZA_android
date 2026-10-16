@@ -20,4 +20,5 @@
     <string name="lock_unlock">Unlock</string>
     <string name="lock_prompt_title">Unlock AZZA</string>
     <string name="lock_cancel">Cancel</string>
+    <string name="switcher_personal">Personal page</string>
 </resources>

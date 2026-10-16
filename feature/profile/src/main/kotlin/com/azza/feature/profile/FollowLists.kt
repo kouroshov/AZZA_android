@@ -1,5 +1,10 @@
 package com.azza.feature.profile
 
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Button
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.StateFlow
+import com.azza.core.data.FollowRepository
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,7 +57,20 @@ import kotlinx.serialization.Serializable
 @Serializable data class FollowListRoute(val followers: Boolean)
 
 @HiltViewModel
-class FollowListViewModel @Inject constructor(savedStateHandle: SavedStateHandle, repository: FollowListsRepository) : ViewModel() {
+class FollowListViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    repository: FollowListsRepository,
+    private val follow: FollowRepository,
+) : ViewModel() {
+    /** Whom I follow now, so each row's button says Follow or Following (the web's lists have the button too). */
+    val followedUsers: StateFlow<Set<String>> = follow.followedUsers
+    val followedStores: StateFlow<Set<String>> = follow.followedStores
+
+    fun toggle(entry: FollowEntry) = viewModelScope.launch {
+        if (entry.isStore) follow.setFollowingStore(entry.id, entry.id !in followedStores.value)
+        else follow.setFollowingUser(entry.id, entry.id !in followedUsers.value)
+    }
+
     val followers = savedStateHandle.toRoute<FollowListRoute>().followers
     val pager = CursorPager<FollowEntry>(viewModelScope, { it.id }) { cursor ->
         if (followers) repository.followers(cursor) else repository.following(cursor)
@@ -71,6 +89,8 @@ fun FollowListScreen(
     viewModel: FollowListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.pager.state.collectAsStateWithLifecycle()
+    val users by viewModel.followedUsers.collectAsStateWithLifecycle()
+    val stores by viewModel.followedStores.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     LoadMoreEffect(listState, state.items.size, viewModel.pager::loadMore)
     Scaffold(
@@ -100,13 +120,19 @@ fun FollowListScreen(
                         ) {
                             // The lists carry no photo: the placeholder (a store's shopfront for a store).
                             Avatar(url = null, isStore = entry.isStore, size = 40)
-                            Column {
+                            Column(Modifier.weight(1f)) {
                                 Text(entry.name, style = MaterialTheme.typography.bodyLarge)
                                 Text(
                                     handle(entry.username ?: entry.slug.orEmpty()),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = AzzaTheme.colors.textMuted,
                                 )
+                            }
+                            val following = entry.id in (if (entry.isStore) stores else users)
+                            if (following) {
+                                OutlinedButton(onClick = { viewModel.toggle(entry) }) { Text(stringResource(R.string.profile_following)) }
+                            } else {
+                                Button(onClick = { viewModel.toggle(entry) }) { Text(stringResource(R.string.profile_follow)) }
                             }
                         }
                         HorizontalDivider(color = AzzaTheme.colors.navDivider)

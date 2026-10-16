@@ -42,4 +42,26 @@
     <string name="barcode_close">بستن</string>
     <string name="context_all">همه</string>
     <string name="context_personal">شخصی</string>
+    <string name="owner_edit">ویرایش</string>
+    <string name="owner_barcode">بارکد</string>
+    <string name="owner_select">انتخاب</string>
+    <string name="owner_delete">حذف</string>
+    <string name="owner_keep">نگه داشتن</string>
+    <string name="owner_delete_confirm">این پست حذف شود؟</string>
+    <string name="owner_stop_selecting">پایان انتخاب</string>
+    <string name="owner_discount_label">تخفیف</string>
+    <string name="owner_apply_discount">اعمال تخفیف</string>
+    <string name="owner_delete_selected">حذف انتخاب‌شده‌ها</string>
+    <string name="owner_discount_invalid">عددی صحیح از ۰ تا ۱۰۰ وارد کنید.</string>
+    <string name="owner_bulk_result">%1$d انجام شد، %2$d ناموفق</string>
+    <string name="owner_working">در حال انجام…</string>
+    <string name="owner_delete_failed">حذف نشد. دوباره تلاش کنید.</string>
+    <plurals name="owner_selected_count">
+        <item quantity="one">%1$d انتخاب شد</item>
+        <item quantity="other">%1$d انتخاب شد</item>
+    </plurals>
+    <plurals name="owner_delete_selected_confirm">
+        <item quantity="one">%1$d پست حذف شود؟</item>
+        <item quantity="other">%1$d پست حذف شود؟</item>
+    </plurals>
 </resources>

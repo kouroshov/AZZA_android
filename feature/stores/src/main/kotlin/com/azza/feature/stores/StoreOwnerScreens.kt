@@ -1,5 +1,15 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package com.azza.feature.stores
 
+import androidx.compose.material3.Checkbox
+import androidx.compose.foundation.combinedClickable
+import androidx.activity.compose.BackHandler
+import com.azza.core.ui.BarcodeDialog
+import com.azza.core.ui.OwnerPostsBar
+import com.azza.core.ui.PostActionsSheet
+import com.azza.core.data.OwnerPostsActions
+import com.azza.core.data.ListingRepository
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -85,11 +95,12 @@ import kotlinx.coroutines.launch
 
 @OptIn(FlowPreview::class)
 @HiltViewModel
-class StoreProductsViewModel @Inject constructor(savedStateHandle: SavedStateHandle, profiles: ProfilesRepository) : ViewModel() {
+class StoreProductsViewModel @Inject constructor(savedStateHandle: SavedStateHandle, profiles: ProfilesRepository, listings: ListingRepository) : ViewModel() {
     val storeId: String = savedStateHandle.toRoute<StoreProductsRoute>().storeId
     private val _search = MutableStateFlow("")
     val search: StateFlow<String> = _search.asStateFlow()
     val pager = CursorPager<PostTile>(viewModelScope, { it.id }) { profiles.myStorePosts(storeId, it, _search.value) }
+    val owner = OwnerPostsActions(viewModelScope, listings) { pager.refresh(showSpinner = true) }
 
     init {
         pager.refresh()
@@ -106,6 +117,22 @@ fun StoreProductsScreen(nav: StoreNavigation, viewModel: StoreProductsViewModel 
     val state by viewModel.pager.state.collectAsStateWithLifecycle()
     val search by viewModel.search.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
+    val owner by viewModel.owner.state.collectAsStateWithLifecycle()
+    var menuFor by remember { mutableStateOf<PostTile?>(null) }
+    var barcodeFor by remember { mutableStateOf<PostTile?>(null) }
+    menuFor?.let { p ->
+        PostActionsSheet(
+            title = p.title,
+            showBarcode = true,
+            onEdit = { nav.editListing(p.id) },
+            onBarcode = { barcodeFor = p },
+            onDelete = { viewModel.owner.deleteOne(p.id) { } },
+            onSelect = { viewModel.owner.start(p.id) },
+            onDismiss = { menuFor = null },
+        )
+    }
+    barcodeFor?.let { p -> BarcodeDialog(p.barcode, p.title) { barcodeFor = null } }
+    BackHandler(enabled = owner.selecting) { viewModel.owner.stop() }
     // A listing edited and back: show it as it is now.
     LifecycleResumeEffect(viewModel) {
         if (!state.loadingFirst) viewModel.pager.refresh(showSpinner = true)
@@ -128,13 +155,19 @@ fun StoreProductsScreen(nav: StoreNavigation, viewModel: StoreProductsViewModel 
                 state.loadingFirst -> LoadingState()
                 state.error != null && state.items.isEmpty() -> ErrorState(state.error!!, onRetry = { viewModel.pager.refresh() })
                 state.items.isEmpty() -> EmptyState(stringResource(R.string.stores_products_empty))
-                else -> LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+                else -> LazyColumn(state = listState, modifier = Modifier.weight(1f)) {
                     items(state.items, key = { it.id }) { p ->
                         Row(
-                            Modifier.fillMaxWidth().clickable { nav.openListing(p.id) }.padding(horizontal = 12.dp, vertical = 8.dp),
+                            Modifier.fillMaxWidth()
+                                .combinedClickable(
+                                    onClick = { if (owner.selecting) viewModel.owner.toggle(p.id) else nav.openListing(p.id) },
+                                    onLongClick = { menuFor = p },
+                                )
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
+                            if (owner.selecting) Checkbox(checked = p.id in owner.selected, onCheckedChange = { viewModel.owner.toggle(p.id) })
                             Box(Modifier.size(64.dp).clip(RoundedCornerShape(8.dp)).background(AzzaTheme.colors.surface)) {
                                 p.imageUrl?.let { AsyncImage(it, p.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()) }
                             }
@@ -156,6 +189,7 @@ fun StoreProductsScreen(nav: StoreNavigation, viewModel: StoreProductsViewModel 
                     loadingMoreFooter(state.loadingMore)
                 }
             }
+            OwnerPostsBar(owner, viewModel.owner::applyDiscount, viewModel.owner::deleteSelected, viewModel.owner::stop)
         }
     }
 }

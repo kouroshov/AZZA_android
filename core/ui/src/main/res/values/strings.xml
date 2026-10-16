@@ -42,4 +42,26 @@
     <string name="barcode_close">Close</string>
     <string name="context_all">All</string>
     <string name="context_personal">Personal</string>
+    <string name="owner_edit">Edit</string>
+    <string name="owner_barcode">Barcode</string>
+    <string name="owner_select">Select</string>
+    <string name="owner_delete">Delete</string>
+    <string name="owner_keep">Keep</string>
+    <string name="owner_delete_confirm">Delete this post?</string>
+    <string name="owner_stop_selecting">Stop selecting</string>
+    <string name="owner_discount_label">Discount</string>
+    <string name="owner_apply_discount">Apply discount</string>
+    <string name="owner_delete_selected">Delete selected</string>
+    <string name="owner_discount_invalid">Enter a whole number from 0 to 100.</string>
+    <string name="owner_bulk_result">%1$d done, %2$d failed</string>
+    <string name="owner_working">Working…</string>
+    <string name="owner_delete_failed">Could not delete. Try again.</string>
+    <plurals name="owner_selected_count">
+        <item quantity="one">%1$d selected</item>
+        <item quantity="other">%1$d selected</item>
+    </plurals>
+    <plurals name="owner_delete_selected_confirm">
+        <item quantity="one">Delete %1$d post?</item>
+        <item quantity="other">Delete %1$d posts?</item>
+    </plurals>
 </resources>

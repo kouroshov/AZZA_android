@@ -1,5 +1,19 @@
 package com.azza.feature.profile
 
+import com.azza.core.ui.OwnerPostsBar
+import com.azza.core.ui.PostActionsSheet
+import com.azza.core.ui.shareLink
+import com.azza.core.ui.LocalWebLinks
+import com.azza.core.model.PostTile
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.Icons
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.activity.compose.BackHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.PrimaryTabRow
@@ -70,8 +84,9 @@ fun NavGraphBuilder.profileScreen(
     onBack: () -> Unit,
     onOpenUser: (String) -> Unit,
     onOpenStore: (String) -> Unit,
+    onEditListing: (String) -> Unit,
 ) {
-    composable<ProfileRoute> { ProfileScreen(onSignIn, onOpenProduct, onEditProfile, onOpenFollowList, onOpenStores) }
+    composable<ProfileRoute> { ProfileScreen(onSignIn, onOpenProduct, onEditProfile, onOpenFollowList, onOpenStores, onEditListing) }
     composable<FollowListRoute> { FollowListScreen(onBack, onOpenUser, onOpenStore) }
 }
 
@@ -82,6 +97,7 @@ fun ProfileScreen(
     onEditProfile: () -> Unit,
     onOpenFollowList: (followers: Boolean) -> Unit,
     onOpenStores: () -> Unit,
+    onEditListing: (String) -> Unit,
     viewModel: ProfileViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -97,7 +113,7 @@ fun ProfileScreen(
             if (s.error == AppError.Unauthenticated) SignedOut(onSignIn) else ErrorState(s.error, onRetry = { viewModel.retry() })
         is ProfileUiState.Ready -> {
             val me by viewModel.me.collectAsStateWithLifecycle()
-            Profile(me ?: s.user, viewModel, onOpenProduct, onEditProfile, onOpenFollowList, onOpenStores)
+            Profile(me ?: s.user, viewModel, onOpenProduct, onEditProfile, onOpenFollowList, onOpenStores, onEditListing)
         }
     }
 }
@@ -111,8 +127,28 @@ private fun Profile(
     onEditProfile: () -> Unit,
     onOpenFollowList: (followers: Boolean) -> Unit,
     onOpenStores: () -> Unit,
+    onEditListing: (String) -> Unit,
 ) {
     val followers by viewModel.followerCount.collectAsStateWithLifecycle()
+    val postCount by viewModel.postCount.collectAsStateWithLifecycle()
+    val owner by viewModel.owner.state.collectAsStateWithLifecycle()
+    var menuFor by remember { mutableStateOf<PostTile?>(null) }
+    var deleteFailed by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val links = LocalWebLinks.current
+    menuFor?.let { tile ->
+        PostActionsSheet(
+            title = tile.title,
+            // A personal post has no shelf to label (the web shows the barcode for store posts only).
+            showBarcode = false,
+            onEdit = { onEditListing(tile.id) },
+            onBarcode = {},
+            onDelete = { viewModel.owner.deleteOne(tile.id) { ok -> deleteFailed = !ok } },
+            onSelect = { viewModel.owner.start(tile.id) },
+            onDismiss = { menuFor = null },
+        )
+    }
+    BackHandler(enabled = owner.selecting) { viewModel.owner.stop() }
     val following by viewModel.followingCount.collectAsStateWithLifecycle()
     val colors = AzzaTheme.colors
     var tab by rememberSaveable { mutableIntStateOf(0) }
@@ -123,13 +159,20 @@ private fun Profile(
         if (tab == 0) viewModel.posts.loadMore() else viewModel.favorites.loadMore()
     }
 
-    LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+    Column(Modifier.fillMaxSize()) {
+    LazyColumn(state = listState, modifier = Modifier.weight(1f)) {
         item(key = "header") {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Text(handle(user.username), style = MaterialTheme.typography.titleMedium, color = colors.textPrimary)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(handle(user.username), style = MaterialTheme.typography.titleMedium, color = colors.textPrimary, modifier = Modifier.weight(1f))
+                    IconButton(onClick = { shareLink(context, user.displayName, links.user(user.username)) }) {
+                        Icon(Icons.Outlined.Share, stringResource(com.azza.core.ui.R.string.share))
+                    }
+                }
                 // Photo with the counters beside it (the web's phone header, §4).
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                     Avatar(url = user.avatarUrl, size = 80)
+                    Counter(postCount?.toString() ?: "–", pluralStringResource(R.plurals.profile_posts, postCount ?: 0)) { }
                     Counter(followers?.toString() ?: "–", stringResource(R.string.follow_list_followers)) { onOpenFollowList(true) }
                     Counter(following.toString(), stringResource(R.string.follow_list_following)) { onOpenFollowList(false) }
                 }
@@ -159,7 +202,13 @@ private fun Profile(
                 posts.items.isEmpty() -> item {
                     Text(stringResource(R.string.profile_no_posts), modifier = Modifier.padding(16.dp), color = colors.textMuted)
                 }
-                else -> postGrid(posts.items, onOpenProduct)
+                else -> postGrid(
+                    posts.items,
+                    onOpenProduct,
+                    onLongPress = { menuFor = it },
+                    selected = owner.selected.takeIf { owner.selecting },
+                    onToggle = viewModel.owner::toggle,
+                )
             }
             loadingMoreFooter(posts.loadingMore)
         } else {
@@ -175,6 +224,9 @@ private fun Profile(
             }
             loadingMoreFooter(favorites.loadingMore)
         }
+    }
+    if (deleteFailed) Text(stringResource(com.azza.core.ui.R.string.owner_delete_failed), color = AzzaTheme.colors.error, modifier = Modifier.padding(8.dp))
+    OwnerPostsBar(owner, viewModel.owner::applyDiscount, viewModel.owner::deleteSelected, viewModel.owner::stop)
     }
 }
 

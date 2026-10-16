@@ -18,4 +18,5 @@
     <string name="lock_unlock">باز کردن</string>
     <string name="lock_prompt_title">باز کردن AZZA</string>
     <string name="lock_cancel">انصراف</string>
+    <string name="switcher_personal">صفحهٔ شخصی</string>
 </resources>

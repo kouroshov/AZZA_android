@@ -1,5 +1,12 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package com.azza.core.ui
 
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.outlined.Circle
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -91,11 +98,26 @@ fun ProductFeed(
  * layout on a phone (CLAUDE.md §4, `contactSheet`). Rows of three inside a
  * LazyColumn, so it can sit under a profile header in one scroll.
  */
-fun LazyListScope.postGrid(tiles: List<PostTile>, onOpen: (String) -> Unit) {
+fun LazyListScope.postGrid(
+    tiles: List<PostTile>,
+    onOpen: (String) -> Unit,
+    /** The owner's grid: a long press opens the post's menu. */
+    onLongPress: ((PostTile) -> Unit)? = null,
+    /** Non-null while selecting: a tap toggles, and the chosen ones are marked. */
+    selected: Set<String>? = null,
+    onToggle: (String) -> Unit = {},
+) {
     val rows = tiles.chunked(3)
     items(rows.size, key = { "row-" + rows[it].first().id }) { index ->
         Row(Modifier.fillMaxWidth().padding(horizontal = 1.dp), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-            rows[index].forEach { tile -> PostSquare(tile, Modifier.weight(1f)) { onOpen(tile.id) } }
+            rows[index].forEach { tile ->
+                PostSquare(
+                    tile,
+                    Modifier.weight(1f),
+                    selected = selected?.let { tile.id in it },
+                    onLongPress = onLongPress?.let { { it(tile) } },
+                ) { if (selected != null) onToggle(tile.id) else onOpen(tile.id) }
+            }
             repeat(3 - rows[index].size) { Box(Modifier.weight(1f)) }
         }
         Box(Modifier.padding(top = 2.dp))
@@ -103,8 +125,8 @@ fun LazyListScope.postGrid(tiles: List<PostTile>, onOpen: (String) -> Unit) {
 }
 
 @Composable
-private fun PostSquare(tile: PostTile, modifier: Modifier, onOpen: () -> Unit) {
-    Box(modifier.aspectRatio(1f).background(AzzaTheme.colors.surface).clickable(onClick = onOpen)) {
+private fun PostSquare(tile: PostTile, modifier: Modifier, selected: Boolean? = null, onLongPress: (() -> Unit)? = null, onOpen: () -> Unit) {
+    Box(modifier.aspectRatio(1f).background(AzzaTheme.colors.surface).combinedClickable(onClick = onOpen, onLongClick = onLongPress)) {
         if (tile.imageUrl != null) {
             AsyncImage(tile.imageUrl, tile.title, contentScale = ContentScale.Crop, modifier = Modifier.matchParentSize())
         } else {
@@ -143,6 +165,15 @@ private fun PostSquare(tile: PostTile, modifier: Modifier, onOpen: () -> Unit) {
                     .align(Alignment.TopStart)
                     .background(if (tile.status == "REJECTED") AzzaTheme.colors.error else Color.Black.copy(alpha = 0.6f))
                     .padding(horizontal = 6.dp, vertical = 2.dp),
+            )
+        }
+        if (selected != null) {
+            Box(Modifier.matchParentSize().background(if (selected) AzzaTheme.colors.primary.copy(alpha = 0.35f) else Color.Transparent))
+            Icon(
+                if (selected) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
+                null,
+                tint = Color.White,
+                modifier = Modifier.align(Alignment.TopEnd).padding(4.dp),
             )
         }
     }

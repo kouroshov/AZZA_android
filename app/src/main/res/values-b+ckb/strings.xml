@@ -19,4 +19,5 @@
     <string name="lock_unlock">کردنەوە</string>
     <string name="lock_prompt_title">کردنەوەی AZZA</string>
     <string name="lock_cancel">هەڵوەشاندنەوە</string>
+    <string name="switcher_personal">پەڕەی کەسی</string>
 </resources>

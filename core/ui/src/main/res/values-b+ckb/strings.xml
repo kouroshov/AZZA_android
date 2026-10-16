@@ -43,4 +43,26 @@
     <string name="barcode_close">داخستن</string>
     <string name="context_all">هەموو</string>
     <string name="context_personal">کەسی</string>
+    <string name="owner_edit">دەستکاری</string>
+    <string name="owner_barcode">بارکۆد</string>
+    <string name="owner_select">هەڵبژاردن</string>
+    <string name="owner_delete">سڕینەوە</string>
+    <string name="owner_keep">هێشتنەوە</string>
+    <string name="owner_delete_confirm">ئەم پۆستە بسڕدرێتەوە؟</string>
+    <string name="owner_stop_selecting">کۆتایی هەڵبژاردن</string>
+    <string name="owner_discount_label">داشکاندن</string>
+    <string name="owner_apply_discount">جێبەجێکردنی داشکاندن</string>
+    <string name="owner_delete_selected">سڕینەوەی هەڵبژێردراوەکان</string>
+    <string name="owner_discount_invalid">ژمارەیەکی تەواو لە ٠ تا ١٠٠ بنووسە.</string>
+    <string name="owner_bulk_result">%1$d ئەنجامدرا، %2$d سەرنەکەوت</string>
+    <string name="owner_working">لە ئەنجامدان…</string>
+    <string name="owner_delete_failed">نەسڕدرایەوە. دووبارە هەوڵبدەوە.</string>
+    <plurals name="owner_selected_count">
+        <item quantity="one">%1$d هەڵبژێردرا</item>
+        <item quantity="other">%1$d هەڵبژێردرا</item>
+    </plurals>
+    <plurals name="owner_delete_selected_confirm">
+        <item quantity="one">%1$d پۆست بسڕدرێتەوە؟</item>
+        <item quantity="other">%1$d پۆست بسڕدرێتەوە؟</item>
+    </plurals>
 </resources>

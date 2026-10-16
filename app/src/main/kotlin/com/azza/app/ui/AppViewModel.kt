@@ -1,5 +1,9 @@
 package com.azza.app.ui
 
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import com.azza.core.common.Outcome
+import com.azza.core.data.StoresRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.azza.core.data.AccountRepository
@@ -22,7 +26,16 @@ class AppViewModel @Inject constructor(
     private val notifications: NotificationsRepository,
     auth: AuthRepository,
     private val account: AccountRepository,
+    private val stores: StoresRepository,
 ) : ViewModel() {
+
+    /** The stores the person runs, for the Profile tab's switcher (read when it is opened). */
+    private val _myStores = MutableStateFlow<List<Pair<String, String>>>(emptyList())
+    val myStores: StateFlow<List<Pair<String, String>>> = _myStores.asStateFlow()
+
+    fun loadMyStores() = viewModelScope.launch {
+        (stores.mine() as? Outcome.Success)?.let { r -> _myStores.value = r.value.map { it.id to it.name } }
+    }
 
     /** "+" is for signed-in people only, as on the web. */
     val signedIn: StateFlow<Boolean> = auth.isSignedIn.stateIn(viewModelScope, SharingStarted.Eagerly, false)

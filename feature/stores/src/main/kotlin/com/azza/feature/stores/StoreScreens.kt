@@ -107,6 +107,7 @@ class StoreNavigation(
     val openUser: (String) -> Unit,
     val openListing: (String) -> Unit,
     val postFromStore: (String) -> Unit,
+    val editListing: (String) -> Unit = openListing,
 )
 
 fun NavGraphBuilder.storeScreens(nav: StoreNavigation) {
