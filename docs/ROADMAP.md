@@ -329,7 +329,7 @@ fonts, fingerprint unlock, the smaller "Not in 3x" items).
   one): "move earlier"; the first is the cover.
 - **Near me** on the map: the phone's own location service (no Play
   Services), approximate location, asked when the button is used.
-- apps/api (web repo, branch `api/android-5c`): a listing's options come
+- apps/api (web repo, PR #40, merged into `master` 2026-10-16): a listing's options come
   back with it (they were only readable by the website, from the database).
 
 Still not built (no endpoint, or a product decision): a person's stores on
