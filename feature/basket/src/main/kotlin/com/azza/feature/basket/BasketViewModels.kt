@@ -42,12 +42,16 @@ fun Cart.subtotal(): Money? {
 @HiltViewModel
 class BasketViewModel @Inject constructor(
     private val cartRepository: CartRepository,
+    basketOptions: com.azza.core.data.BasketOptions,
     orders: OrdersRepository,
     auth: AuthRepository,
 ) : ViewModel() {
 
     val signedIn: StateFlow<Boolean?> = auth.isSignedIn.stateIn(viewModelScope, SharingStarted.Eagerly, null)
     val cart: StateFlow<Cart?> = cartRepository.cart
+
+    /** Options chosen on the listing page, per product (kept on the phone until checkout). */
+    val chosenOptions: StateFlow<Map<String, List<com.azza.core.data.ChosenOption>>> = basketOptions.chosen
 
     private val _busyLine = MutableStateFlow<String?>(null)
     val busyLine: StateFlow<String?> = _busyLine.asStateFlow()
@@ -100,12 +104,16 @@ data class CheckoutUiState(
 
 @HiltViewModel
 class CheckoutViewModel @Inject constructor(
-    cartRepository: CartRepository,
+    private val cartRepository: CartRepository,
     private val orders: OrdersRepository,
     private val account: MyAccountRepository,
+    basketOptions: com.azza.core.data.BasketOptions,
 ) : ViewModel() {
 
     val cart: StateFlow<Cart?> = cartRepository.cart
+
+    /** Options chosen on listing pages; shown in the summary, priced again by apps/api at checkout. */
+    val chosenOptions: StateFlow<Map<String, List<com.azza.core.data.ChosenOption>>> = basketOptions.chosen
 
     private val _state = MutableStateFlow(CheckoutUiState())
     val state: StateFlow<CheckoutUiState> = _state.asStateFlow()
@@ -115,6 +123,8 @@ class CheckoutViewModel @Inject constructor(
     val savedAddresses: StateFlow<List<Address>> = _saved.asStateFlow()
 
     init {
+        // What is on screen is what will be ordered: the basket as the server has it now.
+        viewModelScope.launch { cartRepository.refresh() }
         viewModelScope.launch {
             val saved = (account.addresses() as? Outcome.Success)?.value.orEmpty()
             _saved.value = saved

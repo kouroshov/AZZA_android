@@ -301,6 +301,41 @@ fonts, fingerprint unlock, the smaller "Not in 3x" items).
   the area list has each province's and city's centre (now used to move the
   map); the occupation list has no "bakery".
 
+### 5c — leftovers ✅ (2026-10-16)
+
+- **Kurdish (Sorani, `ckb`)**: every screen, in `values-b+ckb`. Where the
+  English matches the website's, its `messages/ckb.json` wording is used
+  (437 strings, placeholders converted by name); the rest (174) written for
+  the app in the same vocabulary (فرۆشگا store, حیجز booking, ڕیکلام
+  listing). A language option «کوردی»; dates Gregorian, as the web formats
+  `ckb`. Category names show in Persian, as on the web (it has no Kurdish
+  ones).
+- **Fonts**: the web's own — Geist and Noto Sans Arabic, bundled (Google's
+  downloadable fonts need Play Services); the family follows the app's
+  language (Arabic script for fa/ckb). OFL licences in `docs/licenses`.
+- **Fingerprint lock** (Settings, only on a phone that has a fingerprint,
+  face or — Android 11+ — a screen lock): asked at a cold start and after a
+  minute away; turning it on or off is itself confirmed. Not exercised on
+  the emulator (it has no screen lock, and the device's security settings
+  were not changed to make one).
+- **Listing options** ("extra sauce"): the seller adds them in the listing
+  form (name, extra price, how many one item can take); the buyer picks
+  them on the listing page. The server cart cannot hold them, so the choice
+  is kept on the phone (`BasketOptions`) and checkout then sends explicit
+  lines with the options — apps/api prices them from the database — and
+  empties the server cart itself. One set of options per product in the
+  basket.
+- **Reordering a listing's photos** while editing (at once, like deleting
+  one): "move earlier"; the first is the cover.
+- **Near me** on the map: the phone's own location service (no Play
+  Services), approximate location, asked when the button is used.
+- apps/api (web repo, branch `api/android-5c`): a listing's options come
+  back with it (they were only readable by the website, from the database).
+
+Still not built (no endpoint, or a product decision): a person's stores on
+their public page, the map's category filter and store list, clustering,
+the occupation step when posting, a "you are here" dot on the map.
+
 ## Before the first release
 
 - Confirm the `applicationId` (`com.azza.app` now — permanent once uploaded).
@@ -309,10 +344,9 @@ fonts, fingerprint unlock, the smaller "Not in 3x" items).
   `ANDROID_CERT_SHA256` so App Links verify.
 - Signing key (kept out of git), Play Console / Cafe Bazaar / Myket listing.
   Bazaar and Myket matter more than Play for Iranian users.
-- Fonts: bundle the web's Geist + Noto Sans Arabic (or Vazirmatn) as
-  resources; system font for now.
 - Prices: the web card prints `$` + the amount; when the web picks a real
   currency label (ریال/تومان), change `PriceFormat.kt` with it.
-- ckb (Sorani) translation, as the web has.
+- Have a Kurdish speaker read the app's own 174 Sorani strings (the rest
+  are the website's wording).
 - apps/api `THROTTLE` is per IP for the app (the right behaviour); check
   the limits against real mobile traffic behind carrier NAT.

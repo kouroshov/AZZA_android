@@ -1,5 +1,6 @@
 package com.azza.feature.settings
 
+import com.azza.core.ui.AppUnlock
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Home
 import androidx.appcompat.app.AppCompatDelegate
@@ -131,6 +132,11 @@ fun SettingsScreen(
     val signedIn by viewModel.signedIn.collectAsStateWithLifecycle()
     val theme by viewModel.theme.collectAsStateWithLifecycle()
     val phoneNotifications by viewModel.phoneNotifications.collectAsStateWithLifecycle()
+    val appLock by viewModel.appLock.collectAsStateWithLifecycle()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val lockAvailable = androidx.compose.runtime.remember { AppUnlock.available(context) }
+    val promptTitle = stringResource(R.string.settings_app_lock_confirm)
+    val promptCancel = stringResource(R.string.support_cancel)
     // The per-app language, as Android stores it (AppCompat keeps it below Android 13).
     val current = AppCompatDelegate.getApplicationLocales().toLanguageTags()
     SettingsPage(stringResource(R.string.settings_title), onBack) {
@@ -144,7 +150,7 @@ fun SettingsScreen(
             }
             Section(stringResource(R.string.settings_language)) {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("" to R.string.settings_language_system, "en" to R.string.settings_language_en, "fa" to R.string.settings_language_fa)
+                    listOf("" to R.string.settings_language_system, "en" to R.string.settings_language_en, "fa" to R.string.settings_language_fa, "ckb" to R.string.settings_language_ckb)
                         .forEach { (tag, label) ->
                             FilterChip(
                                 selected = current == tag,
@@ -172,6 +178,20 @@ fun SettingsScreen(
                         Text(stringResource(R.string.settings_phone_notifications_hint), style = MaterialTheme.typography.bodySmall, color = AzzaTheme.colors.textMuted)
                     }
                     Switch(checked = phoneNotifications, onCheckedChange = viewModel::setPhoneNotifications)
+                }
+                // The lock: switching it on or off is itself confirmed, so it cannot be turned off by whoever holds the open phone.
+                if (lockAvailable || appLock) {
+                    val toggle = { on: Boolean -> AppUnlock.prompt(context, promptTitle, promptCancel) { ok -> if (ok) viewModel.setAppLock(on) } }
+                    androidx.compose.foundation.layout.Row(
+                        Modifier.fillMaxWidth().clickable { toggle(!appLock) }.padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(stringResource(R.string.settings_app_lock), style = MaterialTheme.typography.bodyLarge)
+                            Text(stringResource(R.string.settings_app_lock_hint), style = MaterialTheme.typography.bodySmall, color = AzzaTheme.colors.textMuted)
+                        }
+                        Switch(checked = appLock, onCheckedChange = { toggle(it) })
+                    }
                 }
             }
             HorizontalDivider(color = AzzaTheme.colors.navDivider, modifier = Modifier.padding(vertical = 8.dp))

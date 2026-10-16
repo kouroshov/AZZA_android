@@ -51,4 +51,6 @@
     <string name="appeal_error_duplicate">قبلاً به این تصمیم اعتراض کرده‌اید.</string>
     <string name="appeal_error_not_available">دیگر نمی‌شود به این مورد اعتراض کرد.</string>
     <string name="product_booking_settings">تنظیمات نوبت‌دهی</string>
+    <string name="product_options">گزینه‌ها</string>
+    <string name="product_options_hint">برای هر کالا. قیمت‌ها هنگام پرداخت قطعی می‌شوند.</string>
 </resources>

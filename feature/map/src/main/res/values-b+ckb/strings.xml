@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Central Kurdish (Sorani). The website's messages/ckb.json where the English matches; the rest written for the app. -->
+<resources>
+    <string name="map_close">داخستن</string>
+    <string name="map_open_now">ئێستا کراوەیە</string>
+    <string name="map_closed_now">ئێستا داخراوە</string>
+    <string name="map_hours_unknown">کاتەکانی کارکردن بڵاو نەکراونەتەوە</string>
+    <plurals name="map_open_store">
+        <item quantity="one">کردنەوەی فرۆشگا · %d بەرهەم</item>
+        <item quantity="other">کردنەوەی فرۆشگا · %d بەرهەم</item>
+    </plurals>
+    <string name="map_near_me">نزیک من</string>
+    <string name="map_location_unavailable">شوێنەکەت بەردەست نییە. بپشکنە کە شوێن هەڵکراوە.</string>
+</resources>

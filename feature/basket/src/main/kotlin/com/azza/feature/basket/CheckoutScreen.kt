@@ -128,13 +128,23 @@ fun CheckoutScreen(
         }
 
         Section(stringResource(R.string.checkout_summary)) {
+            val chosen by viewModel.chosenOptions.collectAsStateWithLifecycle()
+            var optionsMinor = 0L
             currentCart.lines.filter { it.available }.forEach { line ->
                 AmountRow("${line.title} × ${line.quantity}", Money(line.unitPrice.discounted(line.discountPercentage).amountMinor * line.quantity, line.unitPrice.currency).format())
+                // Each chosen option, for every item of the line (apps/api charges the same, from its own prices).
+                chosen[line.productId].orEmpty().forEach { o ->
+                    val count = o.perItem * line.quantity
+                    val amount = o.extra.amountMinor * count
+                    optionsMinor += amount
+                    AmountRow("   + ${o.name} × $count", Money(amount, o.extra.currency).format())
+                }
             }
-            subtotal?.let { AmountRow(stringResource(R.string.order_subtotal), it.format()) }
+            val withOptions = subtotal?.let { Money(it.amountMinor + optionsMinor, it.currency) }
+            withOptions?.let { AmountRow(stringResource(R.string.order_subtotal), it.format()) }
             state.discount?.let { AmountRow(stringResource(R.string.order_discount), "−" + it.format()) }
             AmountRow(stringResource(R.string.order_shipping), stringResource(R.string.order_free))
-            subtotal?.let {
+            withOptions?.let {
                 val total = Money((it.amountMinor - (state.discount?.amountMinor ?: 0)).coerceAtLeast(0), it.currency)
                 AmountRow(stringResource(R.string.checkout_total), total.format(), strong = true)
             }

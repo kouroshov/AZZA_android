@@ -15,4 +15,6 @@ dependencies {
     implementation(project(":core:data"))
     api(libs.coil.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    // The app lock (AppUnlock): fingerprint / face, or the phone's screen lock.
+    api(libs.androidx.biometric)
 }

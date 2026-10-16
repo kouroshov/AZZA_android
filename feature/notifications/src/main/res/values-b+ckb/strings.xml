@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Central Kurdish (Sorani). The website's messages/ckb.json where the English matches; the rest written for the app. -->
+<resources>
+    <string name="notifications_empty">هێشتا هیچ ئاگادارکردنەوەیەکت نییە.</string>
+    <string name="n_someone">بەکارهێنەرێک</string>
+    <string name="n_type_user_followed">شوێنکەوتووی نوێ</string>
+    <string name="n_type_store_followed">شوێنکەوتووی نوێی فرۆشگا</string>
+    <string name="n_type_order_received">داواکاریی نوێ</string>
+    <string name="n_type_order_paid">پارەدراو</string>
+    <string name="n_type_order_shipped">لە ڕێگادایە</string>
+    <string name="n_type_product_reviewed">پێداچوونەوەی نوێ</string>
+    <string name="n_type_appointment_booked">چاوپێکەوتنی نوێ</string>
+    <string name="n_type_appointment_cancelled">چاوپێکەوتن هەڵوەشێنرایەوە</string>
+    <string name="n_type_report_reviewed">ڕاپۆرت پێداچوونەوەی بۆ کرا</string>
+    <string name="n_type_listing_taken_down">ڕیکلام لابرا</string>
+    <string name="n_type_listing_restored">ڕیکلام گەڕێنرایەوە</string>
+    <string name="n_type_store_suspended">فرۆشگا ڕاگیرا</string>
+    <string name="n_type_store_restored">فرۆشگا گەڕێنرایەوە</string>
+    <string name="n_type_content_hidden">نووسینێکت شاردرایەوە</string>
+    <string name="n_type_appeal_decided">وەڵامی ناڕەزایی</string>
+    <string name="n_type_ticket_replied">وەڵامی پشتگیری</string>
+    <string name="n_type_account_security">ئاسایشی هەژمار</string>
+    <string name="n_type_order_cancelled">هەڵوەشاندنەوەی داواکاری</string>
+    <string name="n_type_order_refunded">گەڕاندنەوەی پارەی داواکاری</string>
+    <string name="n_type_payout_sent">پارەدان</string>
+    <string name="n_type_generic">ئاگادارکردنەوەکان</string>
+    <string name="n_text_user_followed">%1$s لە ئێستاوە شوێنت دەکەوێت</string>
+    <string name="n_text_store_followed">%1$s لە ئێستاوە شوێنی %2$s دەکەوێت</string>
+    <string name="n_text_order_received">%1$s لە تۆی کڕی — داواکاریی %2$s</string>
+    <string name="n_text_order_paid">پارەی %1$s درا — ئامادەی ئامادەکردنە</string>
+    <string name="n_text_order_shipped">داواکاریی %1$sت لە ڕێگادایە</string>
+    <string name="n_text_product_reviewed">%1$s پێداچوونەوەیەکی بۆ %2$s نووسی</string>
+    <string name="n_text_appointment_booked">%1$s کاتێکی بۆ %2$s حیجز کرد</string>
+    <string name="n_text_appointment_cancelled">%1$s چاوپێکەوتنی %2$sی هەڵوەشاندەوە</string>
+    <string name="n_text_report_reviewed">ڕاپۆرتەکەت پێداچوونەوەی بۆ کرا. سوپاس کە ئاگادارت کردینەوە.</string>
+    <string name="n_text_report_reviewed_subject">ڕاپۆرتەکەت دەربارەی %1$s پێداچوونەوەی بۆ کرا. سوپاس کە ئاگادارت کردینەوە.</string>
+    <string name="n_text_listing_taken_down">ڕیکلامەکەت «%1$s» لەلایەن چاودێرییەوە لابرا. بیکەرەوە بۆ بینینی هۆکار و ناڕەزایی دەربڕین.</string>
+    <string name="n_text_listing_restored">ڕیکلامەکەت «%1$s» دووبارە لە فرۆشتندایە.</string>
+    <string name="n_text_store_suspended">فرۆشگاکەت «%1$s» لەلایەن چاودێرییەوە ڕاگیرا. بیکەرەوە بۆ بینینی هۆکار و ناڕەزایی دەربڕین.</string>
+    <string name="n_text_store_restored">فرۆشگاکەت «%1$s» دووبارە کراوەیە.</string>
+    <string name="n_text_content_hidden">هەڵسەنگاندن یان لێدوانێکت لە ژێر «%1$s» لەلایەن چاودێرییەوە شاردرایەوە.</string>
+    <string name="n_text_appeal_decided">وەڵامی ناڕەزایییەکەت دەربارەی «%1$s» درایەوە.</string>
+    <string name="n_text_ticket_replied">پشتگیری وەڵامی تیکێتی «%1$s»ـی تۆی دایەوە.</string>
+    <string name="n_text_security_generic">تیمی پشتگیری گۆڕانکارییەکی لە شێوازی چوونەژوورەوەت کرد.</string>
+    <string name="n_text_security_signed_out">تیمی پشتگیری هەژمارەکەتی لە هەموو ئامێرەکان دەرکرد. بۆ بەردەوامبوون دووبارە بچۆ ژوورەوە.</string>
+    <string name="n_text_security_password_reset">تیمی پشتگیری نوێکردنەوەی وشەی نهێنیی بۆ هەژمارەکەت دەست پێکرد. ئەگەر تۆ داوات نەکردووە، ئیمەیڵەکە پشتگوێ بخە — وشەی نهێنییەکەت نەگۆڕاوە.</string>
+    <string name="n_text_security_email_verified">تیمی پشتگیری ناونیشانی ئیمەیڵەکەتی پشتڕاست کردەوە.</string>
+    <string name="n_text_order_cancelled">داواکاریی %1$sـی تۆ لەلایەن AZZAـەوە هەڵوەشایەوە. هیچ پارەیەک نەبڕاوە.</string>
+    <string name="n_text_order_cancelled_seller">داواکاریی %1$s پێش پارەدان لەلایەن AZZAـەوە هەڵوەشایەوە. کاڵاکەی گەڕایەوە بۆ فرۆشتن.</string>
+    <string name="n_text_order_refunded">پارەی داواکاریی %1$sـی تۆ گەڕێندرایەوە. پارەکە لە ڕێگادایە بۆ لات.</string>
+    <string name="n_text_order_refunded_seller">پارەی داواکاریی %1$s لەلایەن AZZAـەوە گەڕێندرایەوە. ئەوەی لەم فرۆشتنە خرابووە سەر باڵانسەکەت وەرگیرایەوە.</string>
+    <string name="n_text_payout_sent">پارەدانێک بۆ هەژماری بانکییەکەت نێردرا.</string>
+    <string name="n_channel_activity">چالاکی</string>
+    <plurals name="n_shade_summary">
+        <item quantity="one">%d ئاگادارکردنەوەی نوێ</item>
+        <item quantity="other">%d ئاگادارکردنەوەی نوێ</item>
+    </plurals>
+</resources>

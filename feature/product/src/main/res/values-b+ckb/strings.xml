@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Central Kurdish (Sorani). The website's messages/ckb.json where the English matches; the rest written for the app. -->
+<resources>
+    <string name="product_back">گەڕانەوە</string>
+    <string name="product_in_stock">بەردەستە</string>
+    <string name="product_out_of_stock">نەماوە</string>
+    <string name="product_add_to_cart">زیادکردن بۆ سەبەتە</string>
+    <string name="product_add_favorite">زیادکردن بۆ دڵخوازەکان</string>
+    <string name="product_remove_favorite">سڕینەوە لە دڵخوازەکان</string>
+    <string name="product_added_to_basket">خرایە سەبەتەکەتەوە</string>
+    <string name="product_view_basket">بینینی سەبەتە</string>
+    <string name="product_not_available">ئەم بەرهەمە بەردەست نییە.</string>
+    <string name="product_edit">دەستکاری</string>
+    <string name="booking_title">کاتێک حیجز بکە</string>
+    <string name="booking_not_open">حیجزکردن بۆ ئەم خزمەتگوزارییە هێشتا نەکراوەتەوە.</string>
+    <string name="booking_session_length">دانیشتنی %1$d خولەک</string>
+    <string name="booking_earlier">پێشتر</string>
+    <string name="booking_later">دواتر</string>
+    <string name="booking_none_this_week">لەم ڕۆژانەدا کاتی بەتاڵ نییە. ڕۆژانی داهاتوو ببینە.</string>
+    <string name="booking_timezone_note">کاتەکان بە کاتی پێشکەشکار (%1$s) پیشان دەدرێن.</string>
+    <string name="booking_note_label">تێبینییەک بۆ پێشکەشکار (ئارەزوومەندانە)</string>
+    <string name="booking_pay_on_site">ئێستا هیچ پارەیەک وەرناگیرێت — لە کاتی سەردانەکەدا دەدەیت.</string>
+    <string name="booking_deposit_required">بیعانەی %1$d%% بۆ هێشتنەوەی ئەم کاتە: %2$s</string>
+    <string name="booking_book_action">ئەم کاتە حیجز بکە</string>
+    <string name="booking_hold_action">ئەم کاتە بگرە</string>
+    <string name="booking_booked">حیجزکرا: %1$s</string>
+    <string name="booking_held">گیرا: %1$s. بۆ پاراستنی، پێشەکییەکە بدە — لە سەبەتەکەتدایە.</string>
+    <string name="booking_go_to_basket">بڕۆ بۆ سەبەتە</string>
+    <string name="booking_my_appointments">چاوپێکەوتنەکانم</string>
+    <string name="booking_error_slot_taken">یەکێک هەر ئێستا ئەو کاتەی برد. ئەمانە ئەو کاتانەن کە ماون.</string>
+    <string name="booking_error_not_available">ئەو کاتە چیتر بەردەست نییە. تکایە کاتێکی تر هەڵبژێرە.</string>
+    <string name="booking_error_self">ناتوانیت لەگەڵ خۆت چاوپێکەوتن دابنێیت.</string>
+    <string name="owner_draft">ڕەشنووس</string>
+    <string name="owner_draft_note">تەنها تۆ ئەم ڕیکلامە دەبینیت. لە «دەستکاری»یەوە بڵاوی بکەرەوە.</string>
+    <string name="owner_sold">فرۆشرا</string>
+    <string name="owner_not_live">بۆ فرۆشتن نییە</string>
+    <string name="owner_held_moderation">لەلایەن چاودێرییەوە لابراوە</string>
+    <string name="owner_held_account">تا هەژمارەکەت ڕاگیراوە شاراوەیە</string>
+    <string name="owner_held_store">شاراوەیە تا فرۆشگاکەی ڕاگیراوە</string>
+    <string name="owner_held_note">تەنها تۆ ئەم ڕیکلامە دەبینیت. بۆ فرۆشتن نییە و لە گەڕان و فیدەکاندا دەرناکەوێت.</string>
+    <string name="owner_held_reason">هۆکار: %1$s</string>
+    <string name="appeal_button">ناڕەزایی لەم بڕیارە</string>
+    <string name="appeal_message_label">بۆچی دەبێت دووبارە سەیر بکرێت؟</string>
+    <string name="appeal_message_placeholder">ڕوونی بکەرەوە پێداچوونەوەکەر چی لەبیر چووبێت. بە وردی بنووسە.</string>
+    <string name="appeal_one_chance">تەنها یەک جار دەتوانیت ناڕەزایی لە بڕیارێک دەرببڕیت. وەڵامەکە کۆتاییە.</string>
+    <string name="appeal_send">ناردنی ناڕەزایی</string>
+    <string name="appeal_sending">ناردن...</string>
+    <string name="appeal_waiting">ناڕەزایییەکەت لە %1$s نێردرا و چاوەڕێی پێداچوونەوەیە.</string>
+    <string name="appeal_rejected">ناڕەزایییەکەت لە %1$s پێداچوونەوەی بۆ کرا و بڕیارەکە وەک خۆی ماوە.</string>
+    <string name="appeal_answer">وەڵام: %1$s</string>
+    <string name="appeal_too_short">تکایە لانیکەم %1$d پیت بنووسە.</string>
+    <string name="appeal_error_duplicate">پێشتر ناڕەزاییت لەم بڕیارە دەربڕیوە.</string>
+    <string name="appeal_error_not_available">ئیتر ناتوانرێت ناڕەزایی لەمە دەرببڕدرێت.</string>
+    <string name="product_booking_settings">ڕێکخستنەکانی حیجز</string>
+    <string name="product_options">هەڵبژاردنەکان</string>
+    <string name="product_options_hint">بۆ هەر کاڵایەک. نرخەکان لە کاتی پارەداندا جێگیر دەکرێن.</string>
+</resources>

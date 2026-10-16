@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Central Kurdish (Sorani). The website's messages/ckb.json where the English matches; the rest written for the app. -->
+<resources>
+    <string name="core_ui_retry">دووبارە هەوڵبدەرەوە</string>
+    <string name="core_ui_error_network">ئۆفلاینیت، یان ئێستا ناتوانرێت بگەیتە AZZA.</string>
+    <string name="core_ui_error_signed_out">دانیشتنەکەت کۆتایی هات. تکایە دووبارە بچۆ ژوورەوە.</string>
+    <string name="core_ui_error_not_found">ئەمە ئیتر بەردەست نییە.</string>
+    <string name="core_ui_error_rate_limited">داواکارییەکان زۆرن. کەمێک چاوەڕێ بکە و دووبارە هەوڵ بدە.</string>
+    <string name="core_ui_error_server">هەڵەیەک لە لای ئێمە ڕوویدا. تکایە دووبارە هەوڵ بدەرەوە.</string>
+    <string name="core_ui_error_generic">شتێک هەڵەی ڕوویدا. تکایە دووبارە هەوڵبدەرەوە.</string>
+    <string name="report_button">ڕاپۆرت</string>
+    <string name="report_title_product">ڕاپۆرتکردنی ئەم ڕیکلامە</string>
+    <string name="report_title_user">ڕاپۆرتکردنی ئەم هەژمارە</string>
+    <string name="report_title_store">ڕاپۆرتکردنی ئەم فرۆشگایە</string>
+    <string name="report_intro">پێمان بڵێ کێشەکە چییە. تیمی بەڕێوەبردن سەیری دەکات؛ بەو کەسەی ڕاپۆرتی دەکەیت ناگوترێت کێ ڕاپۆرتی کردووە.</string>
+    <string name="report_reason">هۆکار</string>
+    <string name="report_details">وردەکاری (ئارەزوومەندانە)</string>
+    <string name="report_send">ناردنی ڕاپۆرت</string>
+    <string name="report_sending">ناردن...</string>
+    <string name="report_sent">سوپاس — ڕاپۆرتەکەت وەرگیرا و پێداچوونەوەی بۆ دەکرێت.</string>
+    <string name="report_cancel">پاشگەزبوونەوە</string>
+    <string name="report_close">داخستن</string>
+    <string name="report_error_duplicate">پێشتر ئەمەت ڕاپۆرت کردووە و چاوەڕێی پێداچوونەوەیە.</string>
+    <string name="report_error_self">ناتوانیت هەژمار یان ڕیکلامی خۆت ڕاپۆرت بکەیت.</string>
+    <string name="report_reason_spam">سپام یان ڕیکلامی نەخوازراو</string>
+    <string name="report_reason_fraud">فێڵ و ساختەکاری</string>
+    <string name="report_reason_counterfeit">کاڵای ساختە</string>
+    <string name="report_reason_prohibited">کاڵای قەدەغە یان نایاسایی</string>
+    <string name="report_reason_inappropriate">ناوەڕۆکی نەشیاو</string>
+    <string name="report_reason_harassment">ئازاردان یان سووکایەتی</string>
+    <string name="report_reason_other">شتێکی تر</string>
+    <string name="share">هاوبەشکردن</string>
+    <string name="offline_saved_copy">ئۆفلاین — ئەوەی پاشەکەوت کرابوو پیشان دەدرێت %1$s</string>
+    <string name="offline_just_now">ئێستا</string>
+    <string name="tile_draft">ڕەشنووس</string>
+    <string name="tile_sold">فرۆشرا</string>
+    <string name="tile_taken_down">لابراوە</string>
+    <string name="tile_not_live">چالاک نییە</string>
+</resources>

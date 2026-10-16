@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Central Kurdish (Sorani). The website's messages/ckb.json where the English matches; the rest written for the app. -->
+<resources>
+    <string name="feed_empty">هێشتا هیچ شتێک پۆست نەکراوە.</string>
+    <string name="feed_following_title">شوێنکەوتووەکان</string>
+    <string name="feed_signed_out">بچۆ ژوورەوە بۆ بینینی ڕیکلامە نوێکانی ئەو کەس و فرۆشگایانەی شوێنیان دەکەویت.</string>
+    <string name="feed_sign_in">چوونەژوورەوە</string>
+    <string name="feed_explore_cta">گەڕان لە بازاڕ</string>
+    <string name="feed_following_empty">هێشتا شوێنی کەس ناکەویت. شوێنی فرۆشیاران و فرۆشگاکان بکەوە بۆ ئەوەی ڕیکلامە نوێکانیان لێرە ببینیت.</string>
+</resources>

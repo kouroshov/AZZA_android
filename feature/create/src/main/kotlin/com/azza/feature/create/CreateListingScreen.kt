@@ -1,5 +1,6 @@
 package com.azza.feature.create
 
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -189,6 +190,39 @@ fun CreateListingScreen(onPosted: (String) -> Unit, onDeleted: () -> Unit, viewM
                 }
             }
         }
+        // Options the buyer may add ("extra sauce", "gift wrap"): a name, an extra price, and how many one item can take.
+        Section(stringResource(R.string.create_options)) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                state.options.forEachIndexed { i, o ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        OutlinedTextField(
+                            value = o.name,
+                            onValueChange = { v -> viewModel.setOption(i, o.copy(name = v.take(80))) },
+                            label = { Text(stringResource(R.string.create_option_name)) },
+                            singleLine = true,
+                            modifier = Modifier.weight(1.4f),
+                        )
+                        OutlinedTextField(
+                            value = o.extraPrice,
+                            onValueChange = { v -> viewModel.setOption(i, o.copy(extraPrice = v.take(12))) },
+                            label = { Text(stringResource(R.string.create_option_price)) },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            modifier = Modifier.weight(1f),
+                        )
+                        IconButton(onClick = { viewModel.removeOption(i) }) { Icon(Icons.Outlined.Close, stringResource(R.string.create_option_remove)) }
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.create_option_max), style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
+                        TextButton(onClick = { viewModel.setOption(i, o.copy(maxQuantity = (o.maxQuantity - 1).coerceAtLeast(1))) }) { Text("−") }
+                        Text(o.maxQuantity.toString())
+                        TextButton(onClick = { viewModel.setOption(i, o.copy(maxQuantity = (o.maxQuantity + 1).coerceAtMost(10))) }) { Text("+") }
+                    }
+                }
+                if (state.options.size < MAX_OPTIONS) TextButton(onClick = viewModel::addOption) { Text(stringResource(R.string.create_option_add)) }
+            }
+        }
+
         // A personal listing is one item, set by the server: there is no field for it (CLAUDE.md §4).
         if (!editing && !state.isPersonal) {
             Field(state.quantity, { v -> viewModel.edit { copy(quantity = v, formErrors = formErrors - FormError.QUANTITY) } },
@@ -222,6 +256,12 @@ fun CreateListingScreen(onPosted: (String) -> Unit, onDeleted: () -> Unit, viewM
                                 stringResource(R.string.create_cover), style = MaterialTheme.typography.labelSmall,
                                 modifier = Modifier.align(Alignment.BottomStart).background(colors.bg.copy(alpha = 0.7f)).padding(horizontal = 6.dp, vertical = 2.dp),
                             )
+                        }
+                        if (index > 0) {
+                            IconButton(onClick = { viewModel.movePhotoEarlier(index) }, modifier = Modifier.align(Alignment.TopStart).size(28.dp)) {
+                                Icon(Icons.AutoMirrored.Outlined.ArrowBack, stringResource(R.string.create_move_photo_earlier), tint = colors.textPrimary,
+                                    modifier = Modifier.background(colors.bg.copy(alpha = 0.6f), RoundedCornerShape(50)))
+                            }
                         }
                         IconButton(onClick = { viewModel.removeExistingPhoto(photo) }, modifier = Modifier.align(Alignment.TopEnd).size(28.dp)) {
                             Icon(Icons.Outlined.Close, stringResource(R.string.create_remove_photo), tint = colors.textPrimary,

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Central Kurdish (Sorani). The website's messages/ckb.json where the English matches; the rest written for the app. -->
+<resources>
+    <string name="nav_create">پۆست</string>
+    <string name="nav_basket">سەبەتە</string>
+    <string name="nav_profile">پرۆفایل</string>
+    <string name="nav_notifications">ئاگادارکردنەوەکان</string>
+    <string name="nav_more">زیاتر</string>
+    <string name="nav_following">شوێنکەوتووەکان</string>
+    <string name="nav_explore">گەڕان</string>
+    <string name="nav_map">نەخشەی ئازا</string>
+    <string name="widget_label">کورتەڕێگاکانی AZZA</string>
+    <string name="widget_description">گەڕان، سکانکردنی بارکۆد، ئاگادارکردنەوەکان و سەبەتەکەت.</string>
+    <string name="widget_search">گەڕان</string>
+    <string name="widget_scan">سکان</string>
+    <string name="widget_notifications">ئاگادارییەکان</string>
+    <string name="widget_basket">سەبەتە</string>
+    <string name="lock_title">AZZA قوفڵ کراوە</string>
+    <string name="lock_unlock">کردنەوە</string>
+    <string name="lock_prompt_title">کردنەوەی AZZA</string>
+    <string name="lock_cancel">هەڵوەشاندنەوە</string>
+</resources>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Central Kurdish (Sorani). The website's messages/ckb.json where the English matches; the rest written for the app. -->
+<resources>
+    <string name="scan_title">سکانکردنی بارکۆد</string>
+    <string name="scan_back">گەڕانەوە</string>
+    <string name="scan_torch_on">هەڵکردنی ڕووناکی</string>
+    <string name="scan_torch_off">کوژاندنەوەی ڕووناکی</string>
+    <string name="scan_camera_needed">بۆ خوێندنەوەی بارکۆد کامێرا پێویستە. دەتوانیت ژمارەکانیش لە خوارەوە بنووسیت.</string>
+    <string name="scan_allow_camera">ڕێگەدان بە کامێرا</string>
+    <string name="scan_hint">لیبڵەکە بە ڕێکی لەناو چوارچێوەکەدا ڕابگرە.</string>
+    <string name="scan_looking">گەڕان بۆ %1$s…</string>
+    <string name="scan_not_found">هیچ ڕیکلامێک بارکۆدی %1$s ـی نییە.</string>
+    <string name="scan_again">دووبارە سکان بکە</string>
+    <string name="scan_type_instead">یان ئەو ١٣ ژمارەیەی ژێر هێڵەکان بنووسە</string>
+    <string name="scan_digits">بارکۆد</string>
+    <string name="scan_invalid">ئەمە بارکۆدێکی دروست نییە. ژمارەکان بپشکنە.</string>
+    <string name="scan_find">دۆزینەوەی ڕیکلام</string>
+</resources>

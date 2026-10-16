@@ -1,5 +1,7 @@
 package com.azza.core.designsystem.theme
 
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
@@ -57,10 +59,13 @@ fun AzzaTheme(
             error = colors.error,
         )
     }
-    CompositionLocalProvider(LocalAzzaColors provides colors) {
+    // The app's language (per-app locale) decides the font family.
+    val family = fontFamilyFor(LocalConfiguration.current.locales[0].language)
+    val typography = remember(family) { azzaTypography(family) }
+    CompositionLocalProvider(LocalAzzaColors provides colors, LocalAzzaFontFamily provides family) {
         MaterialTheme(
             colorScheme = scheme,
-            typography = AzzaTypography,
+            typography = typography,
             shapes = AzzaShapes,
             content = content,
         )

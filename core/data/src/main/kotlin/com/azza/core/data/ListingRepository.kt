@@ -1,5 +1,7 @@
 package com.azza.core.data
 
+import com.azza.core.network.api.ReorderPhotosRequest
+import com.azza.core.model.OptionDraft
 import android.net.Uri
 import com.azza.core.common.AppError
 import com.azza.core.common.Outcome
@@ -108,8 +110,13 @@ class ListingRepository @Inject constructor(
                 condition = runCatching { ItemCondition.valueOf(p.condition ?: "USED") }.getOrDefault(ItemCondition.USED),
                 attributes = p.attributeValues.mapNotNull { v -> v.toFormValue()?.let { v.categoryAttribute.slug to it } }.toMap(),
                 photos = p.media.filter { it.mediaType == "IMAGE" }.mapNotNull { m -> mediaUrls.resolve(m.url ?: m.storageKey)?.let { ExistingPhoto(m.id, it) } },
+                options = p.options.map { OptionDraft(it.name, majorText(it.extraPriceAmountMinor), it.maxQuantity) },
             )
         }
+
+    /** Saved photos in a new order, at once (the first is the cover), like the web's media manager. */
+    suspend fun reorderPhotos(productId: String, mediaIds: List<String>): Outcome<Unit> =
+        safeApiCall(json) { api.reorderPhotos(productId, ReorderPhotosRequest(mediaIds)) }.map { }
 
     /** Removes a saved photo at once, like the web's media manager. */
     suspend fun deletePhoto(productId: String, mediaId: String): Outcome<Unit> =
@@ -202,6 +209,19 @@ class ListingRepository @Inject constructor(
         // Always sent, blank = 0: on an edit a missing field is left as it was, so clearing it would not clear it.
         put("discountPercentage", draft.discountPercentage.toLatinNumber() ?: 0.0)
         put("attributeValues", JsonObject(draft.attributeValues.mapValues { (_, v) -> v.toJson() }))
+        // Always sent: on an edit the list REPLACES the listing's options, so an empty one removes them.
+        put(
+            "options",
+            JsonArray(
+                draft.options.filter { it.name.isNotBlank() }.map { o ->
+                    buildJsonObject {
+                        put("name", o.name.trim().take(80))
+                        put("extraPrice", o.extraPrice.toLatinNumber() ?: 0.0)
+                        put("maxQuantity", o.maxQuantity.coerceIn(1, 10))
+                    }
+                },
+            ),
+        )
     }
 
     private suspend fun placeAtMainBranch(storeId: String, productId: String, quantity: Int): Boolean {

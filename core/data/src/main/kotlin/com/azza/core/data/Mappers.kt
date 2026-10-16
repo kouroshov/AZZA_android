@@ -1,5 +1,6 @@
 package com.azza.core.data
 
+import com.azza.core.model.ProductOption
 import com.azza.core.model.ListingHold
 import com.azza.core.model.Availability
 import com.azza.core.model.LocalizedText
@@ -62,4 +63,5 @@ internal fun ProductDto.toModel(media: MediaUrlResolver) = ProductDetail(
     favoriteCount = favoriteCount,
     status = status,
     hold = moderatedAt?.let { at -> moderationCause?.let { cause -> ListingHold(cause, moderationReason, at) } },
+    options = options.map { ProductOption(it.id, it.name, Money(it.extraPriceAmountMinor, it.currency), it.maxQuantity.coerceIn(1, 10)) },
 )

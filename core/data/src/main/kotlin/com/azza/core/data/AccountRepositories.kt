@@ -40,6 +40,10 @@ class AccountRepository @Inject constructor(
 
     suspend fun setPhoneNotifications(on: Boolean) = preferences.setPhoneNotifications(on)
 
+    val appLock: Flow<Boolean> = preferences.appLock
+
+    suspend fun setAppLock(on: Boolean) = preferences.setAppLock(on)
+
     val notificationPermissionAsked: Flow<Boolean> = preferences.notificationPermissionAsked
 
     suspend fun setNotificationPermissionAsked() = preferences.setNotificationPermissionAsked()

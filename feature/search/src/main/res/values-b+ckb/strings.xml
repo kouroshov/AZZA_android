@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Central Kurdish (Sorani). The website's messages/ckb.json where the English matches; the rest written for the app. -->
+<resources>
+    <string name="search_placeholder">گەڕان بەدوای بەرهەم، بەکارهێنەر و فرۆشگادا…</string>
+    <string name="search_clear">سڕینەوەی گەڕان</string>
+    <string name="search_tab_products">بەرهەمەکان</string>
+    <string name="search_tab_users">بەکارهێنەران</string>
+    <string name="search_tab_stores">فرۆشگاکان</string>
+    <string name="search_hint">لانیکەم دوو پیت بنووسە بۆ گەڕان لە AZZA.</string>
+    <string name="search_no_results">هیچ ئەنجامێک نەدۆزرایەوە. وشەیەکی تر تاقی بکەرەوە.</string>
+    <string name="search_sort_relevance">پەیوەندیدارترین</string>
+    <string name="search_sort_newest">نوێترین</string>
+    <string name="search_sort_price_asc">نرخ: لە کەمەوە بۆ زۆر</string>
+    <string name="search_sort_price_desc">نرخ: لە زۆرەوە بۆ کەم</string>
+    <string name="search_sort_popular">بەناوبانگترین</string>
+    <string name="search_out_of_stock">بەردەست نییە</string>
+    <string name="search_low_stock">کەمی بەردەستی</string>
+    <string name="search_followers">%1$d شوێنکەوتوو</string>
+    <string name="search_branches">%1$d لق</string>
+    <string name="search_verified">پشتڕاستکراوە</string>
+    <string name="explore_global">گشتی</string>
+    <string name="explore_city">شار</string>
+    <string name="explore_change_city">گۆڕینی شار</string>
+    <string name="explore_no_city">شارێک هەڵبژێرە بۆ بینینی بەرهەمە ناوخۆییەکان.</string>
+    <string name="explore_empty_global">هیچ بەرهەمێک نەدۆزرایەوە. ڕیکلامی نوێ بەردەوام زیاد دەکرێن.</string>
+    <string name="explore_empty_city">هێشتا هیچ بەرهەمێک لەم شارە بەردەست نییە.</string>
+    <string name="explore_select_province">پارێزگایەک هەڵبژێرە</string>
+    <string name="explore_select_city">شارێک هەڵبژێرە</string>
+    <string name="explore_back">گەڕانەوە</string>
+    <string name="explore_cancel">پاشگەزبوونەوە</string>
+    <string name="search_scan">سکانکردنی بارکۆد</string>
+</resources>

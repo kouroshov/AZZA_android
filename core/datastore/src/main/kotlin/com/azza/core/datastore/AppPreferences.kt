@@ -60,6 +60,20 @@ class AppPreferences @Inject constructor(@ApplicationContext context: Context) {
         store.edit { it[PERMISSION_ASKED] = true }
     }
 
+    /** The options chosen for basket lines (BasketOptions' JSON); null = none. */
+    val basketOptions: Flow<String?> = store.data.map { it[BASKET_OPTIONS] }
+
+    suspend fun setBasketOptions(value: String?) {
+        store.edit { if (value == null) it.remove(BASKET_OPTIONS) else it[BASKET_OPTIONS] = value }
+    }
+
+    /** Ask for the fingerprint (or the phone's screen lock) when the app is opened. Off by default. */
+    val appLock: Flow<Boolean> = store.data.map { it[APP_LOCK] ?: false }
+
+    suspend fun setAppLock(on: Boolean) {
+        store.edit { it[APP_LOCK] = on }
+    }
+
     /** What the home-screen widget shows: kept current by the app, read by the widget. */
     data class WidgetCounts(val signedIn: Boolean = false, val unread: Int = 0, val basket: Int = 0)
 
@@ -95,6 +109,8 @@ class AppPreferences @Inject constructor(@ApplicationContext context: Context) {
         val NOTIFIED_UP_TO = stringPreferencesKey("notified_up_to")
         val PERMISSION_ASKED = booleanPreferencesKey("notification_permission_asked")
         val WIDGET_SIGNED_IN = booleanPreferencesKey("widget_signed_in")
+        val APP_LOCK = booleanPreferencesKey("app_lock")
+        val BASKET_OPTIONS = stringPreferencesKey("basket_options")
         val WIDGET_UNREAD = intPreferencesKey("widget_unread")
         val WIDGET_BASKET = intPreferencesKey("widget_basket")
     }

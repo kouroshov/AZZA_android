@@ -8,4 +8,6 @@
         <item quantity="one">دیدن فروشگاه · %d محصول</item>
         <item quantity="other">دیدن فروشگاه · %d محصول</item>
     </plurals>
+    <string name="map_near_me">نزدیک من</string>
+    <string name="map_location_unavailable">مکان شما در دسترس نیست. روشن بودن موقعیت مکانی را بررسی کنید.</string>
 </resources>

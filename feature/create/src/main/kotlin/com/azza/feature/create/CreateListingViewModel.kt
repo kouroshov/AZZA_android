@@ -1,5 +1,6 @@
 package com.azza.feature.create
 
+import com.azza.core.model.OptionDraft
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -54,6 +55,8 @@ data class CreateUiState(
     val description: String = "",
     val price: String = "",
     val discount: String = "",
+    /** The seller's options ("extra sauce"): up to 20 (apps/api's MAX_PRODUCT_OPTIONS). */
+    val options: List<OptionDraft> = emptyList(),
     val condition: ItemCondition = ItemCondition.USED,
     val quantity: String = "",
     /** Raw form values per attribute slug: String, Boolean or List<String>. */
@@ -140,11 +143,25 @@ class CreateListingViewModel @Inject constructor(
                             condition = l.condition,
                             attributes = l.attributes,
                             existingPhotos = l.photos,
+                            options = l.options,
                         )
                     }
                     loadSchema(l.categoryId)
                 }
             }
+        }
+    }
+
+    /** Moves a saved photo one place earlier, at once; put back if apps/api refuses. */
+    fun movePhotoEarlier(index: Int) {
+        val id = editId ?: return
+        val before = _state.value.existingPhotos
+        if (index !in 1 until before.size) return
+        val after = before.toMutableList().apply { add(index - 1, removeAt(index)) }
+        _state.update { it.copy(existingPhotos = after) }
+        viewModelScope.launch {
+            val r = listings.reorderPhotos(id, after.map { it.mediaId })
+            if (r is Outcome.Failure) _state.update { it.copy(existingPhotos = before, error = r.error) }
         }
     }
 
@@ -170,6 +187,12 @@ class CreateListingViewModel @Inject constructor(
     }
 
     fun edit(transform: CreateUiState.() -> CreateUiState) = _state.update { it.transform().copy(error = null) }
+
+    fun addOption() = edit { if (options.size < MAX_OPTIONS) copy(options = options + OptionDraft()) else this }
+
+    fun setOption(index: Int, option: OptionDraft) = edit { copy(options = options.mapIndexed { i, o -> if (i == index) option else o }) }
+
+    fun removeOption(index: Int) = edit { copy(options = options.filterIndexed { i, _ -> i != index }) }
 
     fun setAttribute(slug: String, value: Any?) = _state.update { s ->
         val next = if (value == null || SchemaRules.isEmptyValue(value)) s.attributes - slug else s.attributes + (slug to value)
@@ -284,6 +307,7 @@ class CreateListingViewModel @Inject constructor(
             // Only what the rules accept: hidden fields and empty inputs are not sent.
             attributeValues = schemaResult?.values.orEmpty(),
             photos = s.photos,
+            options = s.options,
         )
         _state.update { it.copy(posting = true, error = null, formErrors = emptySet(), fieldErrors = emptyMap()) }
         if (editId != null) {
@@ -342,3 +366,6 @@ class CreateListingViewModel @Inject constructor(
     private fun number(text: String): Double? =
         SchemaRules.toLatinDigits(text.trim()).replace(Regex("[,٬]"), "").replace('٫', '.').toDoubleOrNull()
 }
+
+/** apps/api's MAX_PRODUCT_OPTIONS. */
+const val MAX_OPTIONS = 20

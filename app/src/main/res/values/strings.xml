@@ -16,4 +16,8 @@
     <string name="widget_scan">Scan</string>
     <string name="widget_notifications">Alerts</string>
     <string name="widget_basket">Basket</string>
+    <string name="lock_title">AZZA is locked</string>
+    <string name="lock_unlock">Unlock</string>
+    <string name="lock_prompt_title">Unlock AZZA</string>
+    <string name="lock_cancel">Cancel</string>
 </resources>

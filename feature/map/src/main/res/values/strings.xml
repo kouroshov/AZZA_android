@@ -8,4 +8,6 @@
         <item quantity="one">Open the store · %d product</item>
         <item quantity="other">Open the store · %d products</item>
     </plurals>
+    <string name="map_near_me">Near me</string>
+    <string name="map_location_unavailable">Your location is not available. Check that location is on.</string>
 </resources>

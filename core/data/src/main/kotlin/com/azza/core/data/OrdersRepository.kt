@@ -1,5 +1,7 @@
 package com.azza.core.data
 
+import com.azza.core.network.model.CheckoutLineDto
+import com.azza.core.network.model.CheckoutLineOptionDto
 import com.azza.core.network.model.OrdersPageDto
 import com.azza.core.network.model.PlacedOrderSummaryDto
 import com.azza.core.network.model.ReceivedOrderSummaryDto
@@ -35,6 +37,7 @@ class OrdersRepository @Inject constructor(
     private val cart: CartRepository,
     private val json: Json,
     private val offline: OfflineCache,
+    private val basketOptions: BasketOptions,
 ) {
     /**
      * Places an order from the server cart. apps/api prices every line,
@@ -42,6 +45,23 @@ class OrdersRepository @Inject constructor(
      * transaction; the app sends no prices at all.
      */
     suspend fun checkout(address: ShippingAddress, discountCode: String?): Outcome<CheckoutResult> {
+        // Options chosen on the phone (BasketOptions) can only reach apps/api on explicit lines;
+        // without any, the server cart is used as before.
+        // The basket as the server has it now — not the copy on screen, which may be stale.
+        cart.refresh()
+        val lines = cart.cart.value?.lines.orEmpty().filter { it.available }
+        val chosen = basketOptions.chosen.value
+        val items = if (lines.any { chosen[it.productId].orEmpty().isNotEmpty() }) {
+            lines.map { line ->
+                CheckoutLineDto(
+                    productId = line.productId,
+                    quantity = line.quantity,
+                    options = chosen[line.productId]?.map { CheckoutLineOptionDto(it.optionId, it.perItem * line.quantity) }?.ifEmpty { null },
+                )
+            }
+        } else {
+            null
+        }
         val result = safeApiCall(json) {
             orders.checkout(
                 CheckoutRequest(
@@ -52,9 +72,15 @@ class OrdersRepository @Inject constructor(
                         postalCode = address.postalCode?.trim()?.ifEmpty { null },
                     ),
                     discountCode = discountCode?.trim()?.uppercase()?.ifEmpty { null },
+                    items = items,
                 ),
             ).data
         }.map { CheckoutResult(it.id, it.reference, Money(it.totalAmountMinor, it.currency), OrderStatus.of(it.status)) }
+        if (result is Outcome.Success) {
+            // Explicit lines leave the server cart alone: empty it here, as a cart checkout would have.
+            if (items != null) lines.forEach { cart.remove(it.productId) }
+            basketOptions.clear()
+        }
         // Success consumed the cart on the server; a failure may have changed nothing — re-read either way.
         cart.refresh()
         return result

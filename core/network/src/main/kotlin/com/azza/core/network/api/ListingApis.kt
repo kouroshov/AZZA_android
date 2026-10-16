@@ -55,6 +55,10 @@ interface ListingsApi {
     @POST("products/{productId}/media")
     suspend fun uploadPhoto(@Path("productId") productId: String, @Part file: MultipartBody.Part): ApiEnvelope<JsonElement>
 
+    /** The listing's COMPLETE set of media ids in the new order (apps/api refuses a partial one). */
+    @retrofit2.http.PUT("products/{productId}/media/order")
+    suspend fun reorderPhotos(@Path("productId") productId: String, @Body body: ReorderPhotosRequest): ApiEnvelope<JsonElement>
+
     @retrofit2.http.DELETE("products/{productId}/media/{mediaId}")
     suspend fun deletePhoto(@Path("productId") productId: String, @Path("mediaId") mediaId: String)
 
@@ -73,3 +77,6 @@ interface ListingsApi {
         @Body body: SetQuantityRequest,
     ): ApiEnvelope<JsonElement>
 }
+
+@kotlinx.serialization.Serializable
+data class ReorderPhotosRequest(val mediaIds: List<String>)

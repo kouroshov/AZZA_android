@@ -1,5 +1,6 @@
 package com.azza.feature.map
 
+import androidx.compose.material.icons.outlined.MyLocation
 import android.graphics.Color
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -241,8 +242,42 @@ fun MapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, vi
         )
     }
 
+    // "Near me": the phone's own position service (not Google's — no Play Services needed), asked for when used.
+    var locating by remember { mutableStateOf(false) }
+    var locationProblem by remember { mutableStateOf(false) }
+    val goToMe = {
+        locating = true
+        locationProblem = false
+        currentLocation(context) { lat, lng ->
+            locating = false
+            if (lat != null && lng != null) {
+                map?.animateCamera(org.maplibre.android.camera.CameraUpdateFactory.newLatLngZoom(LatLng(lat, lng), 13.0))
+            } else {
+                locationProblem = true
+            }
+        }
+    }
+    val permission = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
+    ) { granted -> if (granted) goToMe() else locationProblem = true }
+
     Box(Modifier.fillMaxSize()) {
         AndroidView(factory = { mapView }, modifier = Modifier.fillMaxSize())
+        androidx.compose.material3.SmallFloatingActionButton(
+            onClick = {
+                if (androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                    android.content.pm.PackageManager.PERMISSION_GRANTED
+                ) goToMe() else permission.launch(android.Manifest.permission.ACCESS_COARSE_LOCATION)
+            },
+            modifier = Modifier.align(Alignment.TopStart).padding(12.dp),
+        ) {
+            if (locating) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+            else Icon(androidx.compose.material.icons.Icons.Outlined.MyLocation, stringResource(R.string.map_near_me))
+        }
+        if (locationProblem) {
+            Text(stringResource(R.string.map_location_unavailable), color = AzzaTheme.colors.textSecondary, style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                modifier = Modifier.align(Alignment.TopCenter).padding(top = 64.dp).background(AzzaTheme.colors.bg, RoundedCornerShape(8.dp)).padding(8.dp))
+        }
         if (state.loading) CircularProgressIndicator(Modifier.align(Alignment.TopEnd).padding(12.dp).size(24.dp), strokeWidth = 2.dp)
         state.error?.takeIf { state.selected == null }?.let {
             Text(errorMessage(it), color = AzzaTheme.colors.error, modifier = Modifier.align(Alignment.TopCenter).padding(12.dp)
@@ -317,5 +352,27 @@ private fun PreviewCard(
         Button(onClick = { onOpenStore(p.storeSlug) }, modifier = Modifier.fillMaxWidth()) {
             Text(pluralStringResource(R.plurals.map_open_store, p.productCount, p.productCount))
         }
+    }
+}
+
+/**
+ * One position fix from the phone's own location service (network first —
+ * fast and enough for "near me" — else GPS); the last known one when that
+ * is all there is. [onResult] gets nulls when nothing is available.
+ */
+@android.annotation.SuppressLint("MissingPermission") // checked by the caller
+private fun currentLocation(context: android.content.Context, onResult: (Double?, Double?) -> Unit) {
+    val manager = context.getSystemService(android.content.Context.LOCATION_SERVICE) as android.location.LocationManager
+    val provider = listOf(android.location.LocationManager.NETWORK_PROVIDER, android.location.LocationManager.GPS_PROVIDER)
+        .firstOrNull { runCatching { manager.isProviderEnabled(it) }.getOrDefault(false) }
+        ?: return onResult(null, null)
+    val last = runCatching { manager.getLastKnownLocation(provider) }.getOrNull()
+    if (android.os.Build.VERSION.SDK_INT >= 30) {
+        manager.getCurrentLocation(provider, null, androidx.core.content.ContextCompat.getMainExecutor(context)) { fix ->
+            val l = fix ?: last
+            onResult(l?.latitude, l?.longitude)
+        }
+    } else {
+        onResult(last?.latitude, last?.longitude)
     }
 }

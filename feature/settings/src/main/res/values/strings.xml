@@ -6,8 +6,9 @@
     <string name="settings_support">Support</string>
     <string name="settings_language">Language</string>
     <string name="settings_language_system">Phone\'s language</string>
-    <string name="settings_language_en">English</string>
-    <string name="settings_language_fa">فارسی</string>
+    <string name="settings_language_en" translatable="false">English</string>
+    <string name="settings_language_ckb" translatable="false">کوردی</string>
+    <string name="settings_language_fa" translatable="false">فارسی</string>
     <string name="settings_theme">Theme</string>
     <string name="settings_theme_dark">Dark</string>
     <string name="settings_theme_light">Light</string>
@@ -93,4 +94,7 @@
     <string name="account_address_make_default">Use this address by default</string>
     <string name="account_address_delete">Delete address</string>
     <string name="account_address_delete_confirm">Delete this address?</string>
+    <string name="settings_app_lock">Lock with fingerprint</string>
+    <string name="settings_app_lock_hint">Ask for your fingerprint or screen lock when AZZA is opened, and after a minute away.</string>
+    <string name="settings_app_lock_confirm">Confirm it is you</string>
 </resources>

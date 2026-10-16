@@ -37,7 +37,16 @@ data class UpdateCartItemRequest(val quantity: Int)
 data class CheckoutRequest(
     val shippingAddress: CheckoutAddressDto,
     val discountCode: String? = null,
+    /** Present = these lines, not the server cart (which apps/api then leaves untouched). */
+    val items: List<CheckoutLineDto>? = null,
 )
+
+@Serializable
+data class CheckoutLineDto(val productId: String, val quantity: Int, val options: List<CheckoutLineOptionDto>? = null)
+
+/** [quantity] is the TOTAL for the line, not per item (apps/api's CheckoutLineOptionDto). */
+@Serializable
+data class CheckoutLineOptionDto(val optionId: String, val quantity: Int)
 
 @Serializable
 data class CheckoutAddressDto(

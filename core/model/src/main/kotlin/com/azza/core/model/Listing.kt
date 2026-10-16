@@ -36,7 +36,12 @@ data class ListingDraft(
     val attributeValues: Map<String, Any>,
     /** Content URIs of the photos, in order; the first is the cover. */
     val photos: List<String>,
+    /** The seller's options; on an edit the list replaces the listing's (empty = none). */
+    val options: List<OptionDraft> = emptyList(),
 )
+
+/** One option as the form edits it: a name, an extra price in major units (text), and a per-item cap 1..10. */
+data class OptionDraft(val name: String = "", val extraPrice: String = "", val maxQuantity: Int = 1)
 
 /** A saved listing, as the edit form needs it. */
 data class EditableListing(
@@ -53,6 +58,7 @@ data class EditableListing(
     /** Raw form values per slug: String, Boolean or List<String>. */
     val attributes: Map<String, Any>,
     val photos: List<ExistingPhoto>,
+    val options: List<OptionDraft> = emptyList(),
 )
 
 data class ExistingPhoto(val mediaId: String, val url: String)

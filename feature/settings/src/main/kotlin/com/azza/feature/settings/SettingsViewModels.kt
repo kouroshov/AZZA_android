@@ -45,6 +45,10 @@ class SettingsViewModel @Inject constructor(
 
     fun setPhoneNotifications(on: Boolean) = viewModelScope.launch { account.setPhoneNotifications(on) }
 
+    val appLock: StateFlow<Boolean> = account.appLock.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    fun setAppLock(on: Boolean) = viewModelScope.launch { account.setAppLock(on) }
+
     fun signOut() = viewModelScope.launch { auth.logout() }
 }
 

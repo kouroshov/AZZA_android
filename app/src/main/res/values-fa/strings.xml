@@ -14,4 +14,8 @@
     <string name="widget_scan">اسکن</string>
     <string name="widget_notifications">اعلان‌ها</string>
     <string name="widget_basket">سبد</string>
+    <string name="lock_title">AZZA قفل است</string>
+    <string name="lock_unlock">باز کردن</string>
+    <string name="lock_prompt_title">باز کردن AZZA</string>
+    <string name="lock_cancel">انصراف</string>
 </resources>

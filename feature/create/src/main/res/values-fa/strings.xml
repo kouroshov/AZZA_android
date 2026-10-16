@@ -52,4 +52,11 @@
     <string name="edit_delete">حذف پست</string>
     <string name="edit_delete_title">این پست حذف شود؟</string>
     <string name="edit_delete_body">از صفحهٔ شما و همهٔ فیدها حذف می‌شود. سفارش‌های ثبت‌شده تغییری نمی‌کنند.</string>
+    <string name="create_options">گزینه‌ها (اختیاری)</string>
+    <string name="create_option_name">گزینه</string>
+    <string name="create_option_price">قیمت اضافه</string>
+    <string name="create_option_remove">حذف گزینه</string>
+    <string name="create_option_max">هر کالا چند بار می‌تواند بگیرد</string>
+    <string name="create_option_add">افزودن گزینه</string>
+    <string name="create_move_photo_earlier">جابه‌جایی عکس به جلو</string>
 </resources>

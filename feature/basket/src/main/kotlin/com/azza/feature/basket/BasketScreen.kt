@@ -118,6 +118,7 @@ private fun BasketTabContent(
 ) {
     val cart by viewModel.cart.collectAsStateWithLifecycle()
     val busyLine by viewModel.busyLine.collectAsStateWithLifecycle()
+    val chosen by viewModel.chosenOptions.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { viewModel.refreshCart() }
 
@@ -139,6 +140,7 @@ private fun BasketTabContent(
             items(current.lines, key = { it.productId }) { line ->
                 CartLineRow(
                     line = line,
+                    options = chosen[line.productId].orEmpty(),
                     busy = busyLine == line.productId,
                     onOpen = { onOpenProduct(line.productId) },
                     onQuantity = { viewModel.setQuantity(line.productId, it) },
@@ -166,7 +168,7 @@ private fun BasketTabContent(
 }
 
 @Composable
-private fun CartLineRow(line: CartLine, busy: Boolean, onOpen: () -> Unit, onQuantity: (Int) -> Unit, onRemove: () -> Unit) {
+private fun CartLineRow(line: CartLine, options: List<com.azza.core.data.ChosenOption>, busy: Boolean, onOpen: () -> Unit, onQuantity: (Int) -> Unit, onRemove: () -> Unit) {
     val colors = AzzaTheme.colors
     Row(
         Modifier.fillMaxWidth().clickable(onClick = onOpen).padding(12.dp),
@@ -178,6 +180,15 @@ private fun CartLineRow(line: CartLine, busy: Boolean, onOpen: () -> Unit, onQua
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(line.title, style = AzzaTextStyles.productTitle, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            if (options.isNotEmpty()) {
+                Text(
+                    options.joinToString("، ".takeIf { java.util.Locale.getDefault().language in setOf("fa", "ckb") } ?: ", ") { o ->
+                        if (o.perItem > 1) "${o.name} ×${o.perItem}" else o.name
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.textSecondary,
+                )
+            }
             if (!line.available) {
                 Text(stringResource(R.string.basket_line_unavailable), color = colors.error, style = MaterialTheme.typography.bodySmall)
             } else {

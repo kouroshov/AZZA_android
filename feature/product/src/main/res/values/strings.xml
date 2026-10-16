@@ -51,4 +51,6 @@
     <string name="appeal_error_duplicate">You have already appealed this decision.</string>
     <string name="appeal_error_not_available">This can no longer be appealed.</string>
     <string name="product_booking_settings">Booking settings</string>
+    <string name="product_options">Options</string>
+    <string name="product_options_hint">For each item. Prices are confirmed at checkout.</string>
 </resources>

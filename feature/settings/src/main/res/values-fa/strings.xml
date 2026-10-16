@@ -6,8 +6,6 @@
     <string name="settings_support">پشتیبانی</string>
     <string name="settings_language">زبان</string>
     <string name="settings_language_system">زبان گوشی</string>
-    <string name="settings_language_en">English</string>
-    <string name="settings_language_fa">فارسی</string>
     <string name="settings_theme">پوسته</string>
     <string name="settings_theme_dark">تیره</string>
     <string name="settings_theme_light">روشن</string>
@@ -93,4 +91,7 @@
     <string name="account_address_make_default">این نشانی پیش‌فرض باشد</string>
     <string name="account_address_delete">حذف نشانی</string>
     <string name="account_address_delete_confirm">این نشانی حذف شود؟</string>
+    <string name="settings_app_lock">قفل با اثر انگشت</string>
+    <string name="settings_app_lock_hint">هنگام باز کردن AZZA و بعد از یک دقیقه دوری، اثر انگشت یا قفل صفحه خواسته می‌شود.</string>
+    <string name="settings_app_lock_confirm">تأیید کنید که خودتان هستید</string>
 </resources>

@@ -134,6 +134,19 @@ data class ProductDto(
     val moderatedAt: String? = null,
     val moderationCause: String? = null,
     val moderationReason: String? = null,
+    /** The seller's options ("extra sauce"), in their order. */
+    val options: List<ProductOptionDto> = emptyList(),
+)
+
+@Serializable
+data class ProductOptionDto(
+    val id: String,
+    val name: String,
+    @Serializable(with = FlexibleLongSerializer::class)
+    val extraPriceAmountMinor: Long = 0,
+    val currency: String = "IRR",
+    /** How many of it ONE unit of the product can take: 1 = a checkbox, up to 10. */
+    val maxQuantity: Int = 1,
 )
 
 @Serializable

@@ -1,5 +1,7 @@
 package com.azza.feature.product
 
+import com.azza.core.data.BasketOptions
+import com.azza.core.data.ChosenOption
 import com.azza.core.data.AppealsRepository
 import kotlinx.coroutines.flow.update
 import androidx.lifecycle.SavedStateHandle
@@ -52,6 +54,7 @@ class ProductViewModel @Inject constructor(
     private val auth: AuthRepository,
     private val reports: ReportsRepository,
     private val appealsRepository: AppealsRepository,
+    private val basketOptions: BasketOptions,
     users: UserRepository,
 ) : ViewModel() {
 
@@ -149,12 +152,25 @@ class ProductViewModel @Inject constructor(
         if (result is Outcome.Failure) _events.send(ProductEvent.Failed(result.error))
     }
 
+    /** How many of each option ONE item takes (optionId → count); 0 = not chosen. */
+    private val _options = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val options: StateFlow<Map<String, Int>> = _options.asStateFlow()
+
+    fun setOption(optionId: String, count: Int) = _options.update { it + (optionId to count) }
+
     fun addToBasket() = viewModelScope.launch {
         if (_adding.value) return@launch
         if (!auth.isSignedIn.first()) return@launch _events.send(ProductEvent.SignInRequired)
         _adding.value = true
         when (val result = cart.add(route.productId)) {
-            is Outcome.Success -> _events.send(ProductEvent.AddedToBasket)
+            is Outcome.Success -> {
+                val product = (_state.value as? ProductUiState.Ready)?.product
+                val chosen = product?.options.orEmpty().mapNotNull { o ->
+                    _options.value[o.id]?.takeIf { it > 0 }?.let { ChosenOption(o.id, o.name, it, o.extra) }
+                }
+                basketOptions.set(route.productId, chosen)
+                _events.send(ProductEvent.AddedToBasket)
+            }
             is Outcome.Failure -> _events.send(ProductEvent.Failed(result.error))
         }
         _adding.value = false

@@ -1,5 +1,6 @@
 package com.azza.feature.product
 
+import com.azza.core.model.ProductOption
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material.icons.outlined.Share
 import com.azza.core.ui.LocalWebLinks
@@ -114,6 +115,7 @@ fun ProductScreen(
     val adding by viewModel.adding.collectAsStateWithLifecycle()
     val isMine by viewModel.isMine.collectAsStateWithLifecycle()
     val appeal by viewModel.appeal.collectAsStateWithLifecycle()
+    val chosenOptions by viewModel.options.collectAsStateWithLifecycle()
     LifecycleResumeEffect(viewModel) {
         viewModel.refreshQuietly()
         onPauseOrDispose { }
@@ -215,6 +217,10 @@ fun ProductScreen(
                 }) {
                     // A bookable listing is booked on its timetable, not through the basket (BOOKING_REQUIRED);
                     // you cannot book yourself (BOOKING_SELF_NOT_ALLOWED).
+                    // The seller's options, for a buyer: each one item may take up to its cap.
+                    if (s.product.options.isNotEmpty() && s.product.offeringKind == OfferingKind.GOOD && !isMine && s.product.status == "ACTIVE") {
+                        OptionsPicker(s.product.options, chosenOptions, viewModel::setOption)
+                    }
                     if (s.product.offeringKind == OfferingKind.BOOKABLE && !isMine) {
                         BookingPanel(onRequireSignIn = onRequireSignIn, onOpenAppointments = onOpenAppointments)
                     }
@@ -300,4 +306,25 @@ private fun errorText(context: Context, error: AppError): String = when (error) 
         else -> error.message.ifBlank { context.getString(com.azza.core.ui.R.string.core_ui_error_generic) }
     }
     is AppError.Unexpected -> context.getString(com.azza.core.ui.R.string.core_ui_error_generic)
+}
+
+@Composable
+private fun OptionsPicker(options: List<ProductOption>, chosen: Map<String, Int>, onChange: (String, Int) -> Unit) {
+    Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(stringResource(R.string.product_options), style = MaterialTheme.typography.titleSmall)
+        Text(stringResource(R.string.product_options_hint), style = MaterialTheme.typography.bodySmall, color = AzzaTheme.colors.textMuted)
+        options.forEach { o ->
+            val n = chosen[o.id] ?: 0
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("${o.name}  +${o.extra.format()}", modifier = Modifier.weight(1f))
+                if (o.maxQuantity == 1) {
+                    androidx.compose.material3.Checkbox(checked = n > 0, onCheckedChange = { onChange(o.id, if (it) 1 else 0) })
+                } else {
+                    TextButton(onClick = { onChange(o.id, (n - 1).coerceAtLeast(0)) }, enabled = n > 0) { Text("−") }
+                    Text(n.toString())
+                    TextButton(onClick = { onChange(o.id, (n + 1).coerceAtMost(o.maxQuantity)) }, enabled = n < o.maxQuantity) { Text("+") }
+                }
+            }
+        }
+    }
 }

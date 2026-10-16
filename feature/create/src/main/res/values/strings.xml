@@ -52,4 +52,11 @@
     <string name="edit_delete">Delete post</string>
     <string name="edit_delete_title">Delete this post?</string>
     <string name="edit_delete_body">It disappears from your page and every feed. Orders already placed are not affected.</string>
+    <string name="create_options">Options (optional)</string>
+    <string name="create_option_name">Option</string>
+    <string name="create_option_price">Extra price</string>
+    <string name="create_option_remove">Remove option</string>
+    <string name="create_option_max">How many one item can take</string>
+    <string name="create_option_add">Add an option</string>
+    <string name="create_move_photo_earlier">Move photo earlier</string>
 </resources>

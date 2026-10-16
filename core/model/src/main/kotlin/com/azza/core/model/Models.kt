@@ -55,7 +55,11 @@ data class ProductDetail(
     val status: String = "ACTIVE",
     /** Set only on the owner's view of a listing an admin (or a suspension) took down. */
     val hold: ListingHold? = null,
+    val options: List<ProductOption> = emptyList(),
 )
+
+/** A seller's option on a listing; [maxQuantity] per ONE item (1 = once). */
+data class ProductOption(val id: String, val name: String, val extra: Money, val maxQuantity: Int)
 
 /**
  * Why a listing is down. [cause]: ADMIN_UNPUBLISHED (a decision about this
