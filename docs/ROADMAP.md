@@ -294,7 +294,7 @@ fonts, fingerprint unlock, the smaller "Not in 3x" items).
 - **Booking settings** of one service (from the timetable, or from the
   listing's owner view): session length, step, gaps before/after, notice,
   how far ahead, deposit %.
-- apps/api (web repo, branch `api/android-5b`): `GET /stores/mine` now
+- apps/api (web repo, PR #39, merged into `master` 2026-10-16): `GET /stores/mine` now
   carries the store's status and a hold's cause and reason (never who
   decided).
 - Found on the way: apps/api pages branch stock at most 60 per request;
