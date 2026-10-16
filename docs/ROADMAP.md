@@ -261,7 +261,7 @@ fonts, fingerprint unlock, the smaller "Not in 3x" items).
   fills in the default and offers the others as one tap.
 - **Followers / Following** lists (your own; apps/api keeps everyone
   else's private).
-- apps/api (web repo, branch `api/android-5a`): `GET /products/mine` and
+- apps/api (web repo, PR #38, merged into `master` 2026-10-16): `GET /products/mine` and
   `GET /products/mine/:id` — the owner's own listings in every state; the
   website reads the database directly for the same thing.
 - Found on the way: the app's Json leaves out a property equal to its
