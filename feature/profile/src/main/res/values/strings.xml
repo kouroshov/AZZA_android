@@ -49,4 +49,5 @@
         <item quantity="one">%1$d more at the store</item>
         <item quantity="other">%1$d more at the store</item>
     </plurals>
+    <string name="profile_search_posts">Search your posts</string>
 </resources>

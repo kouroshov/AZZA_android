@@ -1,5 +1,7 @@
 package com.azza.core.network.api
 
+import com.azza.core.network.model.OccupationSuggestionDto
+import com.azza.core.network.model.OccupationDto
 import com.azza.core.network.model.ApiEnvelope
 import com.azza.core.network.model.BranchDto
 import com.azza.core.network.model.CategoryHitDto
@@ -29,6 +31,17 @@ interface CategoriesApi {
 
     @GET("categories/search")
     suspend fun search(@Query("q") q: String, @Query("limit") limit: Int = 20): ApiEnvelope<List<CategoryHitDto>>
+
+    @GET("taxonomy/occupations/search")
+    suspend fun searchOccupations(@Query("q") q: String, @Query("limit") limit: Int = 12): ApiEnvelope<List<OccupationDto>>
+
+    /** The categories (and kinds) an occupation usually posts in, inherited down its tree. Public. */
+    @GET("taxonomy/occupations/{id}/suggestions")
+    suspend fun occupationSuggestions(@Path("id") id: String): ApiEnvelope<List<OccupationSuggestionDto>>
+
+    /** The occupations this page (personal, or [storeId]'s) already has — offered first. */
+    @GET("taxonomy/me/occupations")
+    suspend fun myOccupations(@Query("storeId") storeId: String?): ApiEnvelope<List<OccupationDto>>
 
     /** The fields a listing in this category takes, for this offering kind (the category's default when null). */
     @GET("taxonomy/categories/{categoryId}/schema")

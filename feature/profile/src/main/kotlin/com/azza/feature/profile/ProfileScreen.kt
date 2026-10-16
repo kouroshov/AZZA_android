@@ -1,5 +1,7 @@
 package com.azza.feature.profile
 
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.OutlinedTextField
 import com.azza.core.ui.OwnerPostsBar
 import com.azza.core.ui.PostActionsSheet
 import com.azza.core.ui.shareLink
@@ -197,6 +199,17 @@ private fun Profile(
             }
         }
         if (tab == 0) {
+            item(key = "post-search") {
+                val search by viewModel.postSearch.collectAsStateWithLifecycle()
+                OutlinedTextField(
+                    value = search,
+                    onValueChange = viewModel::searchPosts,
+                    placeholder = { Text(stringResource(R.string.profile_search_posts)) },
+                    leadingIcon = { Icon(Icons.Outlined.Search, null) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp),
+                )
+            }
             when {
                 posts.loadingFirst -> item { Text("…", modifier = Modifier.padding(16.dp), color = colors.textMuted) }
                 posts.items.isEmpty() -> item {

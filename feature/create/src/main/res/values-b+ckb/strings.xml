@@ -60,4 +60,18 @@
     <string name="create_option_max">هەر کاڵایەک چەند جار دەتوانێت وەریبگرێت</string>
     <string name="create_option_add">زیادکردنی هەڵبژاردن</string>
     <string name="create_move_photo_earlier">جوڵاندنی وێنە بۆ پێشەوە</string>
+    <string name="create_occupation">کارەکەت چییە؟</string>
+    <string name="create_occupation_hint">ئارەزوومەندانە — پۆلە گونجاوەکان پێشنیار دەکات.</string>
+    <string name="create_occupation_search">گەڕان بۆ پیشە (بۆ نموونە نانەوا)</string>
+    <string name="create_skip_occupation">تێپەڕاندن</string>
+    <string name="create_no_occupation">بێ پیشە</string>
+    <string name="create_change_occupation">گۆڕین</string>
+    <string name="create_suggested">پۆلە پێشنیارکراوەکان</string>
+    <string name="create_features">تایبەتمەندییەکان</string>
+    <string name="create_feature_name">ناو (بۆ نموونە ڕەنگ)</string>
+    <string name="create_feature_value">بەها (بۆ نموونە سوور)</string>
+    <string name="create_feature_add">زیادکردنی تایبەتمەندی</string>
+    <string name="create_feature_remove">لابردنی تایبەتمەندی</string>
+    <string name="create_move_photo_later">بردن بۆ دواوە</string>
+    <string name="create_make_cover">بکرێتە وێنەی سەرەکی</string>
 </resources>

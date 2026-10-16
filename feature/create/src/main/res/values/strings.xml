@@ -59,4 +59,18 @@
     <string name="create_option_max">How many one item can take</string>
     <string name="create_option_add">Add an option</string>
     <string name="create_move_photo_earlier">Move photo earlier</string>
+    <string name="create_occupation">What do you do?</string>
+    <string name="create_occupation_hint">Optional — it suggests the right categories.</string>
+    <string name="create_occupation_search">Search an occupation (e.g. baker)</string>
+    <string name="create_skip_occupation">Skip</string>
+    <string name="create_no_occupation">No occupation</string>
+    <string name="create_change_occupation">Change</string>
+    <string name="create_suggested">Suggested categories</string>
+    <string name="create_features">Features</string>
+    <string name="create_feature_name">Name (e.g. Colour)</string>
+    <string name="create_feature_value">Value (e.g. Red)</string>
+    <string name="create_feature_add">Add feature</string>
+    <string name="create_feature_remove">Remove feature</string>
+    <string name="create_move_photo_later">Move later</string>
+    <string name="create_make_cover">Make cover</string>
 </resources>

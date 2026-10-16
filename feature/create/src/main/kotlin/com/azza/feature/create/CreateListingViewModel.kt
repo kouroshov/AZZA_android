@@ -1,5 +1,7 @@
 package com.azza.feature.create
 
+import com.azza.core.model.CategorySuggestion
+import com.azza.core.model.OccupationRef
 import com.azza.core.model.OptionDraft
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -77,6 +79,15 @@ data class CreateUiState(
     val deleted: Boolean = false,
     val stockNotPlaced: Boolean = false,
     val postedId: String? = null,
+    /** Free-form "name: value" features. */
+    val features: List<Pair<String, String>> = emptyList(),
+    /** The occupation step (create only): chosen, or skipped (done with none). */
+    val occupation: OccupationRef? = null,
+    val occupationDone: Boolean = false,
+    val occupationQuery: String = "",
+    val occupationHits: List<OccupationRef> = emptyList(),
+    val myOccupations: List<OccupationRef> = emptyList(),
+    val suggestions: List<CategorySuggestion> = emptyList(),
 ) {
     val isPersonal: Boolean get() = storeId == null
 
@@ -111,6 +122,81 @@ class CreateListingViewModel @Inject constructor(
     private val _state = MutableStateFlow(CreateUiState())
     val state: StateFlow<CreateUiState> = _state.asStateFlow()
 
+    private var occupationJob: Job? = null
+
+    /** The occupations this page already has; the main one is preselected, as on the web. */
+    private fun loadMyOccupations() = viewModelScope.launch {
+        val mine = (listings.myOccupations(_state.value.storeId) as? Outcome.Success)?.value.orEmpty()
+        _state.update { it.copy(myOccupations = mine) }
+        if (_state.value.occupation == null && !_state.value.occupationDone) mine.firstOrNull()?.let(::chooseOccupation)
+    }
+
+    fun searchOccupations(q: String) {
+        _state.update { it.copy(occupationQuery = q) }
+        occupationJob?.cancel()
+        if (q.trim().length < 2) return _state.update { it.copy(occupationHits = emptyList()) }
+        occupationJob = viewModelScope.launch {
+            delay(300)
+            val hits = (listings.searchOccupations(q) as? Outcome.Success)?.value.orEmpty()
+            _state.update { it.copy(occupationHits = hits) }
+        }
+    }
+
+    fun chooseOccupation(o: OccupationRef) {
+        _state.update { it.copy(occupation = o, occupationDone = true, occupationQuery = "", occupationHits = emptyList(), suggestions = emptyList()) }
+        viewModelScope.launch {
+            val found = (listings.occupationSuggestions(o.id) as? Outcome.Success)?.value.orEmpty()
+            _state.update { if (it.occupation?.id == o.id) it.copy(suggestions = found) else it }
+        }
+    }
+
+    /** "Skip": no occupation is a real answer (one used phone). */
+    fun skipOccupation() = _state.update { it.copy(occupation = null, occupationDone = true, suggestions = emptyList()) }
+
+    fun changeOccupation() = _state.update { it.copy(occupationDone = false) }
+
+    /** A suggestion picks the category and the kind in one tap. */
+    fun chooseSuggestion(s: CategorySuggestion) {
+        if (!_state.value.isPersonal || s.kind == OfferingKind.GOOD) _state.update { it.copy(offeringKind = s.kind) }
+        choose(ChosenCategory(s.categoryId, s.name, s.path))
+    }
+
+    // ---- free-form features
+    fun addFeature(name: String, value: String) {
+        if (name.isBlank() || value.isBlank()) return
+        _state.update { s -> s.copy(features = s.features.filterNot { it.first == name.trim() } + (name.trim() to value.trim())) }
+    }
+
+    fun removeFeature(name: String) = _state.update { s -> s.copy(features = s.features.filterNot { it.first == name }) }
+
+    // ---- photo order: earlier/later and "make cover", for saved and new photos alike
+    fun movePhotoLater(index: Int) {
+        val n = _state.value.existingPhotos.size
+        if (index < n - 1) movePhotoEarlier(index + 1)
+    }
+
+    fun makeCover(index: Int) {
+        val before = _state.value.existingPhotos
+        if (index <= 0 || index >= before.size) return
+        val id = _state.value.editingId ?: return
+        val after = listOf(before[index]) + before.filterIndexed { i, _ -> i != index }
+        _state.update { it.copy(existingPhotos = after) }
+        viewModelScope.launch {
+            val r = listings.reorderPhotos(id, after.map { it.mediaId })
+            if (r is Outcome.Failure) _state.update { it.copy(existingPhotos = before, error = r.error) }
+        }
+    }
+
+    fun moveNewPhoto(index: Int, by: Int) = _state.update { s ->
+        val to = index + by
+        if (index !in s.photos.indices || to !in s.photos.indices) s
+        else s.copy(photos = s.photos.toMutableList().apply { add(to, removeAt(index)) })
+    }
+
+    fun makeNewCover(index: Int) = _state.update { s ->
+        if (index !in s.photos.indices) s else s.copy(photos = listOf(s.photos[index]) + s.photos.filterIndexed { i, _ -> i != index })
+    }
+
     private val _picker = MutableStateFlow(CategoryPickerState())
     val picker: StateFlow<CategoryPickerState> = _picker.asStateFlow()
 
@@ -120,6 +206,7 @@ class CreateListingViewModel @Inject constructor(
         if (editId != null) loadForEdit(editId) else viewModelScope.launch {
             (listings.myStores() as? Outcome.Success)?.let { r -> _state.update { it.copy(stores = r.value) } }
             startStoreId?.takeIf { id -> _state.value.stores.any { it.id == id } }?.let(::postAs)
+            loadMyOccupations()
         }
     }
 
@@ -142,6 +229,7 @@ class CreateListingViewModel @Inject constructor(
                             discount = l.discountPercentage,
                             condition = l.condition,
                             attributes = l.attributes,
+                            features = l.features,
                             existingPhotos = l.photos,
                             options = l.options,
                         )
@@ -206,6 +294,8 @@ class CreateListingViewModel @Inject constructor(
             if (storeId == null && s.offeringKind != OfferingKind.GOOD) next.copy(offeringKind = OfferingKind.GOOD) else next
         }
         _state.value.category?.let { loadSchema(it.id) }
+        // Each page has its own occupations.
+        if (_state.value.editingId == null) loadMyOccupations()
     }
 
     fun chooseKind(kind: OfferingKind) {
@@ -308,6 +398,8 @@ class CreateListingViewModel @Inject constructor(
             attributeValues = schemaResult?.values.orEmpty(),
             photos = s.photos,
             options = s.options,
+            features = s.features,
+            occupationId = s.occupation?.id,
         )
         _state.update { it.copy(posting = true, error = null, formErrors = emptySet(), fieldErrors = emptyMap()) }
         if (editId != null) {

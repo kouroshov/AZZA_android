@@ -27,6 +27,17 @@ data class CategoryHitDto(
 @Serializable
 data class CategoryPathDto(val id: String, val name: LocalizedNameDto)
 
+// ---------- occupations (taxonomy): "what do you do?" and the categories it suggests ----------
+
+@Serializable
+data class OccupationDto(val id: String, val code: String = "", val name: LocalizedNameDto)
+
+@Serializable
+data class SuggestedCategoryDto(val id: String, val name: LocalizedNameDto, val path: List<CategoryPathDto> = emptyList())
+
+@Serializable
+data class OccupationSuggestionDto(val category: SuggestedCategoryDto, val offeringKind: String = "GOOD", val weight: Double = 0.0)
+
 // ---------- schema (GET /taxonomy/categories/:id/schema) ----------
 
 @Serializable

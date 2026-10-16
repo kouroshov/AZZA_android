@@ -1,5 +1,7 @@
 package com.azza.core.data
 
+import com.azza.core.model.CategorySuggestion
+import com.azza.core.model.OccupationRef
 import com.azza.core.network.api.ReorderPhotosRequest
 import com.azza.core.model.OptionDraft
 import android.net.Uri
@@ -111,7 +113,26 @@ class ListingRepository @Inject constructor(
                 attributes = p.attributeValues.mapNotNull { v -> v.toFormValue()?.let { v.categoryAttribute.slug to it } }.toMap(),
                 photos = p.media.filter { it.mediaType == "IMAGE" }.mapNotNull { m -> mediaUrls.resolve(m.url ?: m.storageKey)?.let { ExistingPhoto(m.id, it) } },
                 options = p.options.map { OptionDraft(it.name, majorText(it.extraPriceAmountMinor), it.maxQuantity) },
+                features = freeFeatures(p),
             )
+        }
+
+    suspend fun searchOccupations(q: String): Outcome<List<OccupationRef>> =
+        safeApiCall(json) { categoriesApi.searchOccupations(q.trim()).data }.map { list -> list.map { OccupationRef(it.id, LocalizedText(it.name.fa.ifBlank { it.name.en }, it.name.en)) } }
+
+    suspend fun myOccupations(storeId: String?): Outcome<List<OccupationRef>> =
+        safeApiCall(json) { categoriesApi.myOccupations(storeId).data }.map { list -> list.map { OccupationRef(it.id, LocalizedText(it.name.fa.ifBlank { it.name.en }, it.name.en)) } }
+
+    suspend fun occupationSuggestions(id: String): Outcome<List<CategorySuggestion>> =
+        safeApiCall(json) { categoriesApi.occupationSuggestions(id).data }.map { list ->
+            list.sortedByDescending { it.weight }.map { s ->
+                CategorySuggestion(
+                    s.category.id,
+                    LocalizedText(s.category.name.fa.ifBlank { s.category.name.en }, s.category.name.en),
+                    s.category.path.map { LocalizedText(it.name.fa.ifBlank { it.name.en }, it.name.en) },
+                    kindOf(s.offeringKind),
+                )
+            }
         }
 
     /** Saved photos in a new order, at once (the first is the cover), like the web's media manager. */
@@ -163,6 +184,7 @@ class ListingRepository @Inject constructor(
                     // A personal listing is one item: no quantity is sent, so nothing can disagree with apps/api.
                     if (draft.storeId != null) draft.quantity.toLatinNumber()?.let { put("quantity", it.toInt()) }
                     put("publish", !hasPhotos)
+                    draft.occupationId?.let { put("occupationId", it) }
                 },
             )
             when (val r = safeApiCall(json) { api.create(body).data }) {
@@ -213,6 +235,8 @@ class ListingRepository @Inject constructor(
         // Always sent, blank = 0: on an edit a missing field is left as it was, so clearing it would not clear it.
         put("discountPercentage", draft.discountPercentage.toLatinNumber() ?: 0.0)
         put("attributeValues", JsonObject(draft.attributeValues.mapValues { (_, v) -> v.toJson() }))
+        // Always sent: on an edit the map replaces the listing's free-form features.
+        put("attributes", JsonObject(draft.features.filter { it.first.isNotBlank() && it.second.isNotBlank() }.associate { (k, v) -> k.trim().take(60) to kotlinx.serialization.json.JsonPrimitive(v.trim().take(200)) }))
         // Always sent: on an edit the list REPLACES the listing's options, so an empty one removes them.
         put(
             "options",
@@ -307,4 +331,12 @@ private fun com.azza.core.network.model.AttributeValueDto.toFormValue(): Any? = 
     valueDate != null -> valueDate!!.take(10)
     valueText != null -> valueText
     else -> null
+}
+
+/** The free-form features: what is in attributesCache that is not one of the category's own fields. */
+private fun freeFeatures(p: com.azza.core.network.model.ProductDto): List<Pair<String, String>> {
+    val typed = p.attributeValues.map { it.categoryAttribute.slug }.toSet()
+    return (p.attributesCache as? JsonObject).orEmpty().mapNotNull { (k, v) ->
+        if (k in typed) null else (v as? kotlinx.serialization.json.JsonPrimitive)?.content?.takeIf { it.isNotBlank() }?.let { k to it }
+    }
 }

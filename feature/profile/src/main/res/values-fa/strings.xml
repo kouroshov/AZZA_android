@@ -49,4 +49,5 @@
         <item quantity="one">%1$d مورد دیگر در فروشگاه</item>
         <item quantity="other">%1$d مورد دیگر در فروشگاه</item>
     </plurals>
+    <string name="profile_search_posts">جست‌وجو در پست‌های شما</string>
 </resources>

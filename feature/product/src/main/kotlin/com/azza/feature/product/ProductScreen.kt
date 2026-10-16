@@ -393,7 +393,11 @@ private fun Specifications(product: ProductDetail) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             product.specs.forEach { spec ->
                 val value = spec.yes?.let { stringResource(if (it) R.string.product_yes else R.string.product_no) }
-                    ?: ((if (fa) spec.valueFa else spec.valueEn) + (spec.unit?.let { " $it" } ?: ""))
+                    ?: (if (fa) spec.valueFa else spec.valueEn).let { v ->
+                        // An option's label may already carry the unit ("32 GB").
+                        val u = spec.unit?.takeIf { it.isNotBlank() && !v.endsWith(it, ignoreCase = true) }
+                        if (u != null) "$v $u" else v
+                    }
                 SpecCell(if (fa) spec.labelFa else spec.labelEn, value)
             }
             product.features.forEach { (name, value) -> SpecCell(name, value) }

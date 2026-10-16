@@ -69,12 +69,11 @@ internal fun ProductDto.toModel(media: MediaUrlResolver) = ProductDetail(
     hold = moderatedAt?.let { at -> moderationCause?.let { cause -> ListingHold(cause, moderationReason, at) } },
     options = options.map { ProductOption(it.id, it.name, Money(it.extraPriceAmountMinor, it.currency), it.maxQuantity.coerceIn(1, 10)) },
     specs = attributeValues.mapNotNull { it.toSpec() },
-    features = if (attributesSchemaHash == null) {
+    // Free-form features: attributesCache less any key that is one of the category's own fields.
+    features = attributeValues.map { it.categoryAttribute.slug }.toSet().let { typed ->
         (attributesCache as? kotlinx.serialization.json.JsonObject).orEmpty().mapNotNull { (k, v) ->
-            (v as? kotlinx.serialization.json.JsonPrimitive)?.content?.takeIf { it.isNotBlank() }?.let { k to it }
+            if (k in typed) null else (v as? kotlinx.serialization.json.JsonPrimitive)?.content?.takeIf { it.isNotBlank() }?.let { k to it }
         }
-    } else {
-        emptyList()
     },
     barcode = barcode,
     stockQuantity = inventory?.quantity,

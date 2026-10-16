@@ -1,5 +1,9 @@
 package com.azza.feature.create
 
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.material3.AssistChip
+import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -150,6 +154,9 @@ fun CreateListingScreen(onPosted: (String) -> Unit, onDeleted: () -> Unit, viewM
             }
         }
 
+        // 2a. What do you do? (create only) — its usual categories become one-tap choices.
+        if (!editing) OccupationStep(state, viewModel)
+
         // 2. Category, then what it is (a store may offer more than goods).
         Section(stringResource(R.string.create_category)) {
             val category = state.category
@@ -245,6 +252,9 @@ fun CreateListingScreen(onPosted: (String) -> Unit, onDeleted: () -> Unit, viewM
             }
         }
 
+        // 4b. Free-form features ("Colour: red") beside the category's own fields.
+        FeaturesSection(state.features, viewModel::addFeature, viewModel::removeFeature)
+
         // 5. Photos, before posting — the first is the cover.
         Section(stringResource(R.string.create_photos, state.existingPhotos.size + state.photos.size, MAX_PHOTOS)) {
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -257,12 +267,13 @@ fun CreateListingScreen(onPosted: (String) -> Unit, onDeleted: () -> Unit, viewM
                                 modifier = Modifier.align(Alignment.BottomStart).background(colors.bg.copy(alpha = 0.7f)).padding(horizontal = 6.dp, vertical = 2.dp),
                             )
                         }
-                        if (index > 0) {
-                            IconButton(onClick = { viewModel.movePhotoEarlier(index) }, modifier = Modifier.align(Alignment.TopStart).size(28.dp)) {
-                                Icon(Icons.AutoMirrored.Outlined.ArrowBack, stringResource(R.string.create_move_photo_earlier), tint = colors.textPrimary,
-                                    modifier = Modifier.background(colors.bg.copy(alpha = 0.6f), RoundedCornerShape(50)))
-                            }
-                        }
+                        PhotoControls(
+                            index = index,
+                            last = state.existingPhotos.size - 1,
+                            onEarlier = { viewModel.movePhotoEarlier(index) },
+                            onLater = { viewModel.movePhotoLater(index) },
+                            onCover = { viewModel.makeCover(index) },
+                        )
                         IconButton(onClick = { viewModel.removeExistingPhoto(photo) }, modifier = Modifier.align(Alignment.TopEnd).size(28.dp)) {
                             Icon(Icons.Outlined.Close, stringResource(R.string.create_remove_photo), tint = colors.textPrimary,
                                 modifier = Modifier.background(colors.bg.copy(alpha = 0.6f), RoundedCornerShape(50)))
@@ -277,6 +288,17 @@ fun CreateListingScreen(onPosted: (String) -> Unit, onDeleted: () -> Unit, viewM
                             .then(if (failed) Modifier.border(2.dp, colors.error, RoundedCornerShape(10.dp)) else Modifier),
                     ) {
                         AsyncImage(uri, null, contentScale = ContentScale.Crop, modifier = Modifier.matchParentSize())
+                        // New photos are ordered among themselves; saved ones always come first.
+                        if (uri !in state.uploaded) {
+                            PhotoControls(
+                                index = newIndex,
+                                last = state.photos.size - 1,
+                                onEarlier = { viewModel.moveNewPhoto(newIndex, -1) },
+                                onLater = { viewModel.moveNewPhoto(newIndex, 1) },
+                                onCover = { viewModel.makeNewCover(newIndex) },
+                                coverable = state.existingPhotos.isEmpty(),
+                            )
+                        }
                         if (index == 0) {
                             Text(
                                 stringResource(R.string.create_cover), style = MaterialTheme.typography.labelSmall,
@@ -320,6 +342,93 @@ fun CreateListingScreen(onPosted: (String) -> Unit, onDeleted: () -> Unit, viewM
         if (editing) {
             TextButton(onClick = { confirmDelete = true }, enabled = !state.posting, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.edit_delete), color = colors.error)
+            }
+        }
+    }
+}
+
+/** Earlier / later / "make cover" on a photo, along its bottom edge. */
+@Composable
+private fun androidx.compose.foundation.layout.BoxScope.PhotoControls(
+    index: Int,
+    last: Int,
+    onEarlier: () -> Unit,
+    onLater: () -> Unit,
+    onCover: () -> Unit,
+    coverable: Boolean = true,
+) {
+    val colors = AzzaTheme.colors
+    val chip = Modifier.size(26.dp).background(colors.bg.copy(alpha = 0.7f), RoundedCornerShape(50))
+    Row(Modifier.align(Alignment.BottomEnd).padding(2.dp), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+        if (index > 0) IconButton(onClick = onEarlier, modifier = chip) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, stringResource(R.string.create_move_photo_earlier), Modifier.size(16.dp)) }
+        if (index < last) IconButton(onClick = onLater, modifier = chip) { Icon(Icons.AutoMirrored.Outlined.ArrowForward, stringResource(R.string.create_move_photo_later), Modifier.size(16.dp)) }
+        if (index > 0 && coverable) IconButton(onClick = onCover, modifier = chip) { Icon(Icons.Outlined.Star, stringResource(R.string.create_make_cover), Modifier.size(16.dp)) }
+    }
+}
+
+/** The web's occupation step: chosen (with its suggested categories), or search / pick / skip. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun OccupationStep(state: CreateUiState, viewModel: CreateListingViewModel) {
+    val colors = AzzaTheme.colors
+    Section(stringResource(R.string.create_occupation)) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (state.occupationDone) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(state.occupation?.name?.local() ?: stringResource(R.string.create_no_occupation), modifier = Modifier.weight(1f), color = if (state.occupation == null) colors.textMuted else colors.textPrimary)
+                    TextButton(onClick = viewModel::changeOccupation) { Text(stringResource(R.string.create_change_occupation)) }
+                }
+                val shown = if (state.isPersonal) state.suggestions.filter { it.kind == OfferingKind.GOOD } else state.suggestions
+                if (shown.isNotEmpty()) {
+                    Text(stringResource(R.string.create_suggested), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        shown.take(8).forEach { s ->
+                            AssistChip(
+                                onClick = { viewModel.chooseSuggestion(s) },
+                                label = { Text(s.name.local() + if (s.kind != OfferingKind.GOOD) " · " + stringResource(s.kind.label()) else "") },
+                            )
+                        }
+                    }
+                }
+            } else {
+                Text(stringResource(R.string.create_occupation_hint), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                OutlinedTextField(
+                    value = state.occupationQuery,
+                    onValueChange = viewModel::searchOccupations,
+                    placeholder = { Text(stringResource(R.string.create_occupation_search)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                val choices = state.occupationHits.ifEmpty { state.myOccupations }
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    choices.forEach { o -> AssistChip(onClick = { viewModel.chooseOccupation(o) }, label = { Text(o.name.local()) }) }
+                }
+                TextButton(onClick = viewModel::skipOccupation) { Text(stringResource(R.string.create_skip_occupation)) }
+            }
+        }
+    }
+}
+
+/** The web's Features: a name and a value per line, added and removed one by one. */
+@Composable
+private fun FeaturesSection(features: List<Pair<String, String>>, onAdd: (String, String) -> Unit, onRemove: (String) -> Unit) {
+    var name by rememberSaveable { mutableStateOf("") }
+    var value by rememberSaveable { mutableStateOf("") }
+    Section(stringResource(R.string.create_features)) {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            features.forEach { (k, v) ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("$k: ", style = MaterialTheme.typography.bodyMedium.copy(textDirection = androidx.compose.ui.text.style.TextDirection.Content))
+                    Text(v, modifier = Modifier.weight(1f), color = AzzaTheme.colors.textSecondary)
+                    IconButton(onClick = { onRemove(k) }) { Icon(Icons.Outlined.Close, stringResource(R.string.create_feature_remove)) }
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                OutlinedTextField(name, { name = it.take(60) }, label = { Text(stringResource(R.string.create_feature_name)) }, singleLine = true, modifier = Modifier.weight(1f))
+                OutlinedTextField(value, { value = it.take(200) }, label = { Text(stringResource(R.string.create_feature_value)) }, singleLine = true, modifier = Modifier.weight(1f))
+            }
+            TextButton(onClick = { onAdd(name, value); name = ""; value = "" }, enabled = name.isNotBlank() && value.isNotBlank()) {
+                Text(stringResource(R.string.create_feature_add))
             }
         }
     }

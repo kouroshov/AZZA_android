@@ -13,6 +13,12 @@ data class CategoryHit(val id: String, val name: LocalizedText, val path: List<L
 
 data class OwnStore(val id: String, val name: String)
 
+/** An occupation ("bakery", "psychologist") — what a seller does. */
+data class OccupationRef(val id: String, val name: LocalizedText)
+
+/** A category an occupation usually posts in, with the kind of offering. */
+data class CategorySuggestion(val categoryId: String, val name: LocalizedText, val path: List<LocalizedText>, val kind: OfferingKind)
+
 /** The listing's condition — also context for conditional fields ("mileage" unless NEW). */
 enum class ItemCondition { NEW, LIKE_NEW, USED, FOR_PARTS }
 
@@ -38,6 +44,10 @@ data class ListingDraft(
     val photos: List<String>,
     /** The seller's options; on an edit the list replaces the listing's (empty = none). */
     val options: List<OptionDraft> = emptyList(),
+    /** Free-form "name: value" features (the web's Features); on an edit they replace the listing's. */
+    val features: List<Pair<String, String>> = emptyList(),
+    /** What the seller does; sent on create only (the web's occupation step). */
+    val occupationId: String? = null,
 )
 
 /** One option as the form edits it: a name, an extra price in major units (text), and a per-item cap 1..10. */
@@ -59,6 +69,7 @@ data class EditableListing(
     val attributes: Map<String, Any>,
     val photos: List<ExistingPhoto>,
     val options: List<OptionDraft> = emptyList(),
+    val features: List<Pair<String, String>> = emptyList(),
 )
 
 data class ExistingPhoto(val mediaId: String, val url: String)

@@ -50,4 +50,5 @@
         <item quantity="one">%1$d دانەی تر لە فرۆشگا</item>
         <item quantity="other">%1$d دانەی تر لە فرۆشگا</item>
     </plurals>
+    <string name="profile_search_posts">گەڕان لە پۆستەکانت</string>
 </resources>

@@ -72,7 +72,21 @@ class ProfileViewModel @Inject constructor(
      */
     val posts = CursorPager<PostTile>(viewModelScope, { it.id }) { cursor ->
         if (myId == null) return@CursorPager Outcome.Failure(AppError.Unauthenticated)
-        profiles.myPersonalPosts(cursor)
+        profiles.myPersonalPosts(cursor, _postSearch.value)
+    }
+
+    /** Words to find among my own posts (GET /products/mine?search=). */
+    private val _postSearch = MutableStateFlow("")
+    val postSearch: StateFlow<String> = _postSearch.asStateFlow()
+    private var searchJob: kotlinx.coroutines.Job? = null
+
+    fun searchPosts(text: String) {
+        _postSearch.value = text
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            kotlinx.coroutines.delay(300)
+            posts.refresh(showSpinner = true)
+        }
     }
 
     /** Unfavourite from the list: the row goes once apps/api agrees. */

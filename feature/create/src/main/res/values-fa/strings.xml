@@ -59,4 +59,18 @@
     <string name="create_option_max">هر کالا چند بار می‌تواند بگیرد</string>
     <string name="create_option_add">افزودن گزینه</string>
     <string name="create_move_photo_earlier">جابه‌جایی عکس به جلو</string>
+    <string name="create_occupation">شغل شما چیست؟</string>
+    <string name="create_occupation_hint">اختیاری — دسته‌های مناسب را پیشنهاد می‌کند.</string>
+    <string name="create_occupation_search">جست‌وجوی شغل (مثلاً نانوا)</string>
+    <string name="create_skip_occupation">رد شدن</string>
+    <string name="create_no_occupation">بدون شغل</string>
+    <string name="create_change_occupation">تغییر</string>
+    <string name="create_suggested">دسته‌های پیشنهادی</string>
+    <string name="create_features">ویژگی‌ها</string>
+    <string name="create_feature_name">نام (مثلاً رنگ)</string>
+    <string name="create_feature_value">مقدار (مثلاً قرمز)</string>
+    <string name="create_feature_add">افزودن ویژگی</string>
+    <string name="create_feature_remove">حذف ویژگی</string>
+    <string name="create_move_photo_later">انتقال به بعد</string>
+    <string name="create_make_cover">عکس اصلی شود</string>
 </resources>
