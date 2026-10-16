@@ -57,9 +57,10 @@ private fun OrderLineDto.toModel(currency: String) = OrderLine(
     quantity = quantity,
     unitPrice = Money(unitPriceAmountMinor, currency),
     lineTotal = Money(lineTotalAmountMinor, currency),
+    options = options.map { if (it.quantity > 1) "${it.quantity}× ${it.name}" else it.name },
 )
 
-private fun ShippingDetailsDto.toModel() = ShippingDetails(recipientName, phone, line1, city, postalCode)
+private fun ShippingDetailsDto.toModel() = ShippingDetails(recipientName, phone, line1, city, postalCode, line2?.ifBlank { null }, region?.ifBlank { null }, countryCode)
 
 private fun OrderContextDto.toModel() = SellingContext(isStore = type == "STORE", storeName = storeName)
 

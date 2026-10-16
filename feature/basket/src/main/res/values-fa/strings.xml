@@ -121,4 +121,10 @@
     <string name="appt_with">با %1$s</string>
     <string name="appt_note">یادداشت: %1$s</string>
     <string name="checkout_saved_addresses">نشانی‌های ذخیره‌شده</string>
+    <string name="order_print_label">چاپ برچسب ارسال</string>
+    <string name="order_label_order">سفارش</string>
+    <string name="order_label_from">فرستنده</string>
+    <string name="order_label_to">گیرنده</string>
+    <string name="order_label_unpaid">هنوز پرداخت نشده</string>
+    <string name="basket_saved_money">صرفه‌جویی شما</string>
 </resources>

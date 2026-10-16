@@ -93,15 +93,23 @@ data class OrderLineDto(
     val unitPriceAmountMinor: Long,
     @Serializable(with = FlexibleLongSerializer::class)
     val lineTotalAmountMinor: Long,
+    val options: List<OrderLineOptionDto> = emptyList(),
 )
+
+/** An option chosen with the line, as it was sold (name and how many the line took). */
+@Serializable
+data class OrderLineOptionDto(val name: String, val quantity: Int = 1)
 
 @Serializable
 data class ShippingDetailsDto(
     val recipientName: String,
     val phone: String? = null,
     val line1: String,
+    val line2: String? = null,
     val city: String = "",
+    val region: String? = null,
     val postalCode: String? = null,
+    val countryCode: String = "",
 )
 
 @Serializable

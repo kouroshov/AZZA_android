@@ -97,3 +97,18 @@ data class Page<T>(
     /** How many there are in all, when the list says (search does). */
     val total: Int? = null,
 )
+
+/**
+ * The web's All / Personal / one-store filter on orders received and on
+ * notifications: [context] is apps/api's `all` | `personal` | `store`.
+ */
+data class ContextFilter(val context: String = "all", val storeId: String? = null) {
+    companion object {
+        val ALL = ContextFilter()
+        val PERSONAL = ContextFilter("personal")
+        fun store(id: String) = ContextFilter("store", id)
+    }
+}
+
+/** What can be chosen in that filter: the personal page and each store, by name. */
+data class SellingContexts(val hasPersonal: Boolean = true, val stores: List<Pair<String, String>> = emptyList())

@@ -78,6 +78,9 @@ internal fun LineRow(line: OrderLine) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Column(Modifier.weight(1f)) {
             Text(line.title, style = MaterialTheme.typography.bodyMedium)
+            if (line.options.isNotEmpty()) {
+                Text(line.options.joinToString(" · "), color = AzzaTheme.colors.textSecondary, style = MaterialTheme.typography.bodySmall)
+            }
             Text(
                 stringResource(R.string.order_quantity_times_price, line.quantity, line.unitPrice.format()),
                 color = AzzaTheme.colors.textMuted,
@@ -100,7 +103,9 @@ internal fun AmountRow(label: String, value: String, strong: Boolean = false) {
 internal fun ShippingBlock(shipping: ShippingDetails) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(shipping.recipientName, fontWeight = FontWeight.SemiBold)
-        Text(listOf(shipping.line1, shipping.city).filter { it.isNotBlank() }.joinToString(", "))
+        Text(shipping.line1)
+        shipping.line2?.let { Text(it) }
+        Text(listOfNotNull(shipping.city.ifBlank { null }, shipping.region, shipping.countryCode.ifBlank { null }).joinToString(", "))
         shipping.postalCode?.let { Text(stringResource(R.string.order_postal_code) + ": " + it, color = AzzaTheme.colors.textSecondary) }
         shipping.phone?.let { Text(stringResource(R.string.order_phone) + ": " + it, color = AzzaTheme.colors.textSecondary) }
     }

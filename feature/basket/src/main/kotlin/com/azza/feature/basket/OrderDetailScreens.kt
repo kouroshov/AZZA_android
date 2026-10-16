@@ -1,5 +1,11 @@
 package com.azza.feature.basket
 
+import androidx.compose.material.icons.outlined.Print
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.ui.platform.LocalContext
+import com.azza.core.model.ShippingDetails
+import com.azza.core.ui.htmlEscape
+import com.azza.core.ui.printHtml
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -157,7 +163,15 @@ private fun ReceivedBody(order: ReceivedOrderDetail, shipping: Boolean, shipErro
         }
         Section(stringResource(R.string.order_ship_to)) {
             when (order.shippingVisibility) {
-                ShippingVisibility.VISIBLE -> order.shipping?.let { ShippingBlock(it) }
+                ShippingVisibility.VISIBLE -> order.shipping?.let {
+                    ShippingBlock(it)
+                    val context = LocalContext.current
+                    val label = labelStrings()
+                    OutlinedButton(onClick = { printHtml(context, "AZZA ${order.reference}", shippingLabelHtml(order, it, label)) }) {
+                        Icon(Icons.Outlined.Print, null)
+                        Text(stringResource(R.string.order_print_label), modifier = Modifier.padding(start = 8.dp))
+                    }
+                }
                 ShippingVisibility.AWAITING_PAYMENT -> Text(stringResource(R.string.order_shipping_awaiting_payment), color = AzzaTheme.colors.textMuted)
                 ShippingVisibility.NOT_APPLICABLE -> Text(stringResource(R.string.order_shipping_not_applicable), color = AzzaTheme.colors.textMuted)
                 ShippingVisibility.NOT_RECORDED -> Text(stringResource(R.string.order_no_shipping_address), color = AzzaTheme.colors.textMuted)
@@ -173,4 +187,52 @@ private fun ReceivedBody(order: ReceivedOrderDetail, shipping: Boolean, shipErro
             Text(stringResource(if (conflict) R.string.order_mark_shipped_conflict else R.string.order_mark_shipped_error), color = AzzaTheme.colors.error)
         }
     }
+}
+
+/** The words on the label, in the app's language. */
+internal data class LabelStrings(val order: String, val from: String, val to: String, val items: String, val postal: String, val phone: String, val unpaid: String, val placed: String)
+
+@Composable
+private fun labelStrings() = LabelStrings(
+    order = stringResource(R.string.order_label_order),
+    from = stringResource(R.string.order_label_from),
+    to = stringResource(R.string.order_label_to),
+    items = stringResource(R.string.order_items),
+    postal = stringResource(R.string.order_postal_code),
+    phone = stringResource(R.string.order_phone),
+    unpaid = stringResource(R.string.order_label_unpaid),
+    placed = stringResource(R.string.order_placed_on, "%s"),
+)
+
+/** The web's ShippingLabelView as a printable page: order, sender, recipient, items. */
+internal fun shippingLabelHtml(order: ReceivedOrderDetail, to: ShippingDetails, s: LabelStrings): String {
+    fun e(t: String) = htmlEscape(t)
+    val items = order.lines.joinToString("") { l ->
+        val opts = if (l.options.isEmpty()) "" else "<div class=muted>${e(l.options.joinToString(" · "))}</div>"
+        "<tr><td dir=auto>${e(l.title)}$opts</td><td class=q>×${l.quantity}</td></tr>"
+    }
+    val place = listOfNotNull(to.city.ifBlank { null }, to.region).joinToString(", ")
+    return """<!doctype html><html><head><meta charset=utf-8><style>
+body{font-family:sans-serif;margin:12px;color:#000}
+.box{border:2px solid #000;border-radius:8px;padding:12px}
+.cap{font-size:10px;text-transform:uppercase;color:#555;margin-top:10px}
+.big{font-size:18px;font-weight:bold}
+.muted{font-size:11px;color:#555}
+.warn{border:2px dashed #000;padding:4px 8px;font-weight:bold;display:inline-block;margin-top:6px}
+table{width:100%;border-collapse:collapse;font-size:13px}td{padding:3px 0;vertical-align:top}.q{text-align:end;white-space:nowrap}
+</style></head><body><div class=box>
+<div class=cap>${e(s.order)}</div><div class=big dir=ltr>${e(order.reference)}</div>
+<div class=muted>${e(s.placed.replace("%s", formatInstantDate(order.placedAt)))}</div>
+${if (order.status != OrderStatus.PAID) "<div class=warn>${e(s.unpaid)}</div>" else ""}
+${order.context.storeName?.takeIf { order.context.isStore }?.let { "<div class=cap>${e(s.from)}</div><div dir=auto>${e(it)}</div>" } ?: ""}
+<div class=cap>${e(s.to)}</div>
+<div class=big dir=auto>${e(to.recipientName)}</div>
+<div dir=auto>${e(to.line1)}</div>
+${to.line2?.let { "<div dir=auto>${e(it)}</div>" } ?: ""}
+${if (place.isNotEmpty()) "<div dir=auto>${e(place)}</div>" else ""}
+${to.postalCode?.let { "<div>${e(s.postal)}: <span dir=ltr>${e(it)}</span></div>" } ?: ""}
+${if (to.countryCode.isNotBlank()) "<div>${e(to.countryCode)}</div>" else ""}
+${to.phone?.let { "<div>${e(s.phone)}: <span dir=ltr>${e(it)}</span></div>" } ?: ""}
+<div class=cap>${e(s.items)}</div><table>$items</table>
+</div></body></html>"""
 }

@@ -1,5 +1,13 @@
 package com.azza.feature.notifications
 
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import com.azza.core.common.Outcome
+import com.azza.core.data.StoresRepository
+import com.azza.core.model.SellingContexts
+import com.azza.core.model.ContextFilter
+import com.azza.core.ui.ContextChips
 import com.azza.core.ui.offlineNote
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -69,11 +77,26 @@ fun NavGraphBuilder.notificationsScreen(
 class NotificationsViewModel @Inject constructor(
     private val repository: NotificationsRepository,
     private val systemNotifications: SystemNotifications,
+    private val stores: StoresRepository,
 ) : ViewModel() {
-    val pager = CursorPager<AppNotification>(viewModelScope, { it.id }) { repository.page(it) }
+    private val _filter = MutableStateFlow(ContextFilter.ALL)
+    val filter: StateFlow<ContextFilter> = _filter.asStateFlow()
+    private val _contexts = MutableStateFlow(SellingContexts())
+    /** The personal page and each store the person runs (chips only when there is a store). */
+    val contexts: StateFlow<SellingContexts> = _contexts.asStateFlow()
+    val pager = CursorPager<AppNotification>(viewModelScope, { it.id }) { repository.page(it, _filter.value) }
+
+    fun select(filter: ContextFilter) {
+        if (filter == _filter.value) return
+        _filter.value = filter
+        pager.refresh()
+    }
 
     init {
         pager.refresh()
+        viewModelScope.launch {
+            (stores.mine() as? Outcome.Success)?.let { r -> _contexts.value = SellingContexts(true, r.value.map { it.id to it.name }) }
+        }
         // What the phone showed in its notification shade is now on screen.
         systemNotifications.clearAll()
         // Opening the list is reading it: the badge clears, rows keep their "unread" mark until the next visit.
@@ -89,9 +112,13 @@ fun NotificationsScreen(
     viewModel: NotificationsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.pager.state.collectAsStateWithLifecycle()
+    val contexts by viewModel.contexts.collectAsStateWithLifecycle()
+    val filter by viewModel.filter.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     LoadMoreEffect(listState, state.items.size, viewModel.pager::loadMore)
 
+    Column(Modifier.fillMaxSize()) {
+    ContextChips(contexts, filter, viewModel::select)
     when {
         state.loadingFirst -> LoadingState()
         state.error != null && state.items.isEmpty() -> ErrorState(state.error!!, onRetry = { viewModel.pager.refresh() })
@@ -120,6 +147,7 @@ fun NotificationsScreen(
                 }
             }
         }
+    }
     }
 }
 

@@ -186,7 +186,16 @@ interface OrdersApi {
     suspend fun placedDetail(@Path("orderId") orderId: String): ApiEnvelope<PlacedOrderDetailDto>
 
     @GET("orders/received")
-    suspend fun received(@Query("cursor") cursor: String?, @Query("take") take: Int = 20): ApiEnvelope<OrdersPageDto<ReceivedOrderSummaryDto>>
+    suspend fun received(
+        @Query("cursor") cursor: String?,
+        @Query("take") take: Int = 20,
+        @Query("context") context: String? = null,
+        @Query("storeId") storeId: String? = null,
+    ): ApiEnvelope<OrdersPageDto<ReceivedOrderSummaryDto>>
+
+    /** Which selling contexts the caller has received orders in (the filter's choices). */
+    @GET("orders/received/contexts")
+    suspend fun receivedContexts(): ApiEnvelope<ReceivedContextsDto>
 
     @GET("orders/received/{sellerOrderId}")
     suspend fun receivedDetail(@Path("sellerOrderId") sellerOrderId: String): ApiEnvelope<ReceivedOrderDetailDto>
@@ -245,7 +254,12 @@ interface SocialApi {
 
 interface NotificationsApi {
     @GET("notifications")
-    suspend fun list(@Query("cursor") cursor: String?, @Query("take") take: Int = 20): ApiEnvelope<NotificationsPageDto>
+    suspend fun list(
+        @Query("cursor") cursor: String?,
+        @Query("take") take: Int = 20,
+        @Query("context") context: String? = null,
+        @Query("storeId") storeId: String? = null,
+    ): ApiEnvelope<NotificationsPageDto>
 
     @GET("notifications/unread-count")
     suspend fun unreadCount(): ApiEnvelope<UnreadCountDto>
@@ -256,3 +270,9 @@ interface NotificationsApi {
 
 @Serializable
 data class BarcodeMatchDto(val productId: String)
+
+@Serializable
+data class ReceivedContextStoreDto(val storeId: String, val storeName: String = "")
+
+@Serializable
+data class ReceivedContextsDto(val hasPersonalOrders: Boolean = false, val stores: List<ReceivedContextStoreDto> = emptyList())

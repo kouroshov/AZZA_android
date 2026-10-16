@@ -43,6 +43,8 @@ data class OrderLine(
     val quantity: Int,
     val unitPrice: Money,
     val lineTotal: Money,
+    /** The options chosen with it, as sold: "Large", "2× Gift wrap". */
+    val options: List<String> = emptyList(),
 )
 
 data class PlacedOrderSummary(
@@ -79,6 +81,9 @@ data class ShippingDetails(
     val line1: String,
     val city: String,
     val postalCode: String?,
+    val line2: String? = null,
+    val region: String? = null,
+    val countryCode: String = "",
 )
 
 /** "Personal profile" or one of the viewer's stores — the selling context of a received order. */

@@ -1,5 +1,7 @@
 package com.azza.feature.basket
 
+import com.azza.core.model.Money
+import com.azza.core.ui.ContextChips
 import com.azza.core.ui.offlineNote
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -96,7 +98,13 @@ fun BasketScreen(
         when (BasketTab.entries[tab]) {
             BasketTab.BASKET -> BasketTabContent(viewModel, onBrowse, onOpenProduct, onCheckout)
             BasketTab.PLACED -> OrdersTab(viewModel.placed, R.string.basket_placed_empty, { it.orderId }, onOpenPlaced) { PlacedRow(it) }
-            BasketTab.RECEIVED -> OrdersTab(viewModel.received, R.string.basket_received_empty, { it.sellerOrderId }, onOpenReceived) { ReceivedRow(it) }
+            BasketTab.RECEIVED -> Column {
+                val contexts by viewModel.receivedContexts.collectAsStateWithLifecycle()
+                val filter by viewModel.receivedFilter.collectAsStateWithLifecycle()
+                LaunchedEffect(Unit) { viewModel.loadReceivedContexts() }
+                ContextChips(contexts, filter, viewModel::filterReceived)
+                OrdersTab(viewModel.received, R.string.basket_received_empty, { it.sellerOrderId }, onOpenReceived) { ReceivedRow(it) }
+            }
             BasketTab.APPOINTMENTS -> AppointmentsTab(onOpenOrder = onOpenPlaced, onOpenProduct = onOpenProduct)
         }
     }
@@ -157,6 +165,14 @@ private fun BasketTabContent(
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(pluralStringResource(R.plurals.basket_item_count, current.itemCount, current.itemCount), color = AzzaTheme.colors.textSecondary)
                 current.subtotal()?.let { Text(it.format(), style = AzzaTextStyles.productPrice) }
+            }
+            // What the listings' own discounts take off (the web's "Saved money"); a code is applied at checkout.
+            val saved = current.lines.filter { it.available }.sumOf { (it.unitPrice.amountMinor - it.unitPrice.discounted(it.discountPercentage).amountMinor) * it.quantity }
+            if (saved > 0) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(stringResource(R.string.basket_saved_money), color = AzzaTheme.colors.success)
+                    Text(Money(saved, current.lines.first().unitPrice.currency).format(), color = AzzaTheme.colors.success)
+                }
             }
             Button(
                 onClick = onCheckout,

@@ -1,5 +1,6 @@
 package com.azza.core.data
 
+import com.azza.core.model.ContextFilter
 import com.azza.core.model.SearchFilters
 import com.azza.core.network.model.NotificationsPageDto
 import com.azza.core.common.ApplicationScope
@@ -96,9 +97,9 @@ class NotificationsRepository @Inject constructor(
         (safeApiCall(json) { api.unreadCount().data } as? Outcome.Success)?.let { _unread.value = it.value.unreadCount }
     }
 
-    suspend fun page(cursor: String?): Outcome<Page<AppNotification>> {
-        val fetch = suspend { safeApiCall(json) { api.list(cursor).data } }
-        val result = if (cursor == null) offline.load("notifications", personal = true, NotificationsPageDto.serializer(), fetch = fetch) else fetch().map { Fresh(it) }
+    suspend fun page(cursor: String?, filter: ContextFilter = ContextFilter.ALL): Outcome<Page<AppNotification>> {
+        val fetch = suspend { safeApiCall(json) { api.list(cursor, context = filter.context.takeIf { it != "all" }, storeId = filter.storeId).data } }
+        val result = if (cursor == null && filter == ContextFilter.ALL) offline.load("notifications", personal = true, NotificationsPageDto.serializer(), fetch = fetch) else fetch().map { Fresh(it) }
         return result.map { (p, savedAt) -> Page(p.items.map { n -> n.toModel(media) }, p.nextCursor, p.hasMore, savedAt) }
     }
 

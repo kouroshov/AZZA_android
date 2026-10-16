@@ -1,5 +1,7 @@
 package com.azza.core.data
 
+import com.azza.core.model.SellingContexts
+import com.azza.core.model.ContextFilter
 import com.azza.core.network.model.CheckoutLineDto
 import com.azza.core.network.model.CheckoutLineOptionDto
 import com.azza.core.network.model.OrdersPageDto
@@ -103,9 +105,16 @@ class OrdersRepository @Inject constructor(
     suspend fun placedDetail(orderId: String): Outcome<PlacedOrderDetail> =
         safeApiCall(json) { orders.placedDetail(orderId).data }.map { it.toModel() }
 
-    suspend fun received(cursor: String?): Outcome<Page<ReceivedOrderSummary>> =
-        firstPageSaved("orders-received", cursor, OrdersPageDto.serializer(ReceivedOrderSummaryDto.serializer())) { safeApiCall(json) { orders.received(cursor).data } }
-            .map { (p, savedAt) -> Page(p.items.map { o -> o.toModel() }, p.nextCursor, p.hasMore, savedAt) }
+    suspend fun received(cursor: String?, filter: ContextFilter = ContextFilter.ALL): Outcome<Page<ReceivedOrderSummary>> {
+        val fetch = suspend { safeApiCall(json) { orders.received(cursor, context = filter.context.takeIf { it != "all" }, storeId = filter.storeId).data } }
+        // Only the unfiltered list is kept for offline use.
+        val result = if (filter == ContextFilter.ALL) firstPageSaved("orders-received", cursor, OrdersPageDto.serializer(ReceivedOrderSummaryDto.serializer()), fetch) else fetch().map { Fresh(it) }
+        return result.map { (p, savedAt) -> Page(p.items.map { o -> o.toModel() }, p.nextCursor, p.hasMore, savedAt) }
+    }
+
+    suspend fun receivedContexts(): Outcome<SellingContexts> = safeApiCall(json) { orders.receivedContexts().data }.map { c ->
+        SellingContexts(c.hasPersonalOrders, c.stores.map { it.storeId to it.storeName })
+    }
 
     private suspend fun <T> firstPageSaved(key: String, cursor: String?, serializer: KSerializer<T>, fetch: suspend () -> Outcome<T>): Outcome<Fresh<T>> =
         if (cursor == null) offline.load(key, personal = true, serializer, fetch = fetch) else fetch().map { Fresh(it) }

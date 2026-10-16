@@ -40,4 +40,6 @@
     <string name="barcode_hint">هنگام ساخت آگهی ساخته شده و هرگز تغییر نمی‌کند.</string>
     <string name="barcode_print">چاپ</string>
     <string name="barcode_close">بستن</string>
+    <string name="context_all">همه</string>
+    <string name="context_personal">شخصی</string>
 </resources>

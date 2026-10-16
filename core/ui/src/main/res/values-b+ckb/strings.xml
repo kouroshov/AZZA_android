@@ -41,4 +41,6 @@
     <string name="barcode_hint">لە کاتی دروستکردنی پۆستەکەدا دروست کراوە و هەرگیز ناگۆڕێت.</string>
     <string name="barcode_print">چاپکردن</string>
     <string name="barcode_close">داخستن</string>
+    <string name="context_all">هەموو</string>
+    <string name="context_personal">کەسی</string>
 </resources>

@@ -121,4 +121,10 @@
     <string name="appt_with">With %1$s</string>
     <string name="appt_note">Note: %1$s</string>
     <string name="checkout_saved_addresses">Saved addresses</string>
+    <string name="order_print_label">Print shipping label</string>
+    <string name="order_label_order">Order</string>
+    <string name="order_label_from">From</string>
+    <string name="order_label_to">Ship to</string>
+    <string name="order_label_unpaid">NOT PAID YET</string>
+    <string name="basket_saved_money">Saved money</string>
 </resources>

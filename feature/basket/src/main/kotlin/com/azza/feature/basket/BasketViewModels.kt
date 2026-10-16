@@ -1,5 +1,7 @@
 package com.azza.feature.basket
 
+import com.azza.core.model.SellingContexts
+import com.azza.core.model.ContextFilter
 import com.azza.core.data.Address
 import com.azza.core.data.MyAccountRepository
 import androidx.lifecycle.SavedStateHandle
@@ -43,7 +45,7 @@ fun Cart.subtotal(): Money? {
 class BasketViewModel @Inject constructor(
     private val cartRepository: CartRepository,
     basketOptions: com.azza.core.data.BasketOptions,
-    orders: OrdersRepository,
+    private val orders: OrdersRepository,
     auth: AuthRepository,
 ) : ViewModel() {
 
@@ -60,7 +62,21 @@ class BasketViewModel @Inject constructor(
     val error: StateFlow<AppError?> = _error.asStateFlow()
 
     val placed = CursorPager<PlacedOrderSummary>(viewModelScope, { it.orderId }) { orders.placed(it) }
-    val received = CursorPager<ReceivedOrderSummary>(viewModelScope, { it.sellerOrderId }) { orders.received(it) }
+    private val _receivedFilter = MutableStateFlow(ContextFilter.ALL)
+    val receivedFilter: StateFlow<ContextFilter> = _receivedFilter.asStateFlow()
+    private val _receivedContexts = MutableStateFlow(SellingContexts())
+    val receivedContexts: StateFlow<SellingContexts> = _receivedContexts.asStateFlow()
+    val received = CursorPager<ReceivedOrderSummary>(viewModelScope, { it.sellerOrderId }) { orders.received(it, _receivedFilter.value) }
+
+    fun loadReceivedContexts() = viewModelScope.launch {
+        (orders.receivedContexts() as? Outcome.Success)?.let { _receivedContexts.value = it.value }
+    }
+
+    fun filterReceived(filter: ContextFilter) {
+        if (filter == _receivedFilter.value) return
+        _receivedFilter.value = filter
+        received.refresh()
+    }
 
     fun refreshCart() = viewModelScope.launch { cartRepository.refresh() }
 

@@ -40,4 +40,6 @@
     <string name="barcode_hint">Made when the post was created, and never changes.</string>
     <string name="barcode_print">Print</string>
     <string name="barcode_close">Close</string>
+    <string name="context_all">All</string>
+    <string name="context_personal">Personal</string>
 </resources>
