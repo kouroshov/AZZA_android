@@ -53,6 +53,11 @@ internal fun FeedCardDto.toModel(media: MediaUrlResolver) = ProductCard(
 )
 
 internal fun ProductDto.toModel(media: MediaUrlResolver) = ProductDetail(
+    // A store's post is the store's; anything else, the account that posted it (as on the cards).
+    author = store?.let { PostAuthor(storeId ?: it.slug, it.slug, media.resolve(it.avatarMediaKey), isStore = true, storeSlug = it.slug) }
+        ?: seller?.let { PostAuthor(sellerId, it.username, media.resolve(it.profile?.avatarMediaKey), isStore = false, storeSlug = null) },
+    authorName = store?.name?.ifBlank { null }
+        ?: seller?.let { s -> listOfNotNull(s.profile?.firstName, s.profile?.lastName).joinToString(" ").trim().ifBlank { s.username } },
     id = id,
     title = title,
     description = description,

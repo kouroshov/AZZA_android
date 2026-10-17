@@ -28,6 +28,10 @@ fun notificationTitle(res: Resources, n: AppNotification): String = res.getStrin
         "ORDER_CANCELLED" -> R.string.n_type_order_cancelled
         "ORDER_REFUNDED" -> R.string.n_type_order_refunded
         "PAYOUT_SENT" -> R.string.n_type_payout_sent
+        "ADMIN_NEW_SIGN_IN" -> R.string.n_type_admin_new_sign_in
+        "SYSTEM_ALERT" -> R.string.n_type_system_alert
+        "APPROVAL_REQUESTED" -> R.string.n_type_approval_requested
+        "APPROVAL_DECIDED" -> R.string.n_type_approval_decided
         else -> R.string.n_type_generic
     },
 )
@@ -68,6 +72,31 @@ fun notificationBody(res: Resources, n: AppNotification): String {
         "ORDER_REFUNDED" ->
             res.getString(if (n.sellerOrderId != null) R.string.n_text_order_refunded_seller else R.string.n_text_order_refunded, subject)
         "PAYOUT_SENT" -> res.getString(R.string.n_text_payout_sent)
+        "ADMIN_NEW_SIGN_IN" ->
+            if (subject.isNotBlank()) res.getString(R.string.n_text_admin_new_sign_in, subject) else res.getString(R.string.n_text_admin_new_sign_in_plain)
+        // "RATE_LIMIT:<count>", written by apps/api.
+        "SYSTEM_ALERT" -> subject.substringAfter(':', "").toIntOrNull()?.takeIf { it > 0 }
+            ?.let { res.getString(R.string.n_text_system_alert_rate_limit, it) } ?: res.getString(R.string.n_text_system_alert)
+        "APPROVAL_REQUESTED" -> res.getString(R.string.n_text_approval_requested, approvalAction(res, subject))
+        // "<action>:<outcome>".
+        "APPROVAL_DECIDED" -> {
+            val action = approvalAction(res, subject.substringBefore(':'))
+            when (subject.substringAfter(':', "")) {
+                "APPROVED" -> res.getString(R.string.n_text_approval_approved, action)
+                "REJECTED" -> res.getString(R.string.n_text_approval_rejected, action)
+                else -> res.getString(R.string.n_text_approval_failed, action)
+            }
+        }
         else -> subject
     }
 }
+
+private fun approvalAction(res: Resources, code: String): String = res.getString(
+    when (code) {
+        "USER_DELETE" -> R.string.n_approval_user_delete
+        "ORDER_REFUND" -> R.string.n_approval_order_refund
+        "PAYOUT_RECORD" -> R.string.n_approval_payout_record
+        "WALLET_ADJUST" -> R.string.n_approval_wallet_adjust
+        else -> R.string.n_approval_other
+    },
+)

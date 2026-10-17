@@ -124,6 +124,9 @@ data class ProductDto(
     val discountPercentage: Double? = null,
     val sellerId: String,
     val storeId: String? = null,
+    /** Who sells it: public fields only (apps/api, 2026-10-17). */
+    val seller: ProductSellerDto? = null,
+    val store: ProductStoreDto? = null,
     val media: List<ProductMediaDto> = emptyList(),
     val inventory: InventoryDto? = null,
     val offeringKind: String = "GOOD",
@@ -195,3 +198,12 @@ data class ProductMediaDto(
 
 @Serializable
 data class InventoryDto(val quantity: Int = 0, val reservedQuantity: Int = 0)
+
+@Serializable
+data class ProductSellerProfileDto(val firstName: String = "", val lastName: String = "", val avatarMediaKey: String? = null)
+
+@Serializable
+data class ProductSellerDto(val username: String, val profile: ProductSellerProfileDto? = null)
+
+@Serializable
+data class ProductStoreDto(val slug: String, val name: String = "", val avatarMediaKey: String? = null)

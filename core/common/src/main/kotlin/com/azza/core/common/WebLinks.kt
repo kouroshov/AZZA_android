@@ -31,6 +31,8 @@ class WebLinks(baseUrl: String) {
     fun product(id: String) = "$base/store/${segment(id)}"
     fun user(username: String) = "$base/u/${segment(username)}"
     fun store(slug: String) = "$base/stores/${segment(slug)}"
+    /** Any page of the website by its path ("/admin/system"). */
+    fun page(path: String) = base + "/" + path.trimStart('/')
     fun branch(storeSlug: String, branchSlug: String) = "$base/stores/${segment(storeSlug)}/branches/${segment(branchSlug)}"
 
     /** Null for anything that is not one of the pages above on this website. */

@@ -49,6 +49,9 @@ data class ProductDetail(
     val price: Money,
     val discountPercentage: Double?,
     val imageUrls: List<String>,
+    /** The page it appears under (the store, or the person), with a name to show. */
+    val author: PostAuthor? = null,
+    val authorName: String? = null,
     val sellerId: String,
     val storeId: String?,
     val quantityAvailable: Int?,

@@ -55,4 +55,21 @@
         <item quantity="one">%d ئاگادارکردنەوەی نوێ</item>
         <item quantity="other">%d ئاگادارکردنەوەی نوێ</item>
     </plurals>
+    <string name="n_type_admin_new_sign_in">چوونەژوورەوەی نوێ بۆ پانێڵی بەڕێوەبردن</string>
+    <string name="n_type_system_alert">ئاگاداری سیستەم</string>
+    <string name="n_type_approval_requested">پێویستی بە پەسەندکردن</string>
+    <string name="n_type_approval_decided">ئەنجامی پەسەندکردن</string>
+    <string name="n_text_admin_new_sign_in">پانێڵی بەڕێوەبردن بە هەژمارەکەت لە ئامێرێکی نوێوە کرایەوە (%1$s). ئەگەر تۆ نەبوویت، ئەو دانیشتنە دابخە و چوونەژوورەوەی دوو هەنگاوی دووبارە ڕێکبخەوە.</string>
+    <string name="n_text_admin_new_sign_in_plain">پانێڵی بەڕێوەبردن بە هەژمارەکەت لە ئامێرێکی نوێوە کرایەوە. ئەگەر تۆ نەبوویت، ئەو دانیشتنە دابخە و چوونەژوورەوەی دوو هەنگاوی دووبارە ڕێکبخەوە.</string>
+    <string name="n_text_system_alert_rate_limit">سنووردارکەری ڕێژە لە پێنج خولەکدا %1$d داواکاری ڕەتکردەوە. بۆ بینینی وردەکاری، پەڕەی سیستەم بکەرەوە.</string>
+    <string name="n_text_system_alert">سیستەم ئاگادارییەکی تۆمار کرد. بۆ بینینی، پەڕەی سیستەم بکەرەوە.</string>
+    <string name="n_text_approval_requested">بەڕێوەبەرێک داوای پەسەندکردنی کردووە: %1$s.</string>
+    <string name="n_text_approval_approved">داواکارییەکەت پەسەند کرا و ئەنجامدرا: %1$s.</string>
+    <string name="n_text_approval_rejected">داواکارییەکەت ڕەتکرایەوە: %1$s. بۆ خوێندنەوەی هۆکار بیکەرەوە.</string>
+    <string name="n_text_approval_failed">داواکارییەکەت پەسەند کرا بەڵام ئەنجام نەدرا: %1$s.</string>
+    <string name="n_approval_user_delete">سڕینەوەی هەژمار</string>
+    <string name="n_approval_order_refund">گەڕاندنەوەی پارەی داواکاری</string>
+    <string name="n_approval_payout_record">تۆمارکردنی پارەدان</string>
+    <string name="n_approval_wallet_adjust">ڕاستکردنەوەی باڵانس</string>
+    <string name="n_approval_other">کارێک</string>
 </resources>

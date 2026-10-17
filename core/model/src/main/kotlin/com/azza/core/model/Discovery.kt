@@ -77,4 +77,6 @@ data class AppNotification(
     val productImageUrl: String?,
     val orderId: String?,
     val sellerOrderId: String?,
+    val ticketId: String? = null,
+    val storeSlug: String? = null,
 )

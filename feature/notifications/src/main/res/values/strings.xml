@@ -55,4 +55,21 @@
         <item quantity="one">%d new notification</item>
         <item quantity="other">%d new notifications</item>
     </plurals>
+    <string name="n_type_admin_new_sign_in">New admin sign-in</string>
+    <string name="n_type_system_alert">System alert</string>
+    <string name="n_type_approval_requested">Approval needed</string>
+    <string name="n_type_approval_decided">Approval decided</string>
+    <string name="n_text_admin_new_sign_in">The admin panel was opened with your account from a new device (%1$s). If that was not you, end the session and set up two-step sign-in again.</string>
+    <string name="n_text_admin_new_sign_in_plain">The admin panel was opened with your account from a new device. If that was not you, end the session and set up two-step sign-in again.</string>
+    <string name="n_text_system_alert_rate_limit">The rate limiter refused %1$d requests in five minutes. Open the system page to see where.</string>
+    <string name="n_text_system_alert">The system raised an alert. Open the system page to see it.</string>
+    <string name="n_text_approval_requested">An admin asked for approval: %1$s.</string>
+    <string name="n_text_approval_approved">Your request was approved and carried out: %1$s.</string>
+    <string name="n_text_approval_rejected">Your request was rejected: %1$s. Open it to read why.</string>
+    <string name="n_text_approval_failed">Your request was approved but could not be carried out: %1$s.</string>
+    <string name="n_approval_user_delete">erase an account</string>
+    <string name="n_approval_order_refund">refund an order</string>
+    <string name="n_approval_payout_record">record a payout</string>
+    <string name="n_approval_wallet_adjust">adjust a balance</string>
+    <string name="n_approval_other">an action</string>
 </resources>

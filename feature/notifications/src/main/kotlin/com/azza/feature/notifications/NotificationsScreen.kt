@@ -66,11 +66,44 @@ import kotlinx.serialization.Serializable
 @Serializable data object NotificationsRoute
 
 fun NavGraphBuilder.notificationsScreen(
-    onOpenProduct: (String) -> Unit,
-    onOpenPlacedOrder: (String) -> Unit,
-    onOpenReceivedOrder: (String) -> Unit,
+    nav: NotificationNav,
 ) {
-    composable<NotificationsRoute> { NotificationsScreen(onOpenProduct, onOpenPlacedOrder, onOpenReceivedOrder) }
+    composable<NotificationsRoute> { NotificationsScreen(nav) }
+}
+
+/** Where the screens a notification can open live (the app wires them). */
+class NotificationNav(
+    val openProduct: (String) -> Unit,
+    val openPlacedOrder: (String) -> Unit,
+    val openReceivedOrder: (String) -> Unit,
+    val openUser: (String) -> Unit,
+    val openStore: (String) -> Unit,
+    val openAppointments: () -> Unit,
+    /** A ticket's thread, or (null) the list. */
+    val openTicket: (String?) -> Unit,
+    /** A page that only exists on the website (the admin panel), opened in the browser. */
+    val openWebPage: (String) -> Unit,
+) {
+    /** The web's notificationHref, as a tap: always a page the recipient may see; null = nothing to open. */
+    fun target(n: AppNotification): (() -> Unit)? = when (n.type) {
+        "USER_FOLLOWED", "STORE_FOLLOWED" -> n.actorUsername?.let { u -> { openUser(u) } }
+        "ORDER_RECEIVED", "ORDER_PAID" -> n.sellerOrderId?.let { id -> { openReceivedOrder(id) } }
+        "ORDER_SHIPPED" -> n.orderId?.let { id -> { openPlacedOrder(id) } }
+        "PRODUCT_REVIEWED", "LISTING_TAKEN_DOWN", "LISTING_RESTORED" -> n.productId?.let { id -> { openProduct(id) } }
+        // The timetable it belongs to — the listing would only offer to book the hour again.
+        "APPOINTMENT_BOOKED", "APPOINTMENT_CANCELLED" -> openAppointments
+        "STORE_SUSPENDED", "STORE_RESTORED" -> n.storeSlug?.let { slug -> { openStore(slug) } }
+        "APPEAL_DECIDED" -> n.productId?.let { id -> { openProduct(id) } } ?: n.storeSlug?.let { slug -> { openStore(slug) } }
+        "ORDER_CANCELLED", "ORDER_REFUNDED" -> n.sellerOrderId?.let { id -> { openReceivedOrder(id) } } ?: n.orderId?.let { id -> { openPlacedOrder(id) } }
+        "TICKET_REPLIED" -> { { openTicket(n.ticketId) } }
+        // The admin panel is the website's.
+        "ADMIN_NEW_SIGN_IN" -> { { openWebPage("/admin/security") } }
+        "SYSTEM_ALERT" -> { { openWebPage("/admin/system") } }
+        "APPROVAL_REQUESTED", "APPROVAL_DECIDED" -> { { openWebPage("/admin/approvals") } }
+        else -> n.sellerOrderId?.let { id -> { openReceivedOrder(id) } }
+            ?: n.orderId?.let { id -> { openPlacedOrder(id) } }
+            ?: n.productId?.let { id -> { openProduct(id) } }
+    }
 }
 
 @HiltViewModel
@@ -106,9 +139,7 @@ class NotificationsViewModel @Inject constructor(
 
 @Composable
 fun NotificationsScreen(
-    onOpenProduct: (String) -> Unit,
-    onOpenPlacedOrder: (String) -> Unit,
-    onOpenReceivedOrder: (String) -> Unit,
+    nav: NotificationNav,
     viewModel: NotificationsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.pager.state.collectAsStateWithLifecycle()
@@ -134,12 +165,7 @@ fun NotificationsScreen(
                     offlineNote(state.savedAt)
                     items(state.items, key = { it.id }) { n ->
                         // The seller's copy of an order event opens the received order; the buyer's, the placed one.
-                        val open: (() -> Unit)? = when {
-                            n.sellerOrderId != null -> { { onOpenReceivedOrder(n.sellerOrderId!!) } }
-                            n.orderId != null -> { { onOpenPlacedOrder(n.orderId!!) } }
-                            n.productId != null -> { { onOpenProduct(n.productId!!) } }
-                            else -> null
-                        }
+                        val open: (() -> Unit)? = nav.target(n)
                         NotificationRow(n, open)
                         HorizontalDivider(color = AzzaTheme.colors.navDivider)
                     }

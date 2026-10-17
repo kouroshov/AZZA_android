@@ -96,10 +96,11 @@ data class NotificationDto(
     val productImage: String? = null,
     val orderId: String? = null,
     val sellerOrderId: String? = null,
+    val ticketId: String? = null,
 )
 
 @Serializable
-data class NotificationContextDto(val type: String = "PERSONAL", val storeName: String? = null)
+data class NotificationContextDto(val type: String = "PERSONAL", val storeName: String? = null, val storeSlug: String? = null)
 
 @Serializable
 data class UnreadCountDto(val unreadCount: Int)

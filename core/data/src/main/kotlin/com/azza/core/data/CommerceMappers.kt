@@ -172,4 +172,6 @@ internal fun NotificationDto.toModel(media: MediaUrlResolver) = AppNotification(
     productImageUrl = media.resolve(productImage),
     orderId = orderId,
     sellerOrderId = sellerOrderId,
+    ticketId = ticketId,
+    storeSlug = context?.storeSlug,
 )

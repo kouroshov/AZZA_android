@@ -1,5 +1,7 @@
 package com.azza.feature.product
 
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import com.azza.core.model.PostAuthor
 import androidx.compose.material.icons.outlined.QrCode2
 import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material.icons.outlined.Add
@@ -39,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.azza.core.common.AppError
 import com.azza.core.model.OfferingKind
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -89,6 +92,9 @@ import kotlinx.serialization.Serializable
 /** [source]: where the person found it, for apps/api's view analytics (see ProductsApi.byId). */
 @Serializable data class ProductRoute(val productId: String, val source: String? = null)
 
+/** The seller row's tap, provided by the app (the body is shared by several screens). */
+internal val LocalOpenAuthor = androidx.compose.runtime.staticCompositionLocalOf<((PostAuthor) -> Unit)?> { null }
+
 fun NavGraphBuilder.productScreen(
     onBack: () -> Unit,
     onRequireSignIn: () -> Unit,
@@ -97,8 +103,10 @@ fun NavGraphBuilder.productScreen(
     onOpenAppointments: () -> Unit,
     onBookingSettings: (String) -> Unit,
     onOpenTimetable: (storeId: String?) -> Unit,
+    onOpenAuthor: (PostAuthor) -> Unit,
 ) {
     composable<ProductRoute> {
+        androidx.compose.runtime.CompositionLocalProvider(LocalOpenAuthor provides onOpenAuthor) {
         ProductScreen(
             onBack = onBack,
             onRequireSignIn = onRequireSignIn,
@@ -108,6 +116,7 @@ fun NavGraphBuilder.productScreen(
             onBookingSettings = onBookingSettings,
             onOpenTimetable = onOpenTimetable,
         )
+        }
     }
 }
 
@@ -317,6 +326,22 @@ private fun ProductBody(product: ProductDetail, top: @Composable () -> Unit = {}
             }
         }
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            // Who sells it, one tap from their page (search, the map and notifications all land here).
+            val openAuthor = LocalOpenAuthor.current
+            product.author?.let { author ->
+                Row(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable(enabled = openAuthor != null) { openAuthor?.invoke(author) }.padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    com.azza.core.ui.Avatar(url = author.avatarUrl, isStore = author.isStore, size = 36)
+                    Column(Modifier.weight(1f)) {
+                        Text(product.authorName ?: author.handle, style = MaterialTheme.typography.titleSmall, color = colors.textPrimary)
+                        Text(com.azza.core.ui.handle(author.handle), style = MaterialTheme.typography.bodySmall, color = colors.textMuted)
+                    }
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = colors.textMuted)
+                }
+            }
             Text(product.title, style = MaterialTheme.typography.headlineSmall, color = colors.textPrimary)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(

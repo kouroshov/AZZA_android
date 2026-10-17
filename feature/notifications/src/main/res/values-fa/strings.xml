@@ -54,4 +54,21 @@
         <item quantity="one">%d اعلان تازه</item>
         <item quantity="other">%d اعلان تازه</item>
     </plurals>
+    <string name="n_type_admin_new_sign_in">ورود جدید به پنل مدیریت</string>
+    <string name="n_type_system_alert">هشدار سیستم</string>
+    <string name="n_type_approval_requested">نیاز به تأیید</string>
+    <string name="n_type_approval_decided">نتیجهٔ تأیید</string>
+    <string name="n_text_admin_new_sign_in">پنل مدیریت با حساب شما از یک دستگاه جدید باز شد (%1$s). اگر شما نبودید، آن نشست را ببندید و ورود دومرحله‌ای را دوباره راه‌اندازی کنید.</string>
+    <string name="n_text_admin_new_sign_in_plain">پنل مدیریت با حساب شما از یک دستگاه جدید باز شد. اگر شما نبودید، آن نشست را ببندید و ورود دومرحله‌ای را دوباره راه‌اندازی کنید.</string>
+    <string name="n_text_system_alert_rate_limit">محدودکنندهٔ نرخ در پنج دقیقه %1$d درخواست را رد کرد. برای دیدن جزئیات، صفحهٔ سیستم را باز کنید.</string>
+    <string name="n_text_system_alert">سیستم هشداری ثبت کرد. برای دیدنش صفحهٔ سیستم را باز کنید.</string>
+    <string name="n_text_approval_requested">یکی از مدیران درخواست تأیید داده است: %1$s.</string>
+    <string name="n_text_approval_approved">درخواست شما تأیید و انجام شد: %1$s.</string>
+    <string name="n_text_approval_rejected">درخواست شما رد شد: %1$s. برای خواندن دلیل، آن را باز کنید.</string>
+    <string name="n_text_approval_failed">درخواست شما تأیید شد اما انجام‌پذیر نبود: %1$s.</string>
+    <string name="n_approval_user_delete">حذف حساب</string>
+    <string name="n_approval_order_refund">استرداد سفارش</string>
+    <string name="n_approval_payout_record">ثبت تسویه</string>
+    <string name="n_approval_wallet_adjust">اصلاح موجودی</string>
+    <string name="n_approval_other">یک کار</string>
 </resources>

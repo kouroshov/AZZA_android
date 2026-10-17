@@ -1,5 +1,6 @@
 package com.azza.app.ui
 
+import com.azza.feature.notifications.NotificationNav
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.fadeIn
@@ -262,6 +263,7 @@ fun AzzaApp(
                     if (storeId != null) navController.navigate(TimetableRoute(storeId))
                     else navController.navigate(BasketRoute(tab = BasketTab.APPOINTMENTS.ordinal))
                 },
+                onOpenAuthor = openAuthor,
             )
             profileScreen(
                 onSignIn = signIn,
@@ -288,9 +290,19 @@ fun AzzaApp(
                 onBack = navController::popBackStack,
             )
             notificationsScreen(
-                onOpenProduct = openProduct,
-                onOpenPlacedOrder = openPlaced,
-                onOpenReceivedOrder = openReceived,
+                NotificationNav(
+                    openProduct = openProduct,
+                    openPlacedOrder = openPlaced,
+                    openReceivedOrder = openReceived,
+                    openUser = openUser,
+                    openStore = openStore,
+                    openAppointments = { navController.navigate(BasketRoute(tab = BasketTab.APPOINTMENTS.ordinal)) },
+                    openTicket = { id -> navController.navigate(if (id != null) TicketRoute(id) else SupportRoute) },
+                    // The admin panel's paths are not among the app's links, so a plain view opens the browser.
+                    openWebPage = { path ->
+                        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(webLinks.page(path)))) }
+                    },
+                ),
             )
             authScreens(
                 onSignedIn = { navController.popBackStack(LoginRoute, inclusive = true) || navController.popBackStack() },

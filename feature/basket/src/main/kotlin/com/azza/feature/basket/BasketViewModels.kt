@@ -145,7 +145,7 @@ class CheckoutViewModel @Inject constructor(
             val saved = (account.addresses() as? Outcome.Success)?.value.orEmpty()
             _saved.value = saved
             val s = _state.value
-            if (s.fullName.isBlank() && s.address.isBlank()) saved.firstOrNull { it.isDefault }?.let(::useAddress)
+            if (s.fullName.isBlank() && s.address.isBlank()) (saved.firstOrNull { it.isDefault } ?: saved.singleOrNull())?.let(::useAddress)
         }
     }
 

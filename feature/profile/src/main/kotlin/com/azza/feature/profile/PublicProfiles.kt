@@ -321,14 +321,18 @@ fun StoreProfileScreen(
                 }
                 item(key = "info") {
                     Column {
-                        store.address?.let { InfoLine(Icons.Outlined.Place, it) }
+                        // With a single branch the address IS the branch: one tap to its page, no list.
+                        val only = branches.singleOrNull()
+                        store.address?.let { address ->
+                            InfoLine(Icons.Outlined.Place, address, onClick = only?.let { b -> { onOpen(BranchPageRoute(store.id, b.id, store.slug, store.name)) } })
+                        }
                         store.phone?.let { phone -> InfoLine(Icons.Outlined.Phone, phone) { dial(context, phone) } }
                         if (store.hours.isNotEmpty()) HoursCard(store.hours, store.openStatus)
                         else if (store.openStatus != "UNKNOWN") Row(Modifier.padding(horizontal = 16.dp)) { OpenBadge(store.openStatus) }
                         store.ownerUsername?.let { owner ->
                             Box(Modifier.padding(top = 8.dp)) { RunBy(store.ownerName, owner) { onOpen(UserProfileRoute(owner)) } }
                         }
-                        BranchesSection(branches) { b ->
+                        BranchesSection(branches.takeIf { it.size > 1 }.orEmpty()) { b ->
                             onOpen(BranchPageRoute(store.id, b.id, store.slug, store.name))
                         }
                     }
