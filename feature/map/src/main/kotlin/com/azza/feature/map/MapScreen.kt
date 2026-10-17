@@ -1,5 +1,8 @@
 package com.azza.feature.map
 
+import org.maplibre.android.geometry.LatLngBounds
+import com.azza.core.data.CityCount
+import com.azza.core.data.MapSummary
 import androidx.compose.material.icons.filled.Directions
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.foundation.layout.heightIn
@@ -47,6 +50,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -113,6 +117,62 @@ private const val STYLE_URL = "https://tiles.openfreemap.org/styles/liberty"
 private const val SOURCE = "azza-branches"
 private const val LAYER = "azza-branches-dots"
 
+/**
+ * A move the app makes (a tapped circle, a chosen city, "near me"): the
+ * allowed box is loosened to all of Iran first — the box of the current
+ * zoom would hold the camera where it is — and tightened again when the
+ * camera settles.
+ */
+private fun MapLibreMap.flyTo(update: org.maplibre.android.camera.CameraUpdate, durationMs: Int = 700) {
+    setLatLngBoundsForCameraTarget(IRAN_BOUNDS)
+    animateCamera(update, durationMs)
+}
+
+/** The camera centre's allowed box for the current zoom (see the move listener). */
+private fun keepInsideIran(m: MapLibreMap) {
+    val view = m.projection.visibleRegion.latLngBounds
+    val halfLat = (view.latitudeNorth - view.latitudeSouth) / 2
+    val halfLng = (view.longitudeEast - view.longitudeWest) / 2
+    val south = IRAN_BOUNDS.latitudeSouth + halfLat
+    val north = IRAN_BOUNDS.latitudeNorth - halfLat
+    val west = IRAN_BOUNDS.longitudeWest + halfLng
+    val east = IRAN_BOUNDS.longitudeEast - halfLng
+    val lat = if (south < north) south to north else IRAN_CENTER.latitude to IRAN_CENTER.latitude
+    val lng = if (west < east) west to east else IRAN_CENTER.longitude to IRAN_CENTER.longitude
+    m.setLatLngBoundsForCameraTarget(LatLngBounds.from(lat.second, lng.second, lat.first, lng.first))
+}
+
+private const val COUNTRY_SOURCE = "azza-country"
+private const val CITY_SOURCE = "azza-city"
+
+/** A circle sized by its count, with the count written inside, shown between [minZoom] and [maxZoom]. */
+private fun countLayers(style: Style, source: String, id: String, color: Int, minZoom: Float, maxZoom: Float) {
+    style.addLayer(
+        CircleLayer("$id-circle", source).withProperties(
+            PropertyFactory.circleColor(color),
+            PropertyFactory.circleOpacity(0.9f),
+            PropertyFactory.circleStrokeColor(Color.WHITE),
+            PropertyFactory.circleStrokeWidth(3f),
+            PropertyFactory.circleRadius(
+                Expression.interpolate(
+                    Expression.linear(), Expression.get("count"),
+                    Expression.stop(1, 16f), Expression.stop(10, 22f), Expression.stop(100, 30f), Expression.stop(1000, 40f),
+                ),
+            ),
+        ).apply { setMinZoom(minZoom); setMaxZoom(maxZoom) },
+    )
+    style.addLayer(
+        org.maplibre.android.style.layers.SymbolLayer("$id-count", source).withProperties(
+            PropertyFactory.textField(Expression.get("label")),
+            PropertyFactory.textFont(arrayOf("Noto Sans Bold")),
+            PropertyFactory.textSize(14f),
+            PropertyFactory.textColor(Color.WHITE),
+            PropertyFactory.textAllowOverlap(true),
+            PropertyFactory.textIgnorePlacement(true),
+        ).apply { setMinZoom(minZoom); setMaxZoom(maxZoom) },
+    )
+}
+
 /** apps/api's limit on a map query, in degrees per side (less a little, for rounding). */
 private const val MAX_SPAN = 21.9
 
@@ -125,8 +185,22 @@ data class Here(val latitude: Double, val longitude: Double)
 /** Iran's box: a fix outside it does not move the map (the web's "outsideIran"). */
 internal fun insideIran(lat: Double, lng: Double) = lat in 24.8..40.0 && lng in 43.9..63.5
 
+/** What the map shows at the current zoom: one circle for Iran, a circle per city, or the shops themselves. */
+enum class MapLevel { COUNTRY, CITY, SHOPS }
+
+/** From this zoom on, single shops are drawn (and can be tapped). */
+internal const val SHOP_ZOOM = 10.5
+
+/** Iran's box: the camera never leaves it. */
+internal val IRAN_BOUNDS: LatLngBounds = LatLngBounds.from(39.9, 63.5, 24.9, 43.9)
+internal val IRAN_CENTER = LatLng(32.6, 53.7)
+
 data class MapUiState(
     val markers: List<BranchMarker> = emptyList(),
+    val level: MapLevel = MapLevel.COUNTRY,
+    val summary: MapSummary? = null,
+    /** The cities whose circle is on screen (at the CITY level). */
+    val citiesInView: List<CityCount> = emptyList(),
     /** The map shows only stores holding this category (the web's category filter). */
     val categoryId: String? = null,
     val categories: List<CategoryNode> = emptyList(),
@@ -153,7 +227,20 @@ class MapViewModel @Inject constructor(
     private var viewportJob: Job? = null
     private var lastViewport: DoubleArray? = null
 
+    private var lastLevel = MapLevel.COUNTRY
+
+    private fun loadSummary() = viewModelScope.launch {
+        (repository.summary(_state.value.categoryId) as? Outcome.Success)?.let { r ->
+            _state.update { it.copy(summary = r.value) }
+            lastViewport?.let { (n, s, e, w) -> _state.update { st -> st.copy(citiesInView = inBox(r.value, n, s, e, w)) } }
+        }
+    }
+
+    private fun inBox(summary: MapSummary?, n: Double, s: Double, e: Double, w: Double) =
+        summary?.cities.orEmpty().filter { it.latitude in s..n && it.longitude in w..e }
+
     init {
+        loadSummary()
         viewModelScope.launch {
             (listings.categoryTree() as? Outcome.Success)?.let { r -> _state.update { it.copy(categories = r.value) } }
             (geography.provinces() as? Outcome.Success)?.let { r -> _state.update { it.copy(provinces = r.value) } }
@@ -162,7 +249,8 @@ class MapViewModel @Inject constructor(
 
     fun setCategory(id: String?) {
         _state.update { it.copy(categoryId = id) }
-        lastViewport?.let { (n, s, e, w) -> onViewport(n, s, e, w) }
+        loadSummary()
+        lastViewport?.let { (n, s, e, w) -> onViewport(n, s, e, w, lastLevel) }
     }
 
     fun loadCities(province: Area) = viewModelScope.launch {
@@ -173,12 +261,21 @@ class MapViewModel @Inject constructor(
     fun setHere(here: Here?) = _state.update { it.copy(here = here) }
 
     /** Called when the camera settles; a short pause so panning does not fire a request per frame. */
-    fun onViewport(north: Double, south: Double, east: Double, west: Double) {
+    fun onViewport(north: Double, south: Double, east: Double, west: Double, level: MapLevel) {
         lastViewport = doubleArrayOf(north, south, east, west)
+        lastLevel = level
         viewportJob?.cancel()
+        // Zoomed out, the circles say it all: no shop is fetched, none can be tapped by accident.
+        if (level != MapLevel.SHOPS) {
+            _state.update {
+                it.copy(level = level, markers = emptyList(), tooFarOut = true, loading = false, error = null,
+                    citiesInView = inBox(it.summary, north, south, east, west))
+            }
+            return
+        }
         viewportJob = viewModelScope.launch {
             delay(250)
-            _state.update { it.copy(loading = true, tooFarOut = north - south > 6.0) }
+            _state.update { it.copy(level = level, loading = true, tooFarOut = false) }
             // apps/api refuses an area wider than 22° a side (GEOGRAPHY_QUERY_TOO_LARGE):
             // zoomed far out, ask for the middle of the screen instead of failing.
             val (n, s) = clampSpan(south, north)
@@ -244,11 +341,37 @@ fun MapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, on
         }
     }
 
+    // The listener set up once below reads the newest numbers through this.
+    val latestSummary by rememberUpdatedState(state.summary)
+    // Below this zoom the whole of Iran is one circle (set once the map knows its size).
+    var countryZoom by remember { mutableStateOf(5.2) }
+    val levelAt: (Double) -> MapLevel = { zoom ->
+        when {
+            zoom < countryZoom -> MapLevel.COUNTRY
+            zoom < SHOP_ZOOM -> MapLevel.CITY
+            else -> MapLevel.SHOPS
+        }
+    }
+
     LaunchedEffect(mapView) {
         mapView.getMapAsync { m ->
             m.cameraPosition = START
             m.uiSettings.isRotateGesturesEnabled = false
+            // Iran and only Iran: the camera's target stays inside it.
+            m.setLatLngBoundsForCameraTarget(IRAN_BOUNDS)
             m.setStyle(Style.Builder().fromUri(STYLE_URL)) { style ->
+                // …and it cannot zoom out past "all of Iran on screen".
+                val fit = m.getCameraForLatLngBounds(IRAN_BOUNDS, intArrayOf(24, 24, 24, 24))
+                val minZoom = fit?.zoom ?: 3.9
+                m.setMinZoomPreference(minZoom)
+                if (fit != null) m.cameraPosition = fit
+                countryZoom = minZoom + 0.9
+                val blue = android.graphics.Color.argb(255, (primary.red * 255).toInt(), (primary.green * 255).toInt(), (primary.blue * 255).toInt())
+                style.addSource(GeoJsonSource(COUNTRY_SOURCE))
+                style.addSource(GeoJsonSource(CITY_SOURCE))
+                // One circle for all of Iran, then one per city, each with its number of shops.
+                countLayers(style, COUNTRY_SOURCE, "azza-country", blue, minZoom = 0f, maxZoom = countryZoom.toFloat())
+                countLayers(style, CITY_SOURCE, "azza-city", blue, minZoom = countryZoom.toFloat(), maxZoom = SHOP_ZOOM.toFloat())
                 style.addSource(GeoJsonSource(SOURCE))
                 style.addLayer(
                     CircleLayer(LAYER, SOURCE).withProperties(
@@ -264,23 +387,85 @@ fun MapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, on
                         PropertyFactory.circleStrokeColor(Color.WHITE),
                         PropertyFactory.circleStrokeWidth(2f),
                     ),
-                )
+                    // Single shops only once zoomed in: zoomed out, a tap must never open one shop.
+                ).also { style.getLayer(LAYER)?.setMinZoom(SHOP_ZOOM.toFloat()) }
                 styleReady = true
                 val bounds = m.projection.visibleRegion.latLngBounds
-                viewModel.onViewport(bounds.latitudeNorth, bounds.latitudeSouth, bounds.longitudeEast, bounds.longitudeWest)
+                viewModel.onViewport(bounds.latitudeNorth, bounds.latitudeSouth, bounds.longitudeEast, bounds.longitudeWest, levelAt(m.cameraPosition.zoom))
             }
+            // Keep the whole SCREEN inside Iran, not just its centre: the centre may only go as far
+            // as leaves half a screen of Iran around it. At the widest zoom (all of Iran on screen,
+            // and a tall phone shows a little more than Iran) the centre is held at Iran's middle.
+            // Only while a finger moves the map: re-setting the box mid-animation would stop the
+            // app's own fly-to (a tapped circle); the box is set again when the camera settles.
+            var byGesture = false
+            m.addOnCameraMoveStartedListener { reason -> byGesture = reason == MapLibreMap.OnCameraMoveStartedListener.REASON_API_GESTURE }
+            m.addOnCameraMoveListener { if (byGesture) keepInsideIran(m) }
             m.addOnCameraIdleListener {
+                keepInsideIran(m)
                 val bounds = m.projection.visibleRegion.latLngBounds
-                viewModel.onViewport(bounds.latitudeNorth, bounds.latitudeSouth, bounds.longitudeEast, bounds.longitudeWest)
+                viewModel.onViewport(bounds.latitudeNorth, bounds.latitudeSouth, bounds.longitudeEast, bounds.longitudeWest, levelAt(m.cameraPosition.zoom))
             }
             m.addOnMapClickListener { latLng ->
-                val hit = m.queryRenderedFeatures(m.projection.toScreenLocation(latLng), LAYER).firstOrNull()
+                val screen = m.projection.toScreenLocation(latLng)
+                // A finger is wider than a point: the circles answer to a tap anywhere near them.
+                val slop = 24 * context.resources.displayMetrics.density
+                val near = android.graphics.RectF(screen.x - slop, screen.y - slop, screen.x + slop, screen.y + slop)
+                // The Iran circle opens the cities; a city's circle flies to that city's shops.
+                if (m.queryRenderedFeatures(near, "azza-country-circle").isNotEmpty()) {
+                    // Straight to where the shops are: every city with one, framed — never so far
+                    // out that the Iran circle would come back.
+                    val cities = latestSummary?.cities.orEmpty()
+                    val framed = if (cities.size >= 2) {
+                        val box = LatLngBounds.Builder().apply { cities.forEach { include(LatLng(it.latitude, it.longitude)) } }.build()
+                        m.getCameraForLatLngBounds(box, intArrayOf(120, 360, 120, 260))
+                    } else null
+                    val target = framed?.target ?: cities.firstOrNull()?.let { LatLng(it.latitude, it.longitude) } ?: IRAN_CENTER
+                    val zoom = maxOf(framed?.zoom ?: 0.0, countryZoom + 0.15).coerceAtMost(SHOP_ZOOM - 0.5)
+                    m.flyTo(org.maplibre.android.camera.CameraUpdateFactory.newLatLngZoom(target, zoom), 700)
+                    return@addOnMapClickListener true
+                }
+                m.queryRenderedFeatures(near, "azza-city-circle").firstOrNull()?.let { city ->
+                    val p = city.geometry() as? Point
+                    if (p != null) m.flyTo(org.maplibre.android.camera.CameraUpdateFactory.newLatLngZoom(LatLng(p.latitude(), p.longitude()), SHOP_ZOOM + 1.0), 900)
+                    return@addOnMapClickListener true
+                }
+                val hit = m.queryRenderedFeatures(screen, LAYER).firstOrNull()
                 val id = hit?.getStringProperty("branchId")
                 if (id != null) viewModel.select(id) else viewModel.closePreview()
                 id != null
             }
             map = m
         }
+    }
+
+    // The circles: Iran's total, and each city's.
+    LaunchedEffect(state.summary, styleReady) {
+        val style = map?.style ?: return@LaunchedEffect
+        val summary = state.summary ?: return@LaunchedEffect
+        val digits = java.text.NumberFormat.getIntegerInstance(java.util.Locale.getDefault())
+        style.getSourceAs<GeoJsonSource>(COUNTRY_SOURCE)?.setGeoJson(
+            FeatureCollection.fromFeatures(
+                if (summary.stores == 0) emptyList()
+                else listOf(
+                    Feature.fromGeometry(Point.fromLngLat(IRAN_CENTER.longitude, IRAN_CENTER.latitude)).apply {
+                        addNumberProperty("count", summary.stores)
+                        addStringProperty("label", digits.format(summary.stores))
+                    },
+                ),
+            ),
+        )
+        style.getSourceAs<GeoJsonSource>(CITY_SOURCE)?.setGeoJson(
+            FeatureCollection.fromFeatures(
+                summary.cities.map { c ->
+                    Feature.fromGeometry(Point.fromLngLat(c.longitude, c.latitude)).apply {
+                        addStringProperty("cityId", c.cityId)
+                        addNumberProperty("count", c.stores)
+                        addStringProperty("label", digits.format(c.stores))
+                    }
+                },
+            ),
+        )
     }
 
     // Markers → the GeoJSON source, whenever they change.
@@ -317,7 +502,7 @@ fun MapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, on
                 !insideIran(lat, lng) -> outsideIran = true
                 else -> {
                     viewModel.setHere(Here(lat, lng))
-                    map?.animateCamera(org.maplibre.android.camera.CameraUpdateFactory.newLatLngZoom(LatLng(lat, lng), 13.0))
+                    map?.flyTo(org.maplibre.android.camera.CameraUpdateFactory.newLatLngZoom(LatLng(lat, lng), 13.0))
                 }
             }
         }
@@ -343,7 +528,12 @@ fun MapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, on
         Column(Modifier.align(Alignment.TopStart).padding(start = 64.dp, top = 12.dp, end = 48.dp)) {
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 AssistChip(onClick = { cityOpen = true }, label = { Text(stringResource(R.string.map_choose_city)) }, colors = chipColors())
-                AssistChip(onClick = { listOpen = true }, label = { Text(pluralStringResource(R.plurals.map_stores_here, state.markers.size, state.markers.size)) }, colors = chipColors())
+                val inView = when (state.level) {
+                    MapLevel.COUNTRY -> state.summary?.stores ?: 0
+                    MapLevel.CITY -> state.citiesInView.sumOf { it.stores }
+                    MapLevel.SHOPS -> state.markers.size
+                }
+                AssistChip(onClick = { listOpen = true }, label = { Text(pluralStringResource(R.plurals.map_stores_here, inView, inView)) }, colors = chipColors())
             }
             Row(Modifier.horizontalScroll(rememberScrollState()).padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 val language = LocalConfiguration.current.locales[0].language
@@ -367,9 +557,12 @@ fun MapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, on
                 .background(AzzaTheme.colors.bg, RoundedCornerShape(8.dp)).padding(8.dp))
         }
         if (listOpen) {
-            StoresInView(state, onDismiss = { listOpen = false }) { marker ->
+            StoresInView(state, onDismiss = { listOpen = false }, onPickCity = { city ->
                 listOpen = false
-                map?.animateCamera(org.maplibre.android.camera.CameraUpdateFactory.newLatLng(LatLng(marker.latitude, marker.longitude)))
+                map?.flyTo(org.maplibre.android.camera.CameraUpdateFactory.newLatLngZoom(LatLng(city.latitude, city.longitude), SHOP_ZOOM + 1.0))
+            }) { marker ->
+                listOpen = false
+                map?.flyTo(org.maplibre.android.camera.CameraUpdateFactory.newLatLng(LatLng(marker.latitude, marker.longitude)))
                 viewModel.select(marker.branchId)
             }
         }
@@ -378,7 +571,7 @@ fun MapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, on
                 cityOpen = false
                 val lat = area.latitude
                 val lng = area.longitude
-                if (lat != null && lng != null) map?.animateCamera(org.maplibre.android.camera.CameraUpdateFactory.newLatLngZoom(LatLng(lat, lng), 11.5))
+                if (lat != null && lng != null) map?.flyTo(org.maplibre.android.camera.CameraUpdateFactory.newLatLngZoom(LatLng(lat, lng), 11.5))
             }
         }
         if (state.selected != null) {
@@ -471,7 +664,7 @@ private fun filterColors() = FilterChipDefaults.filterChipColors(containerColor 
 /** The web's "Stores in this area" list, for the branches the map is showing. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun StoresInView(state: MapUiState, onDismiss: () -> Unit, onPick: (BranchMarker) -> Unit) {
+private fun StoresInView(state: MapUiState, onDismiss: () -> Unit, onPickCity: (CityCount) -> Unit, onPick: (BranchMarker) -> Unit) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Text(
             pluralStringResource(R.plurals.map_stores_here, state.markers.size, state.markers.size),
@@ -479,7 +672,25 @@ private fun StoresInView(state: MapUiState, onDismiss: () -> Unit, onPick: (Bran
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         )
         when {
-            state.tooFarOut -> Text(stringResource(R.string.map_list_zoom_in), color = AzzaTheme.colors.textMuted, modifier = Modifier.padding(16.dp))
+            // Zoomed out: the cities instead, each one tap from its shops.
+            state.tooFarOut -> {
+                val cities = if (state.level == MapLevel.COUNTRY) state.summary?.cities.orEmpty() else state.citiesInView
+                if (cities.isEmpty()) {
+                    Text(stringResource(R.string.map_list_zoom_in), color = AzzaTheme.colors.textMuted, modifier = Modifier.padding(16.dp))
+                } else {
+                    LazyColumn(Modifier.heightIn(max = 480.dp)) {
+                        items(cities, key = { it.cityId }) { c ->
+                            Row(
+                                Modifier.fillMaxWidth().clickable { onPickCity(c) }.padding(horizontal = 16.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(c.name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                                Text(pluralStringResource(R.plurals.map_city_stores, c.stores, c.stores), color = AzzaTheme.colors.textMuted, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                }
+            }
             state.markers.isEmpty() -> Text(
                 stringResource(if (state.categoryId != null) R.string.map_list_empty_filtered else R.string.map_list_empty),
                 color = AzzaTheme.colors.textMuted,

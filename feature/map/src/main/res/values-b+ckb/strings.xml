@@ -87,4 +87,8 @@
     <string name="map_directions">ڕێنمایی ڕێگا</string>
     <string name="dir_approximate">تەنها شوێنی نزیکەییت ڕێگەپێدراوە، بۆیە شوێنکەوتنی ڕێگا لەوانەیە ورد نەبێت. بۆ ڕێنمایی ورد، ڕێگە بە شوێنی ورد بدە.</string>
     <string name="dir_rerouting">لە ڕێگاکە دەرچوویت؛ دۆزینەوەی ڕێگایەکی نوێ…</string>
+    <plurals name="map_city_stores">
+        <item quantity="one">%1$d دوکان</item>
+        <item quantity="other">%1$d دوکان</item>
+    </plurals>
 </resources>

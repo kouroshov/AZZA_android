@@ -86,4 +86,8 @@
     <string name="map_directions">مسیریابی</string>
     <string name="dir_approximate">فقط موقعیت تقریبی شما مجاز است، پس دنبال کردن مسیر ممکن است دقیق نباشد. برای راهنمای لحظه‌به‌لحظه، موقعیت دقیق را مجاز کنید.</string>
     <string name="dir_rerouting">از مسیر خارج شدید؛ در حال یافتن مسیر تازه…</string>
+    <plurals name="map_city_stores">
+        <item quantity="one">%1$d مغازه</item>
+        <item quantity="other">%1$d مغازه</item>
+    </plurals>
 </resources>

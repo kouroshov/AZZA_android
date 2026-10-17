@@ -38,6 +38,12 @@ data class BranchPreview(
     val products: List<BranchPreviewProduct>,
 )
 
+/** One city's circle on the zoomed-out map. */
+data class CityCount(val cityId: String, val name: String, val latitude: Double, val longitude: Double, val stores: Int)
+
+/** Shops in all of Iran, and per city. */
+data class MapSummary(val stores: Int, val cities: List<CityCount>)
+
 enum class TravelMode(val api: String) { CAR("car"), FOOT("foot"), BIKE("bike") }
 
 /** A point on the way. */
@@ -82,6 +88,10 @@ class MapRepository @Inject constructor(
                 )
             }
         }
+
+    suspend fun summary(categoryId: String?): Outcome<MapSummary> = safeApiCall(json) { api.summary(categoryId).data }.map { s ->
+        MapSummary(s.storeCount, s.cities.map { CityCount(it.cityId, it.name, it.latitude, it.longitude, it.storeCount) })
+    }
 
     /** The way from [from] to the branch (apps/api asks its routing server). */
     suspend fun directions(branchId: String, from: GeoPoint, mode: TravelMode): Outcome<Directions> =

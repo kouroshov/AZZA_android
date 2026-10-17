@@ -86,4 +86,8 @@
     <string name="map_directions">Directions</string>
     <string name="dir_approximate">Only your approximate location is allowed, so following the way may be rough. Allow precise location for turn-by-turn.</string>
     <string name="dir_rerouting">Off the route — finding a new way…</string>
+    <plurals name="map_city_stores">
+        <item quantity="one">%1$d shop</item>
+        <item quantity="other">%1$d shops</item>
+    </plurals>
 </resources>

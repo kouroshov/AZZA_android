@@ -72,6 +72,10 @@ interface MapApi {
         @Query("lng") lng: Double? = null,
     ): ApiEnvelope<BranchPreviewDto>
 
+    /** Shops in all of Iran and per city (the zoomed-out map's circles). Public. */
+    @GET("map/summary")
+    suspend fun summary(@Query("categoryId") categoryId: String? = null): ApiEnvelope<MapSummaryDto>
+
     /** The way from [fromLat]/[fromLng] to a branch: car, foot or bike. Public. */
     @GET("map/branches/{branchId}/directions")
     suspend fun directions(
@@ -108,3 +112,9 @@ data class DirectionsDto(
     val steps: List<DirectionsStepDto> = emptyList(),
     val destination: DirectionsPointDto,
 )
+
+@Serializable
+data class MapCitySummaryDto(val cityId: String, val name: String = "", val latitude: Double, val longitude: Double, val storeCount: Int = 0)
+
+@Serializable
+data class MapSummaryDto(val storeCount: Int = 0, val cities: List<MapCitySummaryDto> = emptyList())
