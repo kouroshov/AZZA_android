@@ -192,13 +192,12 @@ fun AzzaApp(
 
     Scaffold(
         containerColor = AzzaTheme.colors.bg,
-        topBar = { if (showChrome) AzzaTopBar(
+        // Only Home has a top bar (the AZZA name and the bell). Every other page is full screen;
+        // Profile carries its ⋮ (settings) in its own header row.
+        topBar = { if (destination.isOn(TopLevelDestination.FOLLOWING)) AzzaTopBar(
                 unread,
-                // The bell lives on Home only, the ⋮ (settings) on Profile only; other pages carry neither.
-                onNotifications = { navController.navigate(NotificationsRoute) { launchSingleTop = true } }
-                    .takeIf { destination.isOn(TopLevelDestination.FOLLOWING) },
-                onMore = { navController.navigate(SettingsRoute) { launchSingleTop = true } }
-                    .takeIf { destination.isOn(TopLevelDestination.PROFILE) },
+                onNotifications = { navController.navigate(NotificationsRoute) { launchSingleTop = true } },
+                onMore = null,
             ) },
         bottomBar = { if (showChrome) AzzaBottomBar(destination, navController, basketCount, signedIn, appViewModel) },
     ) { padding ->
@@ -274,6 +273,7 @@ fun AzzaApp(
                 onOpenUser = openUser,
                 onOpenStore = openStore,
                 onEditListing = { id -> navController.navigate(EditListingRoute(id)) },
+                onOpenSettings = { navController.navigate(SettingsRoute) { launchSingleTop = true } },
             )
             basketScreens(
                 onSignIn = signIn,

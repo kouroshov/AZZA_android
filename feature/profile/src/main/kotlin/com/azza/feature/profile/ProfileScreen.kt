@@ -1,5 +1,6 @@
 package com.azza.feature.profile
 
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.OutlinedTextField
 import com.azza.core.ui.OwnerPostsBar
@@ -87,8 +88,9 @@ fun NavGraphBuilder.profileScreen(
     onOpenUser: (String) -> Unit,
     onOpenStore: (String) -> Unit,
     onEditListing: (String) -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
-    composable<ProfileRoute> { ProfileScreen(onSignIn, onOpenProduct, onEditProfile, onOpenFollowList, onOpenStores, onEditListing) }
+    composable<ProfileRoute> { ProfileScreen(onSignIn, onOpenProduct, onEditProfile, onOpenFollowList, onOpenStores, onEditListing, onOpenSettings) }
     composable<FollowListRoute> { FollowListScreen(onBack, onOpenUser, onOpenStore) }
 }
 
@@ -100,6 +102,7 @@ fun ProfileScreen(
     onOpenFollowList: (followers: Boolean) -> Unit,
     onOpenStores: () -> Unit,
     onEditListing: (String) -> Unit,
+    onOpenSettings: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -110,12 +113,12 @@ fun ProfileScreen(
     }
     when (val s = state) {
         ProfileUiState.Loading -> LoadingState()
-        ProfileUiState.SignedOut -> SignedOut(onSignIn)
+        ProfileUiState.SignedOut -> SignedOut(onSignIn, onOpenSettings)
         is ProfileUiState.Failed ->
-            if (s.error == AppError.Unauthenticated) SignedOut(onSignIn) else ErrorState(s.error, onRetry = { viewModel.retry() })
+            if (s.error == AppError.Unauthenticated) SignedOut(onSignIn, onOpenSettings) else ErrorState(s.error, onRetry = { viewModel.retry() })
         is ProfileUiState.Ready -> {
             val me by viewModel.me.collectAsStateWithLifecycle()
-            Profile(me ?: s.user, viewModel, onOpenProduct, onEditProfile, onOpenFollowList, onOpenStores, onEditListing)
+            Profile(me ?: s.user, viewModel, onOpenProduct, onEditProfile, onOpenFollowList, onOpenStores, onEditListing, onOpenSettings)
         }
     }
 }
@@ -130,6 +133,7 @@ private fun Profile(
     onOpenFollowList: (followers: Boolean) -> Unit,
     onOpenStores: () -> Unit,
     onEditListing: (String) -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
     val followers by viewModel.followerCount.collectAsStateWithLifecycle()
     val postCount by viewModel.postCount.collectAsStateWithLifecycle()
@@ -170,6 +174,8 @@ private fun Profile(
                     IconButton(onClick = { shareLink(context, user.displayName, links.user(user.username)) }) {
                         Icon(Icons.Outlined.Share, stringResource(com.azza.core.ui.R.string.share))
                     }
+                    // Settings, on this page only (it slides in from this edge).
+                    IconButton(onClick = onOpenSettings) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.profile_settings)) }
                 }
                 // Photo with the counters beside it (the web's phone header, §4).
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(24.dp)) {
@@ -268,7 +274,12 @@ private fun FavoriteRow(item: FavoriteItem, onOpen: () -> Unit, onRemove: () -> 
 }
 
 @Composable
-private fun SignedOut(onSignIn: () -> Unit) {
+private fun SignedOut(onSignIn: () -> Unit, onOpenSettings: () -> Unit) {
+    // Language and theme are settings too, so a guest reaches them here as well.
+    Box(Modifier.fillMaxSize()) {
+        IconButton(onClick = onOpenSettings, modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)) {
+            Icon(Icons.Outlined.MoreVert, stringResource(R.string.profile_settings))
+        }
     Column(
         Modifier.fillMaxSize().padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
@@ -280,6 +291,7 @@ private fun SignedOut(onSignIn: () -> Unit) {
             color = AzzaTheme.colors.textSecondary,
         )
         Button(onClick = onSignIn) { Text(stringResource(R.string.profile_sign_in)) }
+    }
     }
 }
 
