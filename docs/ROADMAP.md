@@ -371,9 +371,31 @@ built:
 - apps/api (web repo, PR #41, merged into `master` 2026-10-16): post counts
   on a person's page and a store's, and a store's owner.
 
+### 5e — directions to a shop ✅ (2026-10-17)
+
+- **Directions** from the store page (single branch), the branch page and
+  the map's store preview: the way drawn on AZZA's own map (MapLibre), with
+  time and distance by car, on foot or by bike, every turn listed with its
+  street name (Persian names from OpenStreetMap), and **Start** to follow
+  it live — the next turn in large type, the map following the phone, a
+  new way found when the phone leaves the route, "you have arrived" at the
+  door, the screen kept on. Voice guidance uses the phone's own
+  text-to-speech in the app's language (and says so when the phone has no
+  voice for it). "Other app" hands the place to the phone's maps app.
+- Precise location is asked for on this screen only (the map's "near me"
+  stays approximate); with approximate only, it still shows the way and
+  says following may be rough.
+- The way comes from apps/api (`GET /map/branches/:id/directions`, web PR
+  #43), which asks an OSRM routing server — FOSSGIS's public one by default.
+  **Before release: self-host OSRM or Valhalla with an Iran extract** and set
+  `ROUTING_URL_TEMPLATE`; the public server is for development and low
+  volume only, and the visitor's position (rounded to ~11 m) goes to it.
+- Turn-by-turn logic (`RouteFollower`) is plain Kotlin with its own tests.
+
 ## Before the first release
 
 - Confirm the `applicationId` (`com.azza.app` now — permanent once uploaded).
+- Self-hosted routing server for directions (see 5e).
 - The production apps/api URL (https) and website origin (`webLinks(…)`)
   in `app/build.gradle.kts`; the release key's SHA-256 in the website's
   `ANDROID_CERT_SHA256` so App Links verify.

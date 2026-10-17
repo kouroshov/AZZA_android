@@ -38,6 +38,31 @@ data class BranchPreview(
     val products: List<BranchPreviewProduct>,
 )
 
+enum class TravelMode(val api: String) { CAR("car"), FOOT("foot"), BIKE("bike") }
+
+/** A point on the way. */
+data class GeoPoint(val latitude: Double, val longitude: Double)
+
+/** One maneuver (OSRM's): what to do at [at], then follow [road] for [distanceMeters]. */
+data class DirectionStep(
+    val type: String,
+    val modifier: String?,
+    val road: String,
+    val exit: Int?,
+    val distanceMeters: Double,
+    val durationSeconds: Double,
+    val at: GeoPoint,
+)
+
+data class Directions(
+    val mode: TravelMode,
+    val distanceMeters: Double,
+    val durationSeconds: Double,
+    val line: List<GeoPoint>,
+    val steps: List<DirectionStep>,
+    val destination: GeoPoint,
+)
+
 data class BranchPreviewProduct(val id: String, val title: String, val price: Money, val imageUrl: String?)
 
 /** The web's marketplace map (`/` on the web): store branches by viewport, and a store's preview. */
@@ -56,6 +81,22 @@ class MapRepository @Inject constructor(
                     logoUrl = media.resolve(it.logo), productCount = it.availableProductCount,
                 )
             }
+        }
+
+    /** The way from [from] to the branch (apps/api asks its routing server). */
+    suspend fun directions(branchId: String, from: GeoPoint, mode: TravelMode): Outcome<Directions> =
+        safeApiCall(json) { api.directions(branchId, from.latitude, from.longitude, mode.api).data }.map { d ->
+            Directions(
+                mode = mode,
+                distanceMeters = d.distanceMeters,
+                durationSeconds = d.durationSeconds,
+                line = d.geometry.mapNotNull { p -> if (p.size >= 2) GeoPoint(p[1], p[0]) else null },
+                steps = d.steps.mapNotNull { s ->
+                    if (s.location.size < 2) null
+                    else DirectionStep(s.type, s.modifier, s.name, s.exit, s.distanceMeters, s.durationSeconds, GeoPoint(s.location[1], s.location[0]))
+                },
+                destination = GeoPoint(d.destination.latitude, d.destination.longitude),
+            )
         }
 
     suspend fun preview(branchId: String, lat: Double? = null, lng: Double? = null): Outcome<BranchPreview> = safeApiCall(json) { api.preview(branchId, lat, lng).data }.map { p ->

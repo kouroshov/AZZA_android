@@ -51,4 +51,5 @@
     </plurals>
     <string name="profile_search_posts">Search your posts</string>
     <string name="profile_settings">Settings</string>
+    <string name="profile_directions">Directions</string>
 </resources>

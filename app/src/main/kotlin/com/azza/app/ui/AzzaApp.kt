@@ -1,5 +1,6 @@
 package com.azza.app.ui
 
+import com.azza.feature.map.directionsScreen
 import com.azza.feature.notifications.NotificationNav
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
@@ -254,6 +255,14 @@ fun AzzaApp(
                 onOpenProduct = { id -> navController.navigate(ProductRoute(id, source = "PROFILE")) },
                 onSignIn = signIn,
                 onOpen = { route -> navController.navigate(route) },
+                onDirections = { id, name -> navController.navigate(com.azza.feature.map.DirectionsRoute(id, name)) },
+            )
+            directionsScreen(
+                onBack = navController::popBackStack,
+                onOpenInMapsApp = { lat, lng, label ->
+                    val uri = android.net.Uri.parse("geo:$lat,$lng?q=$lat,$lng(${android.net.Uri.encode(label)})")
+                    runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, uri)) }
+                },
             )
             productScreen(
                 onBack = navController::popBackStack,
@@ -326,7 +335,11 @@ fun AzzaApp(
                     navController.popBackStack<ProductRoute>(inclusive = true) || navController.popBackStack()
                 },
             )
-            mapScreen(onOpenStore = openStore, onOpenProduct = { id -> navController.navigate(ProductRoute(id, source = "MAP")) })
+            mapScreen(
+                onOpenStore = openStore,
+                onOpenProduct = { id -> navController.navigate(ProductRoute(id, source = "MAP")) },
+                onDirections = { id, name -> navController.navigate(com.azza.feature.map.DirectionsRoute(id, name)) },
+            )
             settingsScreens(
                 onBack = { navController.popBackStack() },
                 onSignIn = signIn,
@@ -473,8 +486,8 @@ private val FOCUSED_SCREENS: List<kotlin.reflect.KClass<*>> = listOf(
     ProductRoute::class, com.azza.feature.settings.TicketRoute::class,
     // Signing in and the emailed links.
     LoginRoute::class, RegisterRoute::class, com.azza.feature.auth.ResetPasswordRoute::class, com.azza.feature.auth.ConfirmEmailRoute::class,
-    // Paying, the camera.
-    CheckoutRoute::class, ScanRoute::class,
+    // Paying, the camera, and following directions (a map of its own).
+    CheckoutRoute::class, ScanRoute::class, com.azza.feature.map.DirectionsRoute::class,
     // Settings covers the whole screen, and so do the pages it opens.
     SettingsRoute::class, EditProfileRoute::class, EmailRoute::class, AddressesRoute::class, AddressEditRoute::class,
     SupportRoute::class, NewTicketRoute::class,

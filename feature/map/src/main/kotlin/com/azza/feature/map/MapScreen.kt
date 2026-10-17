@@ -1,5 +1,6 @@
 package com.azza.feature.map
 
+import androidx.compose.material.icons.filled.Directions
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.items
@@ -103,8 +104,8 @@ import org.maplibre.geojson.Point
 /** The web's "/" — the marketplace map of store branches. */
 @Serializable data object MapRoute
 
-fun NavGraphBuilder.mapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit) {
-    composable<MapRoute> { MapScreen(onOpenStore, onOpenProduct) }
+fun NavGraphBuilder.mapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, onDirections: (branchId: String, name: String) -> Unit) {
+    composable<MapRoute> { MapScreen(onOpenStore, onOpenProduct, onDirections) }
 }
 
 /** The web's NEXT_PUBLIC_MAP_STYLE_URL: OpenFreeMap, no key, the same tiles as the website. */
@@ -212,7 +213,7 @@ class MapViewModel @Inject constructor(
 }
 
 @Composable
-fun MapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, viewModel: MapViewModel = hiltViewModel()) {
+fun MapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, onDirections: (branchId: String, name: String) -> Unit, viewModel: MapViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -386,6 +387,7 @@ fun MapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, vi
                 onClose = viewModel::closePreview,
                 onOpenStore = onOpenStore,
                 onOpenProduct = onOpenProduct,
+                onDirections = { name -> state.selected?.let { onDirections(it, name) } },
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
         }
@@ -399,6 +401,7 @@ private fun PreviewCard(
     onClose: () -> Unit,
     onOpenStore: (String) -> Unit,
     onOpenProduct: (String) -> Unit,
+    onDirections: (name: String) -> Unit,
     modifier: Modifier,
 ) {
     val colors = AzzaTheme.colors
@@ -447,8 +450,14 @@ private fun PreviewCard(
                 }
             }
         }
-        Button(onClick = { onOpenStore(p.storeSlug) }, modifier = Modifier.fillMaxWidth()) {
-            Text(pluralStringResource(R.plurals.map_open_store, p.productCount, p.productCount))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = { onOpenStore(p.storeSlug) }, modifier = Modifier.weight(1f)) {
+                Text(pluralStringResource(R.plurals.map_open_store, p.productCount, p.productCount), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            androidx.compose.material3.OutlinedButton(onClick = { onDirections(p.storeName) }) {
+                Icon(androidx.compose.material.icons.Icons.Filled.Directions, null, Modifier.size(18.dp))
+                Text(stringResource(R.string.map_directions), modifier = Modifier.padding(start = 6.dp))
+            }
         }
     }
 }
@@ -536,23 +545,42 @@ private fun CityDialog(state: MapUiState, onProvince: (Area) -> Unit, onDismiss:
 }
 
 /**
- * One position fix from the phone's own location service (network first —
- * fast and enough for "near me" — else GPS); the last known one when that
- * is all there is. [onResult] gets nulls when nothing is available.
+ * One position fix from the phone's own location service (no Play
+ * Services): every enabled provider (GPS and network) is asked at once and
+ * the first answer wins; after [timeoutMs] the freshest last-known position
+ * is used instead. [onResult] is called exactly once, with nulls when there
+ * is nothing at all.
  */
 @android.annotation.SuppressLint("MissingPermission") // checked by the caller
-private fun currentLocation(context: android.content.Context, onResult: (Double?, Double?) -> Unit) {
+internal fun currentLocation(context: android.content.Context, timeoutMs: Long = 12_000L, onResult: (Double?, Double?) -> Unit) {
     val manager = context.getSystemService(android.content.Context.LOCATION_SERVICE) as android.location.LocationManager
-    val provider = listOf(android.location.LocationManager.NETWORK_PROVIDER, android.location.LocationManager.GPS_PROVIDER)
-        .firstOrNull { runCatching { manager.isProviderEnabled(it) }.getOrDefault(false) }
-        ?: return onResult(null, null)
-    val last = runCatching { manager.getLastKnownLocation(provider) }.getOrNull()
-    if (android.os.Build.VERSION.SDK_INT >= 30) {
-        manager.getCurrentLocation(provider, null, androidx.core.content.ContextCompat.getMainExecutor(context)) { fix ->
-            val l = fix ?: last
+    val providers = listOf(android.location.LocationManager.GPS_PROVIDER, android.location.LocationManager.NETWORK_PROVIDER)
+        .filter { runCatching { manager.isProviderEnabled(it) }.getOrDefault(false) }
+    if (providers.isEmpty()) return onResult(null, null)
+    val main = android.os.Handler(android.os.Looper.getMainLooper())
+    var done = false
+    val finish: (android.location.Location?) -> Unit = { l ->
+        if (!done) {
+            done = true
             onResult(l?.latitude, l?.longitude)
         }
+    }
+    val lastKnown = {
+        providers.mapNotNull { runCatching { manager.getLastKnownLocation(it) }.getOrNull() }.maxByOrNull { it.time }
+    }
+    if (android.os.Build.VERSION.SDK_INT >= 30) {
+        val executor = androidx.core.content.ContextCompat.getMainExecutor(context)
+        var unanswered = providers.size
+        providers.forEach { provider ->
+            runCatching {
+                manager.getCurrentLocation(provider, null, executor) { fix ->
+                    unanswered--
+                    if (fix != null) finish(fix) else if (unanswered == 0) finish(lastKnown())
+                }
+            }.onFailure { unanswered-- }
+        }
+        main.postDelayed({ finish(lastKnown()) }, timeoutMs)
     } else {
-        onResult(last?.latitude, last?.longitude)
+        finish(lastKnown())
     }
 }

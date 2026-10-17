@@ -71,4 +71,40 @@ interface MapApi {
         @Query("lat") lat: Double? = null,
         @Query("lng") lng: Double? = null,
     ): ApiEnvelope<BranchPreviewDto>
+
+    /** The way from [fromLat]/[fromLng] to a branch: car, foot or bike. Public. */
+    @GET("map/branches/{branchId}/directions")
+    suspend fun directions(
+        @Path("branchId") branchId: String,
+        @Query("fromLat") fromLat: Double,
+        @Query("fromLng") fromLng: Double,
+        @Query("mode") mode: String,
+    ): ApiEnvelope<DirectionsDto>
 }
+
+@Serializable
+data class DirectionsStepDto(
+    val type: String,
+    val modifier: String? = null,
+    val name: String = "",
+    val exit: Int? = null,
+    val distanceMeters: Double = 0.0,
+    val durationSeconds: Double = 0.0,
+    /** [lng, lat] */
+    val location: List<Double>,
+)
+
+@Serializable
+data class DirectionsPointDto(val latitude: Double, val longitude: Double)
+
+@Serializable
+data class DirectionsDto(
+    val branchId: String,
+    val mode: String = "car",
+    val distanceMeters: Double,
+    val durationSeconds: Double,
+    /** [lng, lat] pairs */
+    val geometry: List<List<Double>>,
+    val steps: List<DirectionsStepDto> = emptyList(),
+    val destination: DirectionsPointDto,
+)

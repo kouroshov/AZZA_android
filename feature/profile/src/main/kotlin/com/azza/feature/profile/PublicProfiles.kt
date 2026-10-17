@@ -1,5 +1,6 @@
 package com.azza.feature.profile
 
+import androidx.compose.material.icons.outlined.Directions
 import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.ui.platform.LocalConfiguration
@@ -289,6 +290,7 @@ fun StoreProfileScreen(
     onOpenProduct: (String) -> Unit,
     onSignIn: () -> Unit,
     onOpen: (Any) -> Unit,
+    onDirections: (branchId: String, name: String) -> Unit,
     viewModel: StoreProfileViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -325,6 +327,10 @@ fun StoreProfileScreen(
                         val only = branches.singleOrNull()
                         store.address?.let { address ->
                             InfoLine(Icons.Outlined.Place, address, onClick = only?.let { b -> { onOpen(BranchPageRoute(store.id, b.id, store.slug, store.name)) } })
+                        }
+                        // One branch with a pin: the way there is one tap from the store's page.
+                        only?.takeIf { it.location != null }?.let { b ->
+                            InfoLine(Icons.Outlined.Directions, stringResource(R.string.profile_directions)) { onDirections(b.id, store.name) }
                         }
                         store.phone?.let { phone -> InfoLine(Icons.Outlined.Phone, phone) { dial(context, phone) } }
                         if (store.hours.isNotEmpty()) HoursCard(store.hours, store.openStatus)
@@ -456,8 +462,9 @@ fun NavGraphBuilder.publicProfileScreens(
     onOpenProduct: (String) -> Unit,
     onSignIn: () -> Unit,
     onOpen: (Any) -> Unit,
+    onDirections: (branchId: String, name: String) -> Unit,
 ) {
     composable<UserProfileRoute> { UserProfileScreen(onBack, onOpenProduct, onSignIn) }
-    composable<StoreProfileRoute> { StoreProfileScreen(onBack, onOpenProduct, onSignIn, onOpen) }
-    composable<BranchPageRoute> { BranchPageScreen(onBack, onOpenStore = { onOpen(StoreProfileRoute(it)) }, onOpenProduct = onOpenProduct) }
+    composable<StoreProfileRoute> { StoreProfileScreen(onBack, onOpenProduct, onSignIn, onOpen, onDirections) }
+    composable<BranchPageRoute> { BranchPageScreen(onBack, onOpenStore = { onOpen(StoreProfileRoute(it)) }, onOpenProduct = onOpenProduct, onDirections = onDirections) }
 }

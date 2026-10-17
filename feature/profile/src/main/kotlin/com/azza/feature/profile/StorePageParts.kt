@@ -1,5 +1,6 @@
 package com.azza.feature.profile
 
+import androidx.compose.material.icons.outlined.Directions
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -253,6 +254,7 @@ fun BranchPageScreen(
     onBack: () -> Unit,
     onOpenStore: (String) -> Unit,
     onOpenProduct: (String) -> Unit,
+    onDirections: (branchId: String, name: String) -> Unit,
     viewModel: BranchPageViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -297,6 +299,7 @@ fun BranchPageScreen(
                     }
                     branch.location?.let { loc ->
                         if (loc.address.isNotBlank()) item { InfoLine(Icons.Outlined.Place, loc.address) }
+                        item { InfoLine(Icons.Outlined.Directions, stringResource(R.string.profile_directions)) { onDirections(branch.id, branch.name) } }
                         item { InfoLine(Icons.Outlined.Map, stringResource(R.string.profile_open_in_maps)) { openInMaps(context, loc.latitude, loc.longitude, branch.name) } }
                     }
                     branch.phone?.takeIf { it.isNotBlank() }?.let { phone -> item { InfoLine(Icons.Outlined.Phone, phone) { dial(context, phone) } } }
