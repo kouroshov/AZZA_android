@@ -1,5 +1,10 @@
 package com.azza.app.ui
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.EnterTransition
 import com.azza.feature.stores.StoreHomeRoute
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
@@ -189,8 +194,11 @@ fun AzzaApp(
         containerColor = AzzaTheme.colors.bg,
         topBar = { if (showChrome) AzzaTopBar(
                 unread,
-                onNotifications = { navController.navigate(NotificationsRoute) { launchSingleTop = true } },
-                onMore = { navController.navigate(SettingsRoute) { launchSingleTop = true } },
+                // The bell lives on Home only, the ⋮ (settings) on Profile only; other pages carry neither.
+                onNotifications = { navController.navigate(NotificationsRoute) { launchSingleTop = true } }
+                    .takeIf { destination.isOn(TopLevelDestination.FOLLOWING) },
+                onMore = { navController.navigate(SettingsRoute) { launchSingleTop = true } }
+                    .takeIf { destination.isOn(TopLevelDestination.PROFILE) },
             ) },
         bottomBar = { if (showChrome) AzzaBottomBar(destination, navController, basketCount, signedIn, appViewModel) },
     ) { padding ->
@@ -198,6 +206,15 @@ fun AzzaApp(
             navController = navController,
             startDestination = FeedRoute,
             modifier = Modifier.padding(padding).consumeWindowInsets(padding),
+            // Settings slides over the page it was opened from, which stays put underneath.
+            exitTransition = {
+                if (targetState.destination.hasRoute(SettingsRoute::class)) ExitTransition.KeepUntilTransitionsFinished
+                else fadeOut(tween(700))
+            },
+            popEnterTransition = {
+                if (initialState.destination.hasRoute(SettingsRoute::class)) EnterTransition.None
+                else fadeIn(tween(700))
+            },
         ) {
             feedScreen(
                 onOpenProduct = { id -> navController.navigate(ProductRoute(id, source = "FOLLOWING_FEED")) },
@@ -313,7 +330,7 @@ fun AzzaApp(
 }
 
 @Composable
-private fun AzzaTopBar(unread: Int, onNotifications: () -> Unit, onMore: () -> Unit) {
+private fun AzzaTopBar(unread: Int, onNotifications: (() -> Unit)?, onMore: (() -> Unit)?) {
     TopAppBar(
         title = {
             Text(
@@ -324,13 +341,17 @@ private fun AzzaTopBar(unread: Int, onNotifications: () -> Unit, onMore: () -> U
             )
         },
         actions = {
-            IconButton(onClick = onNotifications) {
-                CountBadge(unread) {
-                    Icon(Icons.Outlined.Notifications, stringResource(R.string.nav_notifications), tint = AzzaTheme.colors.navInk)
+            if (onNotifications != null) {
+                IconButton(onClick = onNotifications) {
+                    CountBadge(unread) {
+                        Icon(Icons.Outlined.Notifications, stringResource(R.string.nav_notifications), tint = AzzaTheme.colors.navInk)
+                    }
                 }
             }
-            IconButton(onClick = onMore) {
-                Icon(Icons.Outlined.MoreVert, stringResource(R.string.nav_more), tint = AzzaTheme.colors.navInk)
+            if (onMore != null) {
+                IconButton(onClick = onMore) {
+                    Icon(Icons.Outlined.MoreVert, stringResource(R.string.nav_more), tint = AzzaTheme.colors.navInk)
+                }
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = AzzaTheme.colors.bg),

@@ -1,5 +1,7 @@
 package com.azza.feature.settings
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import com.azza.core.ui.isIranMobile
@@ -99,7 +101,12 @@ fun NavGraphBuilder.settingsScreens(
     onAddresses: () -> Unit,
     onEditAddress: (String?) -> Unit,
 ) {
-    composable<SettingsRoute> { SettingsScreen(onBack, onSignIn, onEditProfile, onSupport, onEmail, onAddresses) }
+    // Full screen, sliding in from the edge the ⋮ sits on (the end edge: right in English, left in Persian
+    // and Kurdish) across to the other, and back out the same way.
+    composable<SettingsRoute>(
+        enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+        popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) },
+    ) { SettingsScreen(onBack, onSignIn, onEditProfile, onSupport, onEmail, onAddresses) }
     composable<EmailRoute> { EmailScreen(onBack) }
     composable<AddressesRoute> { AddressesScreen(onBack, onEditAddress) }
     composable<AddressEditRoute> { AddressEditScreen(onBack) }
