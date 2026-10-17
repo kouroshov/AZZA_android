@@ -10,6 +10,7 @@ import com.azza.feature.stores.StoreHomeRoute
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DropdownMenu
@@ -126,8 +127,10 @@ fun AzzaApp(
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val destination = backStackEntry?.destination
-    val showChrome = TopLevelDestination.entries.any { destination.isOn(it) } ||
-        destination?.hasRoute(NotificationsRoute::class) == true
+    // The bottom bar stays on every page you browse (a store, a person, an order…), as in the
+    // web's phone layout; it steps aside only for a focused task, a page with its own bar at
+    // the bottom (a listing's "add to basket", a ticket's reply box), and full-screen pages.
+    val showChrome = destination != null && FOCUSED_SCREENS.none { destination.hasRoute(it) }
     val unread by appViewModel.unreadNotifications.collectAsStateWithLifecycle()
     val basketCount by appViewModel.basketCount.collectAsStateWithLifecycle()
     val signedIn by appViewModel.signedIn.collectAsStateWithLifecycle()
@@ -375,12 +378,24 @@ private fun AzzaBottomBar(current: NavDestination?, navController: NavHostContro
     val myStores by appViewModel.myStores.collectAsStateWithLifecycle()
     var switcher by remember { mutableStateOf(false) }
     val haptics = LocalHapticFeedback.current
+    // The tab you are browsing within: the nearest tab page under the current one (a store
+    // opened from Profile is still Profile's), so its icon stays lit.
+    val stack by navController.currentBackStack.collectAsStateWithLifecycle()
+    val tabEntry = stack.lastOrNull { e -> TopLevelDestination.entries.any { e.destination.hasRoute(it.routeClass) } }
+    val inTab = tabEntry?.let { e -> TopLevelDestination.entries.first { e.destination.hasRoute(it.routeClass) } }
+    // Tapping the tab you are in goes back to its start; another tab opens where you left it.
+    val openTab: (TopLevelDestination) -> Unit = { item ->
+        if (item == inTab && tabEntry != null) navController.popBackStack(tabEntry.destination.id, inclusive = false)
+        else navigateTab(navController, item.route)
+    }
+    // The Profile icon's gesture handler lives across recompositions; it must call today's action.
+    val openTabNow by rememberUpdatedState(openTab)
     NavigationBar(containerColor = AzzaTheme.colors.bg) {
         TopLevelDestination.entries.filter { signedIn || !it.signedInOnly }.forEach { item ->
-            val selected = current.isOn(item)
+            val selected = item == inTab
             NavigationBarItem(
                 selected = selected,
-                onClick = { navigateTab(navController, item.route) },
+                onClick = { openTab(item) },
                 icon = {
                     if (item == TopLevelDestination.PROFILE && signedIn) {
                         // The web's ProfileNavItem: a tap opens the personal page; press and hold
@@ -388,7 +403,7 @@ private fun AzzaBottomBar(current: NavDestination?, navController: NavHostContro
                         Box(
                             Modifier.pointerInput(Unit) {
                                 detectTapGestures(
-                                    onTap = { navigateTab(navController, item.route) },
+                                    onTap = { openTabNow(item) },
                                     onLongPress = {
                                         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                         appViewModel.loadMyStores()
@@ -401,7 +416,7 @@ private fun AzzaBottomBar(current: NavDestination?, navController: NavHostContro
                             DropdownMenu(expanded = switcher, onDismissRequest = { switcher = false }) {
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.switcher_personal)) },
-                                    onClick = { switcher = false; navigateTab(navController, item.route) },
+                                    onClick = { switcher = false; openTab(item) },
                                 )
                                 myStores.forEach { (id, name) ->
                                     DropdownMenuItem(
@@ -451,3 +466,20 @@ private fun openInBrowser(context: android.content.Context, link: android.net.Ur
     val view = Intent(Intent.ACTION_VIEW, link).apply { selector = browser }.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     runCatching { context.startActivity(view) }
 }
+
+/** Screens without the bottom bar. Anything not listed keeps it. */
+private val FOCUSED_SCREENS: List<kotlin.reflect.KClass<*>> = listOf(
+    // Its own bottom bar.
+    ProductRoute::class, com.azza.feature.settings.TicketRoute::class,
+    // Signing in and the emailed links.
+    LoginRoute::class, RegisterRoute::class, com.azza.feature.auth.ResetPasswordRoute::class, com.azza.feature.auth.ConfirmEmailRoute::class,
+    // Paying, the camera.
+    CheckoutRoute::class, ScanRoute::class,
+    // Settings covers the whole screen, and so do the pages it opens.
+    SettingsRoute::class, EditProfileRoute::class, EmailRoute::class, AddressesRoute::class, AddressEditRoute::class,
+    SupportRoute::class, NewTicketRoute::class,
+    // Editors with a Save button.
+    EditListingRoute::class, CreateForStoreRoute::class, CreateStoreRoute::class,
+    com.azza.feature.stores.StoreEditRoute::class, com.azza.feature.stores.BranchRoute::class,
+    com.azza.feature.stores.BranchLocationRoute::class, TimetableRoute::class, BookingSettingsRoute::class,
+)
