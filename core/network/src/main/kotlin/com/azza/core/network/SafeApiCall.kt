@@ -28,6 +28,7 @@ suspend fun <T> safeApiCall(json: Json, block: suspend () -> T): Outcome<T> = tr
                 code = parsed?.error?.code ?: "HTTP_${e.code()}",
                 message = parsed?.error?.message ?: e.message(),
                 requestId = parsed?.error?.requestId,
+                details = parsed?.error?.details?.toString(),
             ),
         )
     }

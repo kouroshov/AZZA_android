@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Central Kurdish (Sorani). -->
+<resources>
+    <string name="scan_torch_on">هەڵکردنی ڕووناکی</string>
+    <string name="scan_torch_off">کوژاندنەوەی ڕووناکی</string>
+    <string name="scan_camera_needed">بۆ سکانکردن کامێرا پێویستە. دەتوانیت کۆدەکەش لە خوارەوە بنووسیت.</string>
+    <string name="scan_allow_camera">ڕێگەدان بە کامێرا</string>
+    <string name="scan_hint">کۆدەکە لەناو چوارچێوەکەدا ڕابگرە.</string>
+    <string name="scan_type_instead">یان کۆدەکە بنووسە</string>
+    <string name="scan_use_code">بەکارهێنان</string>
+</resources>

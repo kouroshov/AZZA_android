@@ -68,3 +68,32 @@ data class SyncSaleResultDto(
 
 @Serializable
 data class SyncSalesResponseDto(val results: List<SyncSaleResultDto>)
+
+// Inventory (apps/api POS-01).
+
+/** [price] is in MAJOR units, like every product price sent to apps/api. */
+@Serializable
+data class CreateInventoryItemRequest(
+    val name: String,
+    val price: Double,
+    val branchId: String,
+    val storeQty: Int? = null,
+    val onlineQty: Int? = null,
+    val code: String? = null,
+)
+
+@Serializable
+data class InventoryItemRefDto(val id: String, val name: String = "")
+
+@Serializable
+data class SetVisibilityRequest(val visibility: String)
+
+@Serializable
+data class AttachCodeRequest(val code: String, val symbology: String? = null)
+
+@Serializable
+data class InventoryCodeDto(val id: String, val code: String, val symbology: String, val source: String = "")
+
+/** [from] is STORE or ONLINE: the counter the units leave. */
+@Serializable
+data class StockTransferRequest(val productId: String, val from: String, val qty: Int)

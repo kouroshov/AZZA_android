@@ -13,7 +13,6 @@
     <string name="widget_label">AZZA shortcuts</string>
     <string name="widget_description">Search, scan a barcode, notifications and your basket.</string>
     <string name="widget_search">Search</string>
-    <string name="widget_scan">Scan</string>
     <string name="widget_notifications">Alerts</string>
     <string name="widget_basket">Basket</string>
     <string name="lock_title">AZZA is locked</string>

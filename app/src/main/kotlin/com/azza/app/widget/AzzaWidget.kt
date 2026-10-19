@@ -57,7 +57,7 @@ import kotlinx.coroutines.launch
 /** Set on a widget tap's launch intent: which screen to open (AzzaApp reads it). */
 const val EXTRA_OPEN_SCREEN = "com.azza.extra.OPEN_SCREEN"
 
-enum class WidgetTarget { SEARCH, SCAN, NOTIFICATIONS, BASKET }
+enum class WidgetTarget { SEARCH, NOTIFICATIONS, BASKET }
 
 /**
  * The home-screen widget (phase 4d): four shortcuts — search, scan,
@@ -87,7 +87,6 @@ class AzzaWidget : GlanceAppWidget() {
             Spacer(GlanceModifier.height(8.dp))
             Row(GlanceModifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                 Shortcut(context, WidgetTarget.SEARCH, R.drawable.ic_widget_search, R.string.widget_search, null, GlanceModifier.defaultWeight())
-                Shortcut(context, WidgetTarget.SCAN, R.drawable.ic_widget_scan, R.string.widget_scan, null, GlanceModifier.defaultWeight())
                 Shortcut(context, WidgetTarget.NOTIFICATIONS, R.drawable.ic_widget_notifications, R.string.widget_notifications, counts.unread.takeIf { counts.signedIn }, GlanceModifier.defaultWeight())
                 Shortcut(context, WidgetTarget.BASKET, R.drawable.ic_widget_basket, R.string.widget_basket, counts.basket.takeIf { counts.signedIn }, GlanceModifier.defaultWeight())
             }

@@ -55,7 +55,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Verified
 import androidx.compose.material3.FilterChip
@@ -111,9 +110,8 @@ fun NavGraphBuilder.searchScreen(
     onOpenUser: (String) -> Unit,
     onOpenStore: (String) -> Unit,
     onOpenAuthor: (PostAuthor) -> Unit,
-    onScan: () -> Unit,
 ) {
-    composable<SearchRoute> { SearchScreen(onOpenProduct, onOpenUser, onOpenStore, onOpenAuthor, onScan) }
+    composable<SearchRoute> { SearchScreen(onOpenProduct, onOpenUser, onOpenStore, onOpenAuthor) }
 }
 
 @Composable
@@ -122,7 +120,6 @@ fun SearchScreen(
     onOpenUser: (String) -> Unit,
     onOpenStore: (String) -> Unit,
     onOpenAuthor: (PostAuthor) -> Unit,
-    onScan: () -> Unit,
     viewModel: SearchViewModel = hiltViewModel(),
 ) {
     val query by viewModel.query.collectAsStateWithLifecycle()
@@ -146,11 +143,10 @@ fun SearchScreen(
             placeholder = { Text(stringResource(R.string.search_placeholder)) },
             leadingIcon = { Icon(Icons.Outlined.Search, null) },
             trailingIcon = {
+                // No scan button here (POS decision): scanning lives in the
+                // inventory and the register; a post's QR opens with the phone's camera.
                 if (query.isNotEmpty()) {
                     IconButton(onClick = { viewModel.onQueryChange("") }) { Icon(Icons.Outlined.Close, stringResource(R.string.search_clear)) }
-                } else {
-                    // A listing's label (Android only): the camera, or its 13 digits typed.
-                    IconButton(onClick = onScan) { Icon(Icons.Outlined.QrCodeScanner, stringResource(R.string.search_scan)) }
                 }
             },
             singleLine = true,

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="scan_torch_on">روشن کردن چراغ</string>
+    <string name="scan_torch_off">خاموش کردن چراغ</string>
+    <string name="scan_camera_needed">برای اسکن به دوربین نیاز است. می‌توانید کد را پایین هم وارد کنید.</string>
+    <string name="scan_allow_camera">اجازهٔ دوربین</string>
+    <string name="scan_hint">کد را داخل کادر نگه دارید.</string>
+    <string name="scan_type_instead">یا کد را وارد کنید</string>
+    <string name="scan_use_code">ثبت</string>
+</resources>

@@ -27,7 +27,6 @@
     <string name="explore_select_city">یک شهر انتخاب کنید</string>
     <string name="explore_back">بازگشت</string>
     <string name="explore_cancel">انصراف</string>
-    <string name="search_scan">اسکن بارکد</string>
     <string name="filters">فیلترها</string>
     <string name="filters_count">فیلترها (%1$d)</string>
     <string name="filters_remove">حذف</string>

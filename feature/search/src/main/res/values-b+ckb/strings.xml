@@ -28,7 +28,6 @@
     <string name="explore_select_city">شارێک هەڵبژێرە</string>
     <string name="explore_back">گەڕانەوە</string>
     <string name="explore_cancel">پاشگەزبوونەوە</string>
-    <string name="search_scan">سکانکردنی بارکۆد</string>
     <string name="filters">فلتەرەکان</string>
     <string name="filters_count">فلتەرەکان (%1$d)</string>
     <string name="filters_remove">لابردن</string>

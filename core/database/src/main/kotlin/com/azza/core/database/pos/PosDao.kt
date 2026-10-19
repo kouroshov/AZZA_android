@@ -37,6 +37,15 @@ abstract class PosDao {
     @Query("SELECT * FROM catalog_products WHERE id = :id")
     abstract suspend fun productWithStock(id: String): CatalogProductWithStock?
 
+    /** Every item of [storeId] with its codes and stock, by name — the inventory list (POS-04). */
+    @Transaction
+    @Query("SELECT * FROM catalog_products WHERE storeId = :storeId ORDER BY name COLLATE NOCASE, id")
+    abstract fun observeStore(storeId: String): Flow<List<CatalogProductWithStock>>
+
+    @Transaction
+    @Query("SELECT * FROM catalog_products WHERE id = :id")
+    abstract fun observeItem(id: String): Flow<CatalogProductWithStock?>
+
     @Query("SELECT * FROM branch_stock WHERE productId = :productId AND branchId = :branchId")
     abstract suspend fun stock(productId: String, branchId: String): BranchStockEntity?
 
