@@ -136,5 +136,4 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun logout() = viewModelScope.launch { auth.logout() }
 }

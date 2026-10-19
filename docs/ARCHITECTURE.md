@@ -65,3 +65,39 @@ release on their own schedules. The contract is the coupling point, so:
 - WDAC refuses unsigned native binaries. Android Studio, the SDK and the
   Gradle distribution are signed; if a build tool is ever refused, do not
   change the machine's security settings — find a signed alternative.
+
+## 6. The sales register — offline data (POS-03)
+
+The register works without internet; the server (apps/api, POS-01/02 — see
+the web repo's `docs/architecture/pos-register-api.md`) is the source of truth.
+
+- **Its own database**: `core:database/pos/PosDatabase` (`azza_pos.db`), NOT
+  the cache `AzzaDatabase`. The cache may be dropped on any schema change;
+  this one holds sales that have not reached the server, so its schema is
+  exported (`core/database/schemas`), every version step gets a migration in
+  `PosMigrations`, and there is no destructive fallback.
+- **Tables**: `catalog_products`, `catalog_codes` (looked up by storeId +
+  code, never across stores), `branch_stock` (`serverStoreQty` as the server
+  said; `storeQty` = that less the sales still queued), `sync_state` (the
+  server's cursor per store/branch), `pending_sales` + `pending_sale_items`.
+- **Codes**: `core:common/ProductCodes` is a line-for-line port of apps/api's
+  `product-code.util.ts`; its unit test runs the server's own vectors.
+  `PosCatalogRepository.lookup()` answers Product / UnknownCode / PostLink
+  (an AZZA `/store/<id>` or `/q/<…>` address) / Invalid, from the local copy.
+- **Catalog sync**: full on the first open of a store/branch
+  (`PosCatalogRepository.open`), then deltas with the cursor, tombstones
+  applied; a refused cursor starts over. Triggers: app to foreground, network
+  back, after an upload that recorded sales, every 30 min (WorkManager),
+  and on sign-in (each own store's main branch).
+- **Sales**: `SaleQueue.recordSale()` writes the sale, its lines and the local
+  shop-floor counts in ONE Room transaction, with an id made on the phone —
+  the server's idempotency key — then enqueues `SaleUploadWorker` (unique,
+  APPEND_OR_REPLACE, network constraint, exponential backoff). Batches of up
+  to 100; ACCEPTED/DUPLICATE leave the queue, REJECTED stay with the reason
+  (`SaleQueue.rejected`). A batch with no answer is resent whole: safe,
+  because the server records an id once.
+- **Account**: `PosSession.signOut()` is refused while sales are queued
+  (Settings shows how many); with an empty queue it clears the register's
+  tables. A sign-out the app cannot refuse (expired session, password
+  changed) keeps queued sales; they upload when that account signs in again.
+  `AppPreferences.posDeviceId()` is the phone's stable register id.
