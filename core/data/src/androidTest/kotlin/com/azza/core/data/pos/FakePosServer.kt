@@ -68,4 +68,12 @@ class FakePosServer : PosApi {
         val page = catalogPages[cursor] ?: error("No page for cursor $cursor")
         return ApiEnvelope(true, page)
     }
+
+    // The inventory routes are not what these tests exercise.
+    override suspend fun createItem(storeId: String, body: com.azza.core.network.model.CreateInventoryItemRequest) = error("not used")
+    override suspend fun setVisibility(storeId: String, productId: String, body: com.azza.core.network.model.SetVisibilityRequest) = error("not used")
+    override suspend fun attachCode(storeId: String, productId: String, body: com.azza.core.network.model.AttachCodeRequest) = error("not used")
+    override suspend fun generateCode(storeId: String, productId: String) = error("not used")
+    override suspend fun removeCode(storeId: String, productId: String, codeId: String) = error("not used")
+    override suspend fun transfer(storeId: String, branchId: String, body: com.azza.core.network.model.StockTransferRequest) = error("not used")
 }

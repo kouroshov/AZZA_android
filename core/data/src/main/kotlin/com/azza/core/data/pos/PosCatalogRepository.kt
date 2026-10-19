@@ -13,6 +13,7 @@ import com.azza.core.database.pos.CatalogProductWithStock
 import com.azza.core.database.pos.PosDao
 import com.azza.core.database.pos.SyncStateEntity
 import com.azza.core.model.CodeLookup
+import com.azza.core.model.PosCode
 import com.azza.core.model.PosItem
 import com.azza.core.model.PosStock
 import com.azza.core.network.api.PosApi
@@ -207,6 +208,6 @@ internal fun CatalogProductWithStock.toModel(branchId: String?) = PosItem(
     visibility = product.visibility,
     status = product.status,
     imageUrl = product.imageUrl,
-    codes = codes.map { it.code },
+    codes = codes.map { PosCode(it.id, it.code, it.symbology) },
     stock = stock.firstOrNull { it.branchId == branchId }?.let { PosStock(it.storeQty, it.onlineQty, it.needsReview) },
 )

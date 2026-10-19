@@ -15,4 +15,5 @@ data class ApiErrorBody(
     val code: String,
     val message: String = "",
     val requestId: String? = null,
+    val details: kotlinx.serialization.json.JsonElement? = null,
 )

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- A short buzz when a code is read. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- The app installs on phones without a camera; the scanner then offers typing the code. -->
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+</manifest>

@@ -1,5 +1,7 @@
 package com.azza.app.ui
 
+import com.azza.feature.inventory.InventoryNavigation
+import com.azza.feature.inventory.inventoryScreens
 import com.azza.feature.map.directionsScreen
 import com.azza.feature.notifications.NotificationNav
 import androidx.compose.animation.core.tween
@@ -40,10 +42,8 @@ import com.azza.feature.notifications.EXTRA_OPEN_NOTIFICATIONS
 import com.azza.core.common.WebDestination
 import com.azza.core.ui.LocalWebLinks
 import androidx.compose.ui.platform.LocalContext
-import com.azza.feature.scan.ScanRoute
 import com.azza.app.widget.EXTRA_OPEN_SCREEN
 import com.azza.app.widget.WidgetTarget
-import com.azza.feature.scan.scanScreen
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
@@ -147,10 +147,6 @@ fun AzzaApp(
         }
         when (intent.getStringExtra(EXTRA_OPEN_SCREEN)?.let { runCatching { WidgetTarget.valueOf(it) }.getOrNull() }) {
             WidgetTarget.SEARCH -> navigateTab(navController, SearchRoute)
-            WidgetTarget.SCAN -> {
-                navigateTab(navController, SearchRoute)
-                navController.navigate(ScanRoute)
-            }
             WidgetTarget.NOTIFICATIONS -> navController.navigate(NotificationsRoute) { launchSingleTop = true }
             WidgetTarget.BASKET -> navigateTab(navController, BasketRoute())
             null -> Unit
@@ -231,7 +227,6 @@ fun AzzaApp(
                 onOpenUser = openUser,
                 onOpenStore = openStore,
                 onOpenAuthor = openAuthor,
-                onScan = { navController.navigate(ScanRoute) },
             )
             storeScreens(
                 StoreNavigation(
@@ -243,12 +238,16 @@ fun AzzaApp(
                     openListing = { id -> navController.navigate(ProductRoute(id)) },
                     postFromStore = { id -> navController.navigate(CreateForStoreRoute(id)) },
                     editListing = { id -> navController.navigate(EditListingRoute(id)) },
+                    openInventory = { id -> navController.navigate(com.azza.feature.inventory.InventoryRoute(id)) },
                 ),
             )
-            scanScreen(
-                onBack = { navController.popBackStack() },
-                // The listing replaces the scanner, so Back from it returns to Explore.
-                onOpenProduct = { id -> navController.navigate(ProductRoute(id)) { popUpTo<ScanRoute> { inclusive = true } } },
+            inventoryScreens(
+                InventoryNavigation(
+                    back = { navController.popBackStack() },
+                    open = { route -> navController.navigate(route) },
+                    editListing = { id -> navController.navigate(EditListingRoute(id)) },
+                    openPost = { id -> navController.navigate(ProductRoute(id)) },
+                ),
             )
             publicProfileScreens(
                 onBack = navController::popBackStack,
@@ -487,7 +486,9 @@ private val FOCUSED_SCREENS: List<kotlin.reflect.KClass<*>> = listOf(
     // Signing in and the emailed links.
     LoginRoute::class, RegisterRoute::class, com.azza.feature.auth.ResetPasswordRoute::class, com.azza.feature.auth.ConfirmEmailRoute::class,
     // Paying, the camera, and following directions (a map of its own).
-    CheckoutRoute::class, ScanRoute::class, com.azza.feature.map.DirectionsRoute::class,
+    CheckoutRoute::class, com.azza.feature.map.DirectionsRoute::class,
+    // The inventory's scanner and item screen (POS-04).
+    com.azza.feature.inventory.InventoryScanRoute::class, com.azza.feature.inventory.InventoryItemRoute::class,
     // Settings covers the whole screen, and so do the pages it opens.
     SettingsRoute::class, EditProfileRoute::class, EmailRoute::class, AddressesRoute::class, AddressEditRoute::class,
     SupportRoute::class, NewTicketRoute::class,

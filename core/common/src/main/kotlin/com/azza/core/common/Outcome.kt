@@ -12,7 +12,14 @@ sealed interface Outcome<out T> {
 
 sealed interface AppError {
     /** apps/api answered with its error envelope. */
-    data class Api(val status: Int, val code: String, val message: String, val requestId: String?) : AppError
+    data class Api(
+        val status: Int,
+        val code: String,
+        val message: String,
+        val requestId: String?,
+        /** The envelope's `details`, as raw JSON (e.g. which item already has a code); null when none. */
+        val details: String? = null,
+    ) : AppError
 
     /** No answer at all: offline, DNS, timeout, refused connection. */
     data object Network : AppError

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="scan_torch_on">Turn on the light</string>
+    <string name="scan_torch_off">Turn off the light</string>
+    <string name="scan_camera_needed">The camera is needed to scan. You can also type the code below.</string>
+    <string name="scan_allow_camera">Allow the camera</string>
+    <string name="scan_hint">Hold the code inside the frame.</string>
+    <string name="scan_type_instead">Or type the code</string>
+    <string name="scan_use_code">Use</string>
+</resources>

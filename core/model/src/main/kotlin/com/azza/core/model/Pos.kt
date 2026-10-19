@@ -18,10 +18,12 @@ data class PosItem(
     val visibility: String,
     val status: String,
     val imageUrl: String?,
-    val codes: List<String>,
+    val codes: List<PosCode>,
     /** At the branch asked for; null when the item has no stock row there yet. */
     val stock: PosStock?,
 )
+
+data class PosCode(val id: String, val code: String, val symbology: String)
 
 data class PosStock(
     /** The shop floor, with sales still in the queue already taken off. May be negative. */

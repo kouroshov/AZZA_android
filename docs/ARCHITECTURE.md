@@ -101,3 +101,32 @@ the web repo's `docs/architecture/pos-register-api.md`) is the source of truth.
   tables. A sign-out the app cannot refuse (expired session, password
   changed) keeps queued sales; they upload when that account signs in again.
   `AppPreferences.posDeviceId()` is the phone's stable register id.
+
+## 7. The store inventory and the scanner (POS-04)
+
+- **No universal scan button** (POS decision): the Search field's scanner,
+  the widget's Scan shortcut and `ScanRoute` are gone. Scanning lives only
+  in the inventory (and, in POS-05, the register). A post's QR is opened by
+  the phone's own camera, as a link.
+- **`core:scanner`** (the former `feature:scan`, moved so the inventory and
+  the register share it): `CodeScanner` — CameraX + ZXing, EAN-13 / EAN-8 /
+  UPC-A / UPC-E (expanded to its UPC-A) / Code 128 / QR, the same value
+  ignored for 1.5 s, beep + buzz on a new one, torch, camera-permission
+  explanation with typing as the fallback, and keyboard-wedge (Bluetooth /
+  USB) scanners. ZXing, not ML Kit, as before: no Google Play Services
+  needed. A `ScanSource` replaces the camera in tests. `BarcodeImages`
+  draws any code's label on the phone, so share / save / print work offline.
+- **`feature:inventory`**: entry from the store's management page
+  ("Inventory"). The list (branch switcher — remembered per store — search
+  by name or code, Private / Public / Needs review / Out of stock) reads the
+  register's local catalog and works offline; every change goes through
+  `InventoryRepository` to apps/api and then refreshes the catalog, and is
+  refused offline with "connect to edit". Scan-to-create: a known code opens
+  its item, an unknown one opens a sheet (name + price required) that saves
+  a PRIVATE item and returns to the scanner; "No barcode" asks the server
+  for an internal EAN-13. The item screen edits name / price / photo,
+  manages codes (CODE_ALREADY_ASSIGNED names the item that has it), moves
+  stock between the two counters, and publishes — PRODUCT_NOT_PUBLISHABLE
+  lists what is missing, with description / category leading to the full
+  listing editor.
+- `AppError.Api.details` now carries the error envelope's `details` (raw JSON).

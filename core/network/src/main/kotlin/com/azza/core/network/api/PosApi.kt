@@ -1,6 +1,15 @@
 package com.azza.core.network.api
 
 import com.azza.core.network.model.ApiEnvelope
+import com.azza.core.network.model.AttachCodeRequest
+import com.azza.core.network.model.CreateInventoryItemRequest
+import com.azza.core.network.model.InventoryCodeDto
+import com.azza.core.network.model.InventoryItemRefDto
+import com.azza.core.network.model.SetVisibilityRequest
+import com.azza.core.network.model.StockTransferRequest
+import kotlinx.serialization.json.JsonElement
+import retrofit2.http.DELETE
+import retrofit2.http.PATCH
 import com.azza.core.network.model.CatalogPageDto
 import com.azza.core.network.model.SyncSalesRequest
 import com.azza.core.network.model.SyncSalesResponseDto
@@ -31,4 +40,26 @@ interface PosApi {
         @Path("branchId") branchId: String,
         @Body body: SyncSalesRequest,
     ): ApiEnvelope<SyncSalesResponseDto>
+
+    // ---------------------------------------------------------------- inventory (POS-01)
+
+    /** A PRIVATE item; 409 CODE_ALREADY_ASSIGNED (details: productId, name) if the code is taken. */
+    @POST("stores/{storeId}/inventory/items")
+    suspend fun createItem(@Path("storeId") storeId: String, @Body body: CreateInventoryItemRequest): ApiEnvelope<InventoryItemRefDto>
+
+    /** 400 PRODUCT_NOT_PUBLISHABLE with details.missing when making it public. */
+    @PATCH("stores/{storeId}/products/{productId}/visibility")
+    suspend fun setVisibility(@Path("storeId") storeId: String, @Path("productId") productId: String, @Body body: SetVisibilityRequest): ApiEnvelope<JsonElement>
+
+    @POST("stores/{storeId}/products/{productId}/codes")
+    suspend fun attachCode(@Path("storeId") storeId: String, @Path("productId") productId: String, @Body body: AttachCodeRequest): ApiEnvelope<InventoryCodeDto>
+
+    @POST("stores/{storeId}/products/{productId}/codes/generate")
+    suspend fun generateCode(@Path("storeId") storeId: String, @Path("productId") productId: String): ApiEnvelope<InventoryCodeDto>
+
+    @DELETE("stores/{storeId}/products/{productId}/codes/{codeId}")
+    suspend fun removeCode(@Path("storeId") storeId: String, @Path("productId") productId: String, @Path("codeId") codeId: String)
+
+    @POST("stores/{storeId}/branches/{branchId}/stock/transfer")
+    suspend fun transfer(@Path("storeId") storeId: String, @Path("branchId") branchId: String, @Body body: StockTransferRequest): ApiEnvelope<JsonElement>
 }

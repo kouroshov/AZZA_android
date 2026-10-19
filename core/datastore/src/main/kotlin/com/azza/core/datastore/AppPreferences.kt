@@ -131,6 +131,28 @@ class AppPreferences @Inject constructor(@ApplicationContext context: Context) {
         return id
     }
 
+    /** The branch the inventory / register last showed for [storeId] (POS-04). */
+    fun posLastBranch(storeId: String): Flow<String?> = store.data.map { it[stringPreferencesKey("pos_branch_$storeId")] }
+
+    suspend fun setPosLastBranch(storeId: String, branchId: String) {
+        store.edit { it[stringPreferencesKey("pos_branch_$storeId")] = branchId }
+    }
+
+    /** [storeId]'s branches as (id, name) when last fetched — so the branch name shows offline. */
+    fun posBranches(storeId: String): Flow<List<Pair<String, String>>> = store.data.map { prefs ->
+        prefs[stringPreferencesKey("pos_branches_$storeId")].orEmpty().split(LINE).mapNotNull { row ->
+            row.split(FIELD).takeIf { it.size == 2 }?.let { it[0] to it[1] }
+        }
+    }
+
+    suspend fun setPosBranches(storeId: String, branches: List<Pair<String, String>>) {
+        store.edit { prefs ->
+            prefs[stringPreferencesKey("pos_branches_$storeId")] = branches.joinToString(LINE) { (id, name) ->
+                id + FIELD + name.replace(LINE, " ").replace(FIELD, " ")
+            }
+        }
+    }
+
     private companion object {
         val POS_DEVICE_ID = stringPreferencesKey("pos_device_id")
         val CITY_ID = stringPreferencesKey("explore_city_id")
