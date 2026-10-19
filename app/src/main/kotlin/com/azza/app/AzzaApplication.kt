@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.azza.app.widget.WidgetCounts
+import com.azza.core.data.pos.PosSession
 import com.azza.feature.notifications.NotificationPolling
 import coil.ImageLoader
 import coil.ImageLoaderFactory
@@ -21,6 +22,8 @@ class AzzaApplication : Application(), ImageLoaderFactory, Configuration.Provide
 
     @Inject lateinit var widgetCounts: WidgetCounts
 
+    @Inject lateinit var posSession: PosSession
+
     // WorkManager is initialised on demand with Hilt's factory, so a worker can
     // be injected (the default initializer is removed in the manifest).
     override val workManagerConfiguration: Configuration
@@ -30,6 +33,8 @@ class AzzaApplication : Application(), ImageLoaderFactory, Configuration.Provide
         super.onCreate()
         notificationPolling.start()
         widgetCounts.start()
+        // The sales register: restore on sign-in, sync on foreground / network.
+        posSession.start()
     }
 
     @Inject lateinit var okHttpClient: Provider<OkHttpClient>

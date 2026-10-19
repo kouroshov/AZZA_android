@@ -102,4 +102,7 @@
     <string name="settings_discard_body">تغییراتی که اینجا دادید از بین می‌رود.</string>
     <string name="settings_discard">خروج</string>
     <string name="settings_keep_editing">ادامهٔ ویرایش</string>
+    <string name="settings_sign_out_blocked_title">فروش‌های ارسال‌نشده</string>
+    <string name="settings_sign_out_blocked_body">%1$d فروش از صندوق فروش هنوز به سرور نرسیده است. به اینترنت وصل شوید و صبر کنید تا ارسال شوند، بعد خارج شوید؛ اگر الان خارج شوید از بین می‌روند.</string>
+    <string name="settings_sign_out_blocked_ok">باشه</string>
 </resources>

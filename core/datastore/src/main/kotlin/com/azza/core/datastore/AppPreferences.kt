@@ -11,7 +11,9 @@ import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import java.util.UUID
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 private val Context.preferencesStore: DataStore<Preferences> by preferencesDataStore(name = "preferences")
@@ -117,7 +119,20 @@ class AppPreferences @Inject constructor(@ApplicationContext context: Context) {
         }
     }
 
+    /**
+     * This phone's id for the sales register (POS-03): made once, kept for
+     * the life of the install — across sign-outs, so the server can tell
+     * which phone a sale came from. Not tied to any hardware identifier.
+     */
+    suspend fun posDeviceId(): String {
+        store.data.first()[POS_DEVICE_ID]?.let { return it }
+        var id = ""
+        store.edit { prefs -> id = prefs[POS_DEVICE_ID] ?: UUID.randomUUID().toString().also { prefs[POS_DEVICE_ID] = it } }
+        return id
+    }
+
     private companion object {
+        val POS_DEVICE_ID = stringPreferencesKey("pos_device_id")
         val CITY_ID = stringPreferencesKey("explore_city_id")
         val CITY_NAME = stringPreferencesKey("explore_city_name")
         val CITIES = stringPreferencesKey("explore_cities")

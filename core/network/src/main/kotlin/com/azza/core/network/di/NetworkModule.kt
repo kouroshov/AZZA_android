@@ -1,6 +1,7 @@
 package com.azza.core.network.di
 
 import com.azza.core.network.api.CalendarApi
+import com.azza.core.network.api.PosApi
 import com.azza.core.network.api.StoreManageApi
 import com.azza.core.network.api.ProfileApi
 import com.azza.core.network.api.FollowListsApi
@@ -204,6 +205,10 @@ internal object NetworkModule {
     @Provides
     @Singleton
     fun provideStoreManageApi(retrofit: Retrofit): StoreManageApi = retrofit.create(StoreManageApi::class.java)
+
+    @Provides
+    @Singleton
+    fun providePosApi(retrofit: Retrofit): PosApi = retrofit.create(PosApi::class.java)
 
     @Provides
     @Singleton

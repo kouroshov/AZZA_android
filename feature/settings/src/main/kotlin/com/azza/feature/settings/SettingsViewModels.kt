@@ -18,6 +18,8 @@ import com.azza.core.data.ThemeChoice
 import com.azza.core.data.TicketDetail
 import com.azza.core.data.TicketSummary
 import com.azza.core.data.UserRepository
+import com.azza.core.data.pos.PosSession
+import com.azza.core.model.PosSignOut
 import com.azza.core.model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -35,6 +37,7 @@ class SettingsViewModel @Inject constructor(
     private val account: AccountRepository,
     private val auth: AuthRepository,
     users: UserRepository,
+    private val posSession: PosSession,
 ) : ViewModel() {
     val signedIn: StateFlow<Boolean> = auth.isSignedIn.stateIn(viewModelScope, SharingStarted.Eagerly, false)
     val user: StateFlow<User?> = users.currentUser
@@ -53,7 +56,21 @@ class SettingsViewModel @Inject constructor(
 
     fun setAppLock(on: Boolean) = viewModelScope.launch { account.setAppLock(on) }
 
-    fun signOut() = viewModelScope.launch { auth.logout() }
+    /** Register sales not yet on the server, when signing out was refused because of them. */
+    private val _signOutBlocked = MutableStateFlow<Int?>(null)
+    val signOutBlocked: StateFlow<Int?> = _signOutBlocked.asStateFlow()
+
+    /** Signs out — refused while the sales register still has sales to send (they would be lost). */
+    fun signOut(onDone: () -> Unit) = viewModelScope.launch {
+        when (val result = posSession.signOut()) {
+            PosSignOut.Done -> onDone()
+            is PosSignOut.Blocked -> _signOutBlocked.value = result.pendingSales
+        }
+    }
+
+    fun dismissSignOutBlocked() {
+        _signOutBlocked.value = null
+    }
 }
 
 data class EditProfileState(

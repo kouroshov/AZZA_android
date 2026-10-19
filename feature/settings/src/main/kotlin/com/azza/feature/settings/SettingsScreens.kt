@@ -142,6 +142,19 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val signedIn by viewModel.signedIn.collectAsStateWithLifecycle()
+    val signOutBlocked by viewModel.signOutBlocked.collectAsStateWithLifecycle()
+    signOutBlocked?.let { pending ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = viewModel::dismissSignOutBlocked,
+            title = { Text(stringResource(R.string.settings_sign_out_blocked_title)) },
+            text = { Text(stringResource(R.string.settings_sign_out_blocked_body, pending)) },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = viewModel::dismissSignOutBlocked) {
+                    Text(stringResource(R.string.settings_sign_out_blocked_ok))
+                }
+            },
+        )
+    }
     val theme by viewModel.theme.collectAsStateWithLifecycle()
     val phoneNotifications by viewModel.phoneNotifications.collectAsStateWithLifecycle()
     val appLock by viewModel.appLock.collectAsStateWithLifecycle()
@@ -208,7 +221,7 @@ fun SettingsScreen(
             }
             HorizontalDivider(color = AzzaTheme.colors.navDivider, modifier = Modifier.padding(vertical = 8.dp))
             if (signedIn) {
-                Row(stringResource(R.string.settings_sign_out), Icons.AutoMirrored.Outlined.Logout) { viewModel.signOut(); onBack() }
+                Row(stringResource(R.string.settings_sign_out), Icons.AutoMirrored.Outlined.Logout) { viewModel.signOut(onDone = onBack) }
             } else {
                 Button(onClick = onSignIn, modifier = Modifier.padding(16.dp).fillMaxWidth()) { Text(stringResource(R.string.settings_sign_in)) }
             }
