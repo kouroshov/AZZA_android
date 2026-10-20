@@ -67,4 +67,10 @@
         <item quantity="other">%1$d ئەنجام</item>
     </plurals>
     <string name="search_map">نەخشە</string>
+    <string name="search_scan">سکانکردنی بارکۆد</string>
+    <string name="scan_title">سکانکردنی بارکۆد</string>
+    <string name="scan_back">گەڕانەوە</string>
+    <string name="scan_find_hint">لیبڵی پۆستێک سکان بکە یان ١٣ ژمارەکەی لە خوارەوە بنووسە.</string>
+    <string name="scan_looking">گەڕان بۆ %1$s…</string>
+    <string name="scan_not_found">هیچ پۆستێک کۆدی %1$s ـی نییە.</string>
 </resources>
