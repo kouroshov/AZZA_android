@@ -66,4 +66,10 @@
         <item quantity="other">%1$d results</item>
     </plurals>
     <string name="search_map">Map</string>
+    <string name="search_scan">Scan a barcode</string>
+    <string name="scan_title">Scan a barcode</string>
+    <string name="scan_back">Back</string>
+    <string name="scan_find_hint">Scan a post\'s label, or type its 13 digits below.</string>
+    <string name="scan_looking">Looking up %1$s…</string>
+    <string name="scan_not_found">No post has the code %1$s.</string>
 </resources>

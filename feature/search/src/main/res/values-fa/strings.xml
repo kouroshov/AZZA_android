@@ -66,4 +66,10 @@
         <item quantity="other">%1$d نتیجه</item>
     </plurals>
     <string name="search_map">نقشه</string>
+    <string name="search_scan">اسکن بارکد</string>
+    <string name="scan_title">اسکن بارکد</string>
+    <string name="scan_back">بازگشت</string>
+    <string name="scan_find_hint">برچسب یک پست را اسکن کنید یا ۱۳ رقم آن را پایین وارد کنید.</string>
+    <string name="scan_looking">در حال جست‌وجوی %1$s…</string>
+    <string name="scan_not_found">هیچ پستی کد %1$s را ندارد.</string>
 </resources>

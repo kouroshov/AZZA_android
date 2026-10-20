@@ -2,6 +2,7 @@
 
 package com.azza.feature.search
 
+import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material.icons.outlined.Map
 import com.azza.core.model.SearchFilters
 import com.azza.core.model.ItemCondition
@@ -112,8 +113,9 @@ fun NavGraphBuilder.searchScreen(
     onOpenStore: (String) -> Unit,
     onOpenAuthor: (PostAuthor) -> Unit,
     onOpenMap: () -> Unit,
+    onScan: () -> Unit,
 ) {
-    composable<SearchRoute> { SearchScreen(onOpenProduct, onOpenUser, onOpenStore, onOpenAuthor, onOpenMap) }
+    composable<SearchRoute> { SearchScreen(onOpenProduct, onOpenUser, onOpenStore, onOpenAuthor, onOpenMap, onScan) }
 }
 
 @Composable
@@ -123,6 +125,7 @@ fun SearchScreen(
     onOpenStore: (String) -> Unit,
     onOpenAuthor: (PostAuthor) -> Unit,
     onOpenMap: () -> Unit,
+    onScan: () -> Unit,
     viewModel: SearchViewModel = hiltViewModel(),
 ) {
     val query by viewModel.query.collectAsStateWithLifecycle()
@@ -146,25 +149,11 @@ fun SearchScreen(
             placeholder = { Text(stringResource(R.string.search_placeholder)) },
             leadingIcon = { Icon(Icons.Outlined.Search, null) },
             trailingIcon = {
-                // The map is one of AZZA's own things (product owner, 2026-10-20): it
-                // lives in the search box, where the scanner was, one tap from Explore.
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (query.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.onQueryChange("") }) { Icon(Icons.Outlined.Close, stringResource(R.string.search_clear)) }
-                    }
-                    Box(
-                        Modifier.padding(end = 6.dp).size(40.dp)
-                            .background(com.azza.core.designsystem.theme.AzzaTheme.colors.primary, androidx.compose.foundation.shape.CircleShape)
-                            .clickable(onClick = onOpenMap),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            androidx.compose.material.icons.Icons.Outlined.Map,
-                            stringResource(R.string.search_map),
-                            tint = com.azza.core.designsystem.theme.AzzaTheme.colors.textOnPrimary,
-                            modifier = Modifier.size(22.dp),
-                        )
-                    }
+                if (query.isNotEmpty()) {
+                    IconButton(onClick = { viewModel.onQueryChange("") }) { Icon(Icons.Outlined.Close, stringResource(R.string.search_clear)) }
+                } else {
+                    // A post's label (restored 2026-10-20): the camera, or its digits typed.
+                    IconButton(onClick = onScan) { Icon(androidx.compose.material.icons.Icons.Outlined.QrCodeScanner, stringResource(R.string.search_scan)) }
                 }
             },
             singleLine = true,
@@ -175,7 +164,7 @@ fun SearchScreen(
 
         val searching = active.length >= MIN_QUERY_LENGTH
         if (!searching && filters.isEmpty) {
-            ExploreFeed(viewModel, onOpenProduct, onOpenAuthor, onOpenFilters = { filtersOpen = true })
+            ExploreFeed(viewModel, onOpenProduct, onOpenAuthor, onOpenFilters = { filtersOpen = true }, onOpenMap = onOpenMap)
             return@Column
         }
 
@@ -407,20 +396,39 @@ private fun ExploreFeed(
     onOpenProduct: (String) -> Unit,
     onOpenAuthor: (PostAuthor) -> Unit,
     onOpenFilters: () -> Unit,
+    onOpenMap: () -> Unit,
 ) {
     val scope by viewModel.scope.collectAsStateWithLifecycle()
+    // The map sits to the RIGHT of "Global" in both languages (product owner,
+    // 2026-10-20): in a right-to-left row that is before it, in English after it.
+    val rtl = androidx.compose.ui.platform.LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl
+    val mapChip: @Composable () -> Unit = {
+        AssistChip(
+            onClick = onOpenMap,
+            label = { Text(stringResource(R.string.search_map)) },
+            leadingIcon = { Icon(androidx.compose.material.icons.Icons.Outlined.Map, null, Modifier.size(18.dp)) },
+            colors = androidx.compose.material3.AssistChipDefaults.assistChipColors(
+                containerColor = com.azza.core.designsystem.theme.AzzaTheme.colors.primary,
+                labelColor = com.azza.core.designsystem.theme.AzzaTheme.colors.textOnPrimary,
+                leadingIconContentColor = com.azza.core.designsystem.theme.AzzaTheme.colors.textOnPrimary,
+            ),
+            border = null,
+        )
+    }
     val cities by viewModel.cities.collectAsStateWithLifecycle()
     Row(
         Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        if (rtl) mapChip()
         FilterChip(
             selected = scope == ExploreScope.GLOBAL,
             onClick = { viewModel.onScope(ExploreScope.GLOBAL) },
             label = { Text(stringResource(R.string.explore_global)) },
             leadingIcon = { Icon(Icons.Outlined.Public, null, Modifier.size(18.dp)) },
         )
+        if (!rtl) mapChip()
         // The city chip IS the picker (the web's ExploreCitySwitcher): one control, one job.
         FilterChip(
             selected = scope == ExploreScope.CITY,

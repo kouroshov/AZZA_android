@@ -106,6 +106,7 @@ import com.azza.feature.notifications.NotificationsRoute
 import com.azza.feature.notifications.notificationsScreen
 import com.azza.feature.search.SearchRoute
 import com.azza.feature.search.searchScreen
+import com.azza.feature.search.findByBarcodeScreen
 import com.azza.feature.profile.StoreProfileRoute
 import com.azza.feature.profile.UserProfileRoute
 import com.azza.feature.profile.publicProfileScreens
@@ -241,6 +242,12 @@ fun AzzaApp(
                 onOpenStore = openStore,
                 onOpenAuthor = openAuthor,
                 onOpenMap = { navController.navigate(com.azza.feature.map.MapRoute) },
+                onScan = { navController.navigate(com.azza.feature.search.FindByBarcodeRoute) },
+            )
+            findByBarcodeScreen(
+                onBack = { navController.popBackStack() },
+                // The post replaces the scanner, so Back from it returns to Explore.
+                onOpenProduct = { id -> navController.navigate(ProductRoute(id)) { popUpTo<com.azza.feature.search.FindByBarcodeRoute> { inclusive = true } } },
             )
             storeScreens(
                 StoreNavigation(
@@ -505,7 +512,7 @@ private val FOCUSED_SCREENS: List<kotlin.reflect.KClass<*>> = listOf(
     // Signing in and the emailed links.
     LoginRoute::class, RegisterRoute::class, com.azza.feature.auth.ResetPasswordRoute::class, com.azza.feature.auth.ConfirmEmailRoute::class,
     // Paying, the camera, and following directions (a map of its own).
-    CheckoutRoute::class, com.azza.feature.map.DirectionsRoute::class,
+    CheckoutRoute::class, com.azza.feature.map.DirectionsRoute::class, com.azza.feature.search.FindByBarcodeRoute::class,
     // The inventory's scanner and item screen (POS-04).
     com.azza.feature.inventory.InventoryScanRoute::class, com.azza.feature.inventory.InventoryItemRoute::class,
     // Settings covers the whole screen, and so do the pages it opens.
