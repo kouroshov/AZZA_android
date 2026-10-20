@@ -311,6 +311,8 @@ fun AzzaApp(
                 onEditListing = { id -> navController.navigate(EditListingRoute(id)) },
                 onOpenSettings = { navController.navigate(SettingsRoute) { launchSingleTop = true } },
                 onNewPost = { navController.navigate(CreateRoute) },
+                onNewStore = { navController.navigate(CreateStoreRoute) },
+                onOpenOwnStore = { id -> navController.navigate(StoreHomeRoute(id)) },
             )
             basketScreens(
                 onSignIn = signIn,

@@ -1,5 +1,8 @@
 package com.azza.feature.profile
 
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.material.icons.outlined.AddBox
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Phone
@@ -99,8 +102,11 @@ fun NavGraphBuilder.profileScreen(
     onEditListing: (String) -> Unit,
     onOpenSettings: () -> Unit,
     onNewPost: () -> Unit,
+    onNewStore: () -> Unit = onOpenStores,
+    /** One of your own stores: its management page. */
+    onOpenOwnStore: (String) -> Unit = onOpenStore,
 ) {
-    composable<ProfileRoute> { ProfileScreen(onSignIn, onOpenProduct, onEditProfile, onOpenFollowList, onOpenStores, onEditListing, onOpenSettings, onNewPost, onOpenStore) }
+    composable<ProfileRoute> { ProfileScreen(onSignIn, onOpenProduct, onEditProfile, onOpenFollowList, onOpenStores, onEditListing, onOpenSettings, onNewPost, onOpenStore, onNewStore, onOpenOwnStore) }
     composable<FollowListRoute> { FollowListScreen(onBack, onOpenUser, onOpenStore) }
 }
 
@@ -115,6 +121,8 @@ fun ProfileScreen(
     onOpenSettings: () -> Unit,
     onNewPost: () -> Unit,
     onOpenStore: (String) -> Unit = {},
+    onNewStore: () -> Unit = onOpenStores,
+    onOpenOwnStore: (String) -> Unit = onOpenStore,
     viewModel: ProfileViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -130,7 +138,7 @@ fun ProfileScreen(
             if (s.error == AppError.Unauthenticated) SignedOut(onSignIn, onOpenSettings) else ErrorState(s.error, onRetry = { viewModel.retry() })
         is ProfileUiState.Ready -> {
             val me by viewModel.me.collectAsStateWithLifecycle()
-            Profile(me ?: s.user, viewModel, onOpenProduct, onEditProfile, onOpenFollowList, onOpenStores, onEditListing, onOpenSettings, onNewPost, onOpenStore)
+            Profile(me ?: s.user, viewModel, onOpenProduct, onEditProfile, onOpenFollowList, onEditListing, onOpenSettings, onNewPost, onNewStore, onOpenOwnStore)
         }
     }
 }
@@ -143,11 +151,11 @@ private fun Profile(
     onOpenProduct: (String) -> Unit,
     onEditProfile: () -> Unit,
     onOpenFollowList: (followers: Boolean) -> Unit,
-    onOpenStores: () -> Unit,
     onEditListing: (String) -> Unit,
     onOpenSettings: () -> Unit,
     onNewPost: () -> Unit,
-    onOpenStore: (String) -> Unit,
+    onNewStore: () -> Unit,
+    onOpenOwnStore: (String) -> Unit,
 ) {
     val followers by viewModel.followerCount.collectAsStateWithLifecycle()
     // Read once, so the Stores tab has them when it is opened.
@@ -187,8 +195,22 @@ private fun Profile(
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(handle(user.username), style = MaterialTheme.typography.titleMedium, color = colors.textPrimary, modifier = Modifier.weight(1f))
-                    IconButton(onClick = { shareLink(context, user.displayName, links.user(user.username)) }) {
-                        Icon(Icons.Outlined.Share, stringResource(com.azza.core.ui.R.string.share))
+                    // Instagram's "+": what you can create — a post, or a store.
+                    Box {
+                        var createOpen by remember { mutableStateOf(false) }
+                        IconButton(onClick = { createOpen = true }) { Icon(Icons.Outlined.AddBox, stringResource(R.string.profile_create)) }
+                        androidx.compose.material3.DropdownMenu(expanded = createOpen, onDismissRequest = { createOpen = false }) {
+                            androidx.compose.material3.DropdownMenuItem(
+                                text = { Text(stringResource(R.string.profile_new_post)) },
+                                leadingIcon = { Icon(Icons.Outlined.GridOn, null) },
+                                onClick = { createOpen = false; onNewPost() },
+                            )
+                            androidx.compose.material3.DropdownMenuItem(
+                                text = { Text(stringResource(R.string.profile_new_store)) },
+                                leadingIcon = { Icon(Icons.Outlined.Storefront, null) },
+                                onClick = { createOpen = false; onNewStore() },
+                            )
+                        }
                     }
                     // Settings, on this page only (it slides in from this edge).
                     IconButton(onClick = onOpenSettings) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.profile_settings)) }
@@ -206,25 +228,53 @@ private fun Profile(
                         Text(it, style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
                     }
                 }
-                // Signing out lives in Settings (the ⋮ menu), as on the web.
-                // The web's actions slot: Edit profile, and the stores you run.
-                // Posting starts here (and on your store's page), not in the bottom bar.
-                androidx.compose.material3.Button(onClick = onNewPost, modifier = Modifier.fillMaxWidth()) {
-                    androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Outlined.Add, null)
-                    Text(" " + stringResource(R.string.profile_new_post))
-                }
+                // Instagram's two actions. Creating (a post, a store) is the "+" above;
+                // your stores are the third tab below.
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = onEditProfile, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.profile_edit)) }
-                    OutlinedButton(onClick = onOpenStores, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.profile_stores)) }
+                    androidx.compose.material3.FilledTonalButton(
+                        onClick = onEditProfile,
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+                        colors = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(containerColor = colors.surfaceRaised, contentColor = colors.textPrimary),
+                        modifier = Modifier.weight(1f),
+                    ) { Text(stringResource(R.string.profile_edit)) }
+                    androidx.compose.material3.FilledTonalButton(
+                        onClick = { shareLink(context, user.displayName, links.user(user.username)) },
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+                        colors = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(containerColor = colors.surfaceRaised, contentColor = colors.textPrimary),
+                        modifier = Modifier.weight(1f),
+                    ) { Text(stringResource(R.string.profile_share_profile)) }
                 }
             }
         }
         item(key = "tabs") {
             // The web profile's three tabs, with their icons.
-            PrimaryTabRow(selectedTabIndex = tab, containerColor = colors.bg) {
-                Tab(selected = tab == 0, onClick = { tab = 0 }, icon = { Icon(Icons.Outlined.GridOn, null) }, text = { Text(stringResource(R.string.profile_tab_posts)) })
-                Tab(selected = tab == 1, onClick = { tab = 1 }, icon = { Icon(Icons.Outlined.FavoriteBorder, null) }, text = { Text(stringResource(R.string.profile_favorites)) })
-                Tab(selected = tab == 2, onClick = { tab = 2; viewModel.loadStores() }, icon = { Icon(Icons.Outlined.Storefront, null) }, text = { Text(stringResource(R.string.profile_tab_stores)) })
+            PrimaryTabRow(
+                selectedTabIndex = tab,
+                containerColor = colors.bg,
+                divider = { androidx.compose.material3.HorizontalDivider(thickness = 0.5.dp, color = colors.navDivider) },
+                indicator = {
+                    androidx.compose.material3.TabRowDefaults.PrimaryIndicator(
+                        Modifier.tabIndicatorOffset(tab, matchContentSize = false),
+                        width = androidx.compose.ui.unit.Dp.Unspecified,
+                        height = 1.dp,
+                        color = colors.textPrimary,
+                        shape = androidx.compose.ui.graphics.RectangleShape,
+                    )
+                },
+            ) {
+                listOf(
+                    Icons.Outlined.GridOn to R.string.profile_tab_posts,
+                    Icons.Outlined.FavoriteBorder to R.string.profile_favorites,
+                    Icons.Outlined.Storefront to R.string.profile_tab_stores,
+                ).forEachIndexed { index, (icon, label) ->
+                    Tab(
+                        selected = tab == index,
+                        onClick = { tab = index; if (index == 2) viewModel.loadStores() },
+                        selectedContentColor = colors.textPrimary,
+                        unselectedContentColor = colors.textMuted,
+                        modifier = Modifier.height(44.dp),
+                    ) { Icon(icon, stringResource(label), Modifier.size(24.dp)) }
+                }
             }
         }
         if (tab == 0) {
@@ -258,17 +308,18 @@ private fun Profile(
             when {
                 stores == null -> item { Text("…", modifier = Modifier.padding(16.dp), color = colors.textMuted) }
                 stores.isEmpty() -> item {
-                    Text(stringResource(R.string.profile_stores_empty), modifier = Modifier.padding(16.dp), color = colors.textMuted)
+                    Column(Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(stringResource(R.string.profile_stores_empty), color = colors.textMuted)
+                        androidx.compose.material3.TextButton(onClick = onNewStore) { Text(stringResource(R.string.profile_new_store)) }
+                    }
                 }
-                else -> items(stores, key = { it.id }) { store ->
-                    StoreCard(store, onOpen = { onOpenStore(store.slug) })
-                }
-            }
-            item(key = "manage-stores") {
-                Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
-                    androidx.compose.material3.FilledTonalButton(onClick = onOpenStores) {
-                        Icon(Icons.Outlined.Tune, null)
-                        Text(" " + stringResource(R.string.profile_manage_stores))
+                else -> {
+                    val rows = stores.chunked(3)
+                    items(rows.size, key = { "stores-" + rows[it].first().id }) { index ->
+                        androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth().padding(horizontal = 1.dp, vertical = 1.dp), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                            rows[index].forEach { store -> StoreTile(store, Modifier.weight(1f)) { onOpenOwnStore(store.id) } }
+                            repeat(3 - rows[index].size) { Box(Modifier.weight(1f)) }
+                        }
                     }
                 }
             }
@@ -348,37 +399,27 @@ private fun Counter(value: String, label: String, onClick: () -> Unit) {
     }
 }
 
-/** One store, as the web profile's Stores tab shows it. */
+/** One store, as a square the size of a post tile: its picture, and its name where a post shows its price. */
 @Composable
-private fun StoreCard(store: com.azza.core.data.ManagedStore, onOpen: () -> Unit) {
+private fun StoreTile(store: com.azza.core.data.ManagedStore, modifier: Modifier, onOpen: () -> Unit) {
     val colors = AzzaTheme.colors
-    androidx.compose.material3.Card(
-        onClick = onOpen,
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
-        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = colors.surfaceRaised),
-        border = androidx.compose.foundation.BorderStroke(1.dp, colors.border),
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-    ) {
-        Box(Modifier.fillMaxWidth().height(160.dp).background(colors.surface), contentAlignment = Alignment.Center) {
-            if (store.avatarUrl != null) {
-                coil.compose.AsyncImage(store.avatarUrl, store.name, contentScale = androidx.compose.ui.layout.ContentScale.Fit, modifier = Modifier.fillMaxSize().padding(16.dp))
-            } else {
-                Icon(Icons.Outlined.Storefront, null, tint = colors.textMuted, modifier = Modifier.size(56.dp))
-            }
+    Box(modifier.aspectRatio(1f).background(colors.surface).clickable(onClick = onOpen)) {
+        if (store.avatarUrl != null) {
+            coil.compose.AsyncImage(store.avatarUrl, store.name, contentScale = androidx.compose.ui.layout.ContentScale.Crop, modifier = Modifier.matchParentSize())
+        } else {
+            Icon(Icons.Outlined.Storefront, null, tint = colors.textMuted, modifier = Modifier.align(Alignment.Center).size(32.dp))
         }
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(store.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = colors.textPrimary)
-            store.address?.let { StoreLine(Icons.Outlined.Place, it) }
-            store.phone?.takeIf { it.isNotBlank() }?.let { StoreLine(Icons.Outlined.Phone, it) }
-            StoreLine(Icons.Outlined.Inventory2, androidx.compose.ui.res.pluralStringResource(R.plurals.profile_store_items, store.postCount, store.postCount))
-        }
-    }
-}
-
-@Composable
-private fun StoreLine(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String) {
-    androidx.compose.foundation.layout.Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Icon(icon, null, tint = AzzaTheme.colors.textSecondary, modifier = Modifier.size(16.dp))
-        Text(text, style = MaterialTheme.typography.bodySmall, color = AzzaTheme.colors.textSecondary)
+        Text(
+            store.name,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = androidx.compose.ui.graphics.Color.White,
+            maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.45f))
+                .padding(horizontal = 6.dp, vertical = 2.dp),
+        )
     }
 }

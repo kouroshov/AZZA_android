@@ -60,4 +60,7 @@
         <item quantity="one">%d item</item>
         <item quantity="other">%d items</item>
     </plurals>
+    <string name="profile_create">Create</string>
+    <string name="profile_new_store">New store</string>
+    <string name="profile_share_profile">Share profile</string>
 </resources>
