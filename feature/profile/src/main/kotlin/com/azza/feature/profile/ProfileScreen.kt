@@ -1,5 +1,13 @@
 package com.azza.feature.profile
 
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.outlined.Phone
+import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material.icons.outlined.Storefront
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.GridOn
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Search
@@ -92,7 +100,7 @@ fun NavGraphBuilder.profileScreen(
     onOpenSettings: () -> Unit,
     onNewPost: () -> Unit,
 ) {
-    composable<ProfileRoute> { ProfileScreen(onSignIn, onOpenProduct, onEditProfile, onOpenFollowList, onOpenStores, onEditListing, onOpenSettings, onNewPost) }
+    composable<ProfileRoute> { ProfileScreen(onSignIn, onOpenProduct, onEditProfile, onOpenFollowList, onOpenStores, onEditListing, onOpenSettings, onNewPost, onOpenStore) }
     composable<FollowListRoute> { FollowListScreen(onBack, onOpenUser, onOpenStore) }
 }
 
@@ -106,6 +114,7 @@ fun ProfileScreen(
     onEditListing: (String) -> Unit,
     onOpenSettings: () -> Unit,
     onNewPost: () -> Unit,
+    onOpenStore: (String) -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -121,7 +130,7 @@ fun ProfileScreen(
             if (s.error == AppError.Unauthenticated) SignedOut(onSignIn, onOpenSettings) else ErrorState(s.error, onRetry = { viewModel.retry() })
         is ProfileUiState.Ready -> {
             val me by viewModel.me.collectAsStateWithLifecycle()
-            Profile(me ?: s.user, viewModel, onOpenProduct, onEditProfile, onOpenFollowList, onOpenStores, onEditListing, onOpenSettings, onNewPost)
+            Profile(me ?: s.user, viewModel, onOpenProduct, onEditProfile, onOpenFollowList, onOpenStores, onEditListing, onOpenSettings, onNewPost, onOpenStore)
         }
     }
 }
@@ -138,8 +147,11 @@ private fun Profile(
     onEditListing: (String) -> Unit,
     onOpenSettings: () -> Unit,
     onNewPost: () -> Unit,
+    onOpenStore: (String) -> Unit,
 ) {
     val followers by viewModel.followerCount.collectAsStateWithLifecycle()
+    // Read once, so the Stores tab has them when it is opened.
+    androidx.compose.runtime.LaunchedEffect(Unit) { viewModel.loadStores() }
     val postCount by viewModel.postCount.collectAsStateWithLifecycle()
     val owner by viewModel.owner.state.collectAsStateWithLifecycle()
     var menuFor by remember { mutableStateOf<PostTile?>(null) }
@@ -208,9 +220,11 @@ private fun Profile(
             }
         }
         item(key = "tabs") {
+            // The web profile's three tabs, with their icons.
             PrimaryTabRow(selectedTabIndex = tab, containerColor = colors.bg) {
-                Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text(stringResource(R.string.profile_tab_posts)) })
-                Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(stringResource(R.string.profile_favorites)) })
+                Tab(selected = tab == 0, onClick = { tab = 0 }, icon = { Icon(Icons.Outlined.GridOn, null) }, text = { Text(stringResource(R.string.profile_tab_posts)) })
+                Tab(selected = tab == 1, onClick = { tab = 1 }, icon = { Icon(Icons.Outlined.FavoriteBorder, null) }, text = { Text(stringResource(R.string.profile_favorites)) })
+                Tab(selected = tab == 2, onClick = { tab = 2; viewModel.loadStores() }, icon = { Icon(Icons.Outlined.Storefront, null) }, text = { Text(stringResource(R.string.profile_tab_stores)) })
             }
         }
         if (tab == 0) {
@@ -239,6 +253,25 @@ private fun Profile(
                 )
             }
             loadingMoreFooter(posts.loadingMore)
+        } else if (tab == 2) {
+            val stores = viewModel.stores.value
+            when {
+                stores == null -> item { Text("…", modifier = Modifier.padding(16.dp), color = colors.textMuted) }
+                stores.isEmpty() -> item {
+                    Text(stringResource(R.string.profile_stores_empty), modifier = Modifier.padding(16.dp), color = colors.textMuted)
+                }
+                else -> items(stores, key = { it.id }) { store ->
+                    StoreCard(store, onOpen = { onOpenStore(store.slug) })
+                }
+            }
+            item(key = "manage-stores") {
+                Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                    androidx.compose.material3.FilledTonalButton(onClick = onOpenStores) {
+                        Icon(Icons.Outlined.Tune, null)
+                        Text(" " + stringResource(R.string.profile_manage_stores))
+                    }
+                }
+            }
         } else {
             when {
                 favorites.loadingFirst -> item { Text("…", modifier = Modifier.padding(16.dp), color = colors.textMuted) }
@@ -312,5 +345,40 @@ private fun Counter(value: String, label: String, onClick: () -> Unit) {
     ) {
         Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         Text(label, style = MaterialTheme.typography.bodySmall, color = AzzaTheme.colors.textSecondary)
+    }
+}
+
+/** One store, as the web profile's Stores tab shows it. */
+@Composable
+private fun StoreCard(store: com.azza.core.data.ManagedStore, onOpen: () -> Unit) {
+    val colors = AzzaTheme.colors
+    androidx.compose.material3.Card(
+        onClick = onOpen,
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = colors.surfaceRaised),
+        border = androidx.compose.foundation.BorderStroke(1.dp, colors.border),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+    ) {
+        Box(Modifier.fillMaxWidth().height(160.dp).background(colors.surface), contentAlignment = Alignment.Center) {
+            if (store.avatarUrl != null) {
+                coil.compose.AsyncImage(store.avatarUrl, store.name, contentScale = androidx.compose.ui.layout.ContentScale.Fit, modifier = Modifier.fillMaxSize().padding(16.dp))
+            } else {
+                Icon(Icons.Outlined.Storefront, null, tint = colors.textMuted, modifier = Modifier.size(56.dp))
+            }
+        }
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(store.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+            store.address?.let { StoreLine(Icons.Outlined.Place, it) }
+            store.phone?.takeIf { it.isNotBlank() }?.let { StoreLine(Icons.Outlined.Phone, it) }
+            StoreLine(Icons.Outlined.Inventory2, androidx.compose.ui.res.pluralStringResource(R.plurals.profile_store_items, store.postCount, store.postCount))
+        }
+    }
+}
+
+@Composable
+private fun StoreLine(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String) {
+    androidx.compose.foundation.layout.Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Icon(icon, null, tint = AzzaTheme.colors.textSecondary, modifier = Modifier.size(16.dp))
+        Text(text, style = MaterialTheme.typography.bodySmall, color = AzzaTheme.colors.textSecondary)
     }
 }

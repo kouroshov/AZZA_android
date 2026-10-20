@@ -53,4 +53,11 @@
     <string name="profile_settings">تنظیمات</string>
     <string name="profile_directions">مسیریابی</string>
     <string name="profile_new_post">پست جدید</string>
+    <string name="profile_tab_stores">فروشگاه‌ها</string>
+    <string name="profile_stores_empty">هنوز فروشگاهی ندارید.</string>
+    <string name="profile_manage_stores">مدیریت فروشگاه‌ها</string>
+    <plurals name="profile_store_items">
+        <item quantity="one">%d کالا</item>
+        <item quantity="other">%d کالا</item>
+    </plurals>
 </resources>

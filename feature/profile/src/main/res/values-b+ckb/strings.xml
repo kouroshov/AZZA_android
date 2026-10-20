@@ -54,4 +54,11 @@
     <string name="profile_settings">ڕێکخستنەکان</string>
     <string name="profile_directions">ڕێنمایی ڕێگا</string>
     <string name="profile_new_post">پۆستی نوێ</string>
+    <string name="profile_tab_stores">دوکانەکان</string>
+    <string name="profile_stores_empty">هێشتا دوکانت نییە.</string>
+    <string name="profile_manage_stores">بەڕێوەبردنی دوکانەکان</string>
+    <plurals name="profile_store_items">
+        <item quantity="one">%d کاڵا</item>
+        <item quantity="other">%d کاڵا</item>
+    </plurals>
 </resources>
