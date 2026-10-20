@@ -60,4 +60,7 @@
         <item quantity="one">%d کالا</item>
         <item quantity="other">%d کالا</item>
     </plurals>
+    <string name="profile_create">ساختن</string>
+    <string name="profile_new_store">فروشگاه جدید</string>
+    <string name="profile_share_profile">اشتراک‌گذاری پروفایل</string>
 </resources>

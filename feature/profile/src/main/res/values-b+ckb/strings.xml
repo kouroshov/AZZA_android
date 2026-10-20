@@ -61,4 +61,7 @@
         <item quantity="one">%d کاڵا</item>
         <item quantity="other">%d کاڵا</item>
     </plurals>
+    <string name="profile_create">دروستکردن</string>
+    <string name="profile_new_store">دوکانی نوێ</string>
+    <string name="profile_share_profile">هاوبەشکردنی پرۆفایل</string>
 </resources>
