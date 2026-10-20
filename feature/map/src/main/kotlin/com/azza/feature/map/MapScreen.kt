@@ -1,5 +1,6 @@
 package com.azza.feature.map
 
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import org.maplibre.android.geometry.LatLngBounds
 import com.azza.core.data.CityCount
 import com.azza.core.data.MapSummary
@@ -108,8 +109,8 @@ import org.maplibre.geojson.Point
 /** The web's "/" — the marketplace map of store branches. */
 @Serializable data object MapRoute
 
-fun NavGraphBuilder.mapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, onDirections: (branchId: String, name: String) -> Unit) {
-    composable<MapRoute> { MapScreen(onOpenStore, onOpenProduct, onDirections) }
+fun NavGraphBuilder.mapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, onDirections: (branchId: String, name: String) -> Unit, onBack: () -> Unit = {}) {
+    composable<MapRoute> { MapScreen(onOpenStore, onOpenProduct, onDirections, onBack = onBack) }
 }
 
 /** The web's NEXT_PUBLIC_MAP_STYLE_URL: OpenFreeMap, no key, the same tiles as the website. */
@@ -310,7 +311,7 @@ class MapViewModel @Inject constructor(
 }
 
 @Composable
-fun MapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, onDirections: (branchId: String, name: String) -> Unit, viewModel: MapViewModel = hiltViewModel()) {
+fun MapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, onDirections: (branchId: String, name: String) -> Unit, viewModel: MapViewModel = hiltViewModel(), onBack: (() -> Unit)? = null) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -513,6 +514,12 @@ fun MapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, on
 
     Box(Modifier.fillMaxSize()) {
         AndroidView(factory = { mapView }, modifier = Modifier.fillMaxSize())
+        // Opened from Explore (no longer a tab): a way back.
+        onBack?.let { back ->
+            androidx.compose.material3.SmallFloatingActionButton(onClick = back, modifier = Modifier.align(Alignment.BottomStart).padding(12.dp)) {
+                Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.map_back))
+            }
+        }
         androidx.compose.material3.SmallFloatingActionButton(
             onClick = {
                 if (androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==

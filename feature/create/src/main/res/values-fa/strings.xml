@@ -73,4 +73,5 @@
     <string name="create_feature_remove">حذف ویژگی</string>
     <string name="create_move_photo_later">انتقال به بعد</string>
     <string name="create_make_cover">عکس اصلی شود</string>
+    <string name="create_personal_single_item">پست شخصی یک کالا را می‌فروشد. برای تعیین موجودی، از طرف یکی از فروشگاه‌هایتان پست بگذارید.</string>
 </resources>

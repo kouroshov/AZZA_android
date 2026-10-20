@@ -66,4 +66,5 @@
         <item quantity="one">%1$d ئەنجام</item>
         <item quantity="other">%1$d ئەنجام</item>
     </plurals>
+    <string name="search_map">نەخشە</string>
 </resources>

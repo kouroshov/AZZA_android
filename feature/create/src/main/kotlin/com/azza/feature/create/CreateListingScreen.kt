@@ -230,7 +230,11 @@ fun CreateListingScreen(onPosted: (String) -> Unit, onDeleted: () -> Unit, viewM
             }
         }
 
-        // A personal listing is one item, set by the server: there is no field for it (CLAUDE.md §4).
+        // A personal listing is one item, set by the server: there is no field for it (CLAUDE.md §4),
+        // only the web's note saying so. Stock is a store's: post as a store to set it.
+        if (!editing && state.isPersonal) {
+            Text(stringResource(R.string.create_personal_single_item), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+        }
         if (!editing && !state.isPersonal) {
             Field(state.quantity, { v -> viewModel.edit { copy(quantity = v, formErrors = formErrors - FormError.QUANTITY) } },
                 R.string.create_quantity_main_branch, type = KeyboardType.Number,

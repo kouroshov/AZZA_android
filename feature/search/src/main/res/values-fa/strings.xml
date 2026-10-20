@@ -65,4 +65,5 @@
         <item quantity="one">%1$d نتیجه</item>
         <item quantity="other">%1$d نتیجه</item>
     </plurals>
+    <string name="search_map">نقشه</string>
 </resources>

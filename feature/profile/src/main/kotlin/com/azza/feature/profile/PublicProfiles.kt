@@ -1,5 +1,6 @@
 package com.azza.feature.profile
 
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Directions
 import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.Place
@@ -205,6 +206,12 @@ class StoreProfileViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), FollowButton.HIDDEN)
 
+    /** The signed-in person runs this store: its page offers "New post". */
+    val isOwner: StateFlow<Boolean> = combine(_state, users.currentUser) { s, me ->
+        val store = (s as? Loadable.Ready)?.value
+        store != null && me?.id == store.ownerId
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
     private val _signInRequired = Channel<Unit>(Channel.CONFLATED)
     val signInRequired = _signInRequired.receiveAsFlow()
 
@@ -291,8 +298,10 @@ fun StoreProfileScreen(
     onSignIn: () -> Unit,
     onOpen: (Any) -> Unit,
     onDirections: (branchId: String, name: String) -> Unit,
+    onPostFromStore: (storeId: String) -> Unit,
     viewModel: StoreProfileViewModel = hiltViewModel(),
 ) {
+    val isOwner by viewModel.isOwner.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val branches by viewModel.branches.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -319,6 +328,7 @@ fun StoreProfileScreen(
                         button = button,
                         onFollow = viewModel::toggleFollow,
                         posts = store.postCount,
+                        onNewPost = { onPostFromStore(store.id) }.takeIf { isOwner },
                     )
                 }
                 item(key = "info") {
@@ -412,6 +422,8 @@ internal fun ProfileHeader(
     button: FollowButton,
     onFollow: () -> Unit,
     posts: Int? = null,
+    /** Your own store's page: a "New post" button (there is no Follow there). */
+    onNewPost: (() -> Unit)? = null,
 ) {
     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(20.dp)) {
@@ -447,6 +459,12 @@ internal fun ProfileHeader(
                 )
             }
         }
+        onNewPost?.let { newPost ->
+            Button(onClick = newPost, modifier = Modifier.fillMaxWidth()) {
+                androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Outlined.Add, null)
+                Text(" " + stringResource(R.string.profile_new_post))
+            }
+        }
         when (button) {
             FollowButton.HIDDEN -> Unit
             FollowButton.FOLLOW -> Button(onClick = onFollow, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.profile_follow)) }
@@ -463,8 +481,9 @@ fun NavGraphBuilder.publicProfileScreens(
     onSignIn: () -> Unit,
     onOpen: (Any) -> Unit,
     onDirections: (branchId: String, name: String) -> Unit,
+    onPostFromStore: (storeId: String) -> Unit = {},
 ) {
     composable<UserProfileRoute> { UserProfileScreen(onBack, onOpenProduct, onSignIn) }
-    composable<StoreProfileRoute> { StoreProfileScreen(onBack, onOpenProduct, onSignIn, onOpen, onDirections) }
+    composable<StoreProfileRoute> { StoreProfileScreen(onBack, onOpenProduct, onSignIn, onOpen, onDirections, onPostFromStore) }
     composable<BranchPageRoute> { BranchPageScreen(onBack, onOpenStore = { onOpen(StoreProfileRoute(it)) }, onOpenProduct = onOpenProduct, onDirections = onDirections) }
 }

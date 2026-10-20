@@ -231,6 +231,7 @@ fun AzzaApp(
                 onOpenUser = openUser,
                 onOpenStore = openStore,
                 onOpenAuthor = openAuthor,
+                onOpenMap = { navController.navigate(com.azza.feature.map.MapRoute) },
             )
             storeScreens(
                 StoreNavigation(
@@ -260,6 +261,7 @@ fun AzzaApp(
                 onSignIn = signIn,
                 onOpen = { route -> navController.navigate(route) },
                 onDirections = { id, name -> navController.navigate(com.azza.feature.map.DirectionsRoute(id, name)) },
+                onPostFromStore = { id -> navController.navigate(CreateForStoreRoute(id)) },
             )
             directionsScreen(
                 onBack = navController::popBackStack,
@@ -292,6 +294,7 @@ fun AzzaApp(
                 onOpenStore = openStore,
                 onEditListing = { id -> navController.navigate(EditListingRoute(id)) },
                 onOpenSettings = { navController.navigate(SettingsRoute) { launchSingleTop = true } },
+                onNewPost = { navController.navigate(CreateRoute) },
             )
             basketScreens(
                 onSignIn = signIn,
@@ -343,6 +346,7 @@ fun AzzaApp(
                 onOpenStore = openStore,
                 onOpenProduct = { id -> navController.navigate(ProductRoute(id, source = "MAP")) },
                 onDirections = { id, name -> navController.navigate(com.azza.feature.map.DirectionsRoute(id, name)) },
+                onBack = { navController.popBackStack() },
             )
             settingsScreens(
                 onBack = { navController.popBackStack() },
@@ -499,7 +503,7 @@ private val FOCUSED_SCREENS: List<kotlin.reflect.KClass<*>> = listOf(
     SettingsRoute::class, EditProfileRoute::class, EmailRoute::class, AddressesRoute::class, AddressEditRoute::class,
     SupportRoute::class, NewTicketRoute::class,
     // Editors with a Save button.
-    EditListingRoute::class, CreateForStoreRoute::class, CreateStoreRoute::class,
+    EditListingRoute::class, CreateForStoreRoute::class, CreateStoreRoute::class, CreateRoute::class,
     com.azza.feature.stores.StoreEditRoute::class, com.azza.feature.stores.BranchRoute::class,
     com.azza.feature.stores.BranchLocationRoute::class, TimetableRoute::class, BookingSettingsRoute::class,
 )

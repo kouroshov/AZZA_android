@@ -65,4 +65,5 @@
         <item quantity="one">%1$d result</item>
         <item quantity="other">%1$d results</item>
     </plurals>
+    <string name="search_map">Map</string>
 </resources>

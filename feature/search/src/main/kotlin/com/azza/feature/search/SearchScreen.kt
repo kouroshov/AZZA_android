@@ -2,6 +2,7 @@
 
 package com.azza.feature.search
 
+import androidx.compose.material.icons.outlined.Map
 import com.azza.core.model.SearchFilters
 import com.azza.core.model.ItemCondition
 import com.azza.core.model.Area
@@ -110,8 +111,9 @@ fun NavGraphBuilder.searchScreen(
     onOpenUser: (String) -> Unit,
     onOpenStore: (String) -> Unit,
     onOpenAuthor: (PostAuthor) -> Unit,
+    onOpenMap: () -> Unit,
 ) {
-    composable<SearchRoute> { SearchScreen(onOpenProduct, onOpenUser, onOpenStore, onOpenAuthor) }
+    composable<SearchRoute> { SearchScreen(onOpenProduct, onOpenUser, onOpenStore, onOpenAuthor, onOpenMap) }
 }
 
 @Composable
@@ -120,6 +122,7 @@ fun SearchScreen(
     onOpenUser: (String) -> Unit,
     onOpenStore: (String) -> Unit,
     onOpenAuthor: (PostAuthor) -> Unit,
+    onOpenMap: () -> Unit,
     viewModel: SearchViewModel = hiltViewModel(),
 ) {
     val query by viewModel.query.collectAsStateWithLifecycle()
@@ -137,6 +140,9 @@ fun SearchScreen(
     if (filtersOpen) FiltersSheet(filters, viewModel, onDismiss = { filtersOpen = false })
 
     Column(Modifier.fillMaxSize()) {
+      // The map is one of AZZA's own things (product owner, 2026-10-20): it sits
+      // beside the search box, one tap from Explore, rather than in the bar.
+      Row(Modifier.fillMaxWidth().padding(end = 12.dp), verticalAlignment = Alignment.CenterVertically) {
         OutlinedTextField(
             value = query,
             onValueChange = viewModel::onQueryChange,
@@ -152,8 +158,20 @@ fun SearchScreen(
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { keyboard?.hide() }),
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+            modifier = Modifier.weight(1f).padding(start = 12.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
         )
+        androidx.compose.material3.FilledTonalButton(
+            onClick = onOpenMap,
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp, vertical = 12.dp),
+            colors = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(
+                containerColor = com.azza.core.designsystem.theme.AzzaTheme.colors.primary,
+                contentColor = com.azza.core.designsystem.theme.AzzaTheme.colors.textOnPrimary,
+            ),
+        ) {
+            Icon(androidx.compose.material.icons.Icons.Outlined.Map, null)
+            Text(" " + stringResource(R.string.search_map))
+        }
+      }
 
         val searching = active.length >= MIN_QUERY_LENGTH
         if (!searching && filters.isEmpty) {
