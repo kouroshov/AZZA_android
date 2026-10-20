@@ -90,4 +90,5 @@
         <item quantity="one">%1$d مغازه</item>
         <item quantity="other">%1$d مغازه</item>
     </plurals>
+    <string name="map_back">بازگشت</string>
 </resources>

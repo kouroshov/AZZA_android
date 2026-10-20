@@ -1,5 +1,6 @@
 package com.azza.feature.profile
 
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.OutlinedTextField
@@ -89,8 +90,9 @@ fun NavGraphBuilder.profileScreen(
     onOpenStore: (String) -> Unit,
     onEditListing: (String) -> Unit,
     onOpenSettings: () -> Unit,
+    onNewPost: () -> Unit,
 ) {
-    composable<ProfileRoute> { ProfileScreen(onSignIn, onOpenProduct, onEditProfile, onOpenFollowList, onOpenStores, onEditListing, onOpenSettings) }
+    composable<ProfileRoute> { ProfileScreen(onSignIn, onOpenProduct, onEditProfile, onOpenFollowList, onOpenStores, onEditListing, onOpenSettings, onNewPost) }
     composable<FollowListRoute> { FollowListScreen(onBack, onOpenUser, onOpenStore) }
 }
 
@@ -103,6 +105,7 @@ fun ProfileScreen(
     onOpenStores: () -> Unit,
     onEditListing: (String) -> Unit,
     onOpenSettings: () -> Unit,
+    onNewPost: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -118,7 +121,7 @@ fun ProfileScreen(
             if (s.error == AppError.Unauthenticated) SignedOut(onSignIn, onOpenSettings) else ErrorState(s.error, onRetry = { viewModel.retry() })
         is ProfileUiState.Ready -> {
             val me by viewModel.me.collectAsStateWithLifecycle()
-            Profile(me ?: s.user, viewModel, onOpenProduct, onEditProfile, onOpenFollowList, onOpenStores, onEditListing, onOpenSettings)
+            Profile(me ?: s.user, viewModel, onOpenProduct, onEditProfile, onOpenFollowList, onOpenStores, onEditListing, onOpenSettings, onNewPost)
         }
     }
 }
@@ -134,6 +137,7 @@ private fun Profile(
     onOpenStores: () -> Unit,
     onEditListing: (String) -> Unit,
     onOpenSettings: () -> Unit,
+    onNewPost: () -> Unit,
 ) {
     val followers by viewModel.followerCount.collectAsStateWithLifecycle()
     val postCount by viewModel.postCount.collectAsStateWithLifecycle()
@@ -192,6 +196,11 @@ private fun Profile(
                 }
                 // Signing out lives in Settings (the ⋮ menu), as on the web.
                 // The web's actions slot: Edit profile, and the stores you run.
+                // Posting starts here (and on your store's page), not in the bottom bar.
+                androidx.compose.material3.Button(onClick = onNewPost, modifier = Modifier.fillMaxWidth()) {
+                    androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Outlined.Add, null)
+                    Text(" " + stringResource(R.string.profile_new_post))
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(onClick = onEditProfile, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.profile_edit)) }
                     OutlinedButton(onClick = onOpenStores, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.profile_stores)) }
