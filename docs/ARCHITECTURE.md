@@ -130,3 +130,33 @@ the web repo's `docs/architecture/pos-register-api.md`) is the source of truth.
   lists what is missing, with description / category leading to the full
   listing editor.
 - `AppError.Api.details` now carries the error envelope's `details` (raw JSON).
+
+## 8. The sales register (POS-05)
+
+Labelled "Sales register" — it records sales, it is not a certified cash
+register and it takes no payments.
+
+- **Entry points**: a Register tab in the bottom bar (`TopLevelDestination.
+  REGISTER`, `ownersOnly`), shown only while `RegisterRepository.stores` is
+  not empty — the stores are saved at sign-in by `PosSession`, so the tab
+  holds offline; and a dynamic app shortcut (`app/RegisterShortcut`, long
+  press on the icon) published / withdrawn with the same list. The shortcut
+  opens `MainActivity` with `EXTRA_OPEN_SCREEN = REGISTER`.
+- **Taps**: from the home screen, Register tab (1) → the camera is live,
+  each scan adds the item (0) → Pay (2) → Cash or Card (3). Three taps for a
+  three-item sale, online or offline.
+- **Screen** (`feature:register`): camera on top (core:scanner, running from
+  the start, paused only while a sheet is open), cart below (steppers,
+  swipe to remove), total and Pay. The place (store · branch) is in the top
+  bar and remembered (`AppPreferences.posLastRegister`); switching store
+  empties the cart. A queue badge counts sales not yet sent (red when one
+  was refused) and lists them with the reason.
+- **Codes**: known → in the cart (one more if already there); unknown and
+  online → a sheet makes a PRIVATE item with that code and adds it without
+  leaving; unknown and offline → "add it when back online", the sale goes
+  on; a post link or an invalid code → a short message.
+- **The cart** lives in `SavedStateHandle` (survives rotation and process
+  death) and never leaves the phone; Pay → `SaleRecorder.recordSale()` (the
+  POS-03 queue), the cart empties at once.
+- **Today** (register menu): the server's day summary and sales (online),
+  this phone's waiting / refused sales, and Void for a synced sale.

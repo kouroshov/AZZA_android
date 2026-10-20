@@ -131,6 +131,34 @@ class AppPreferences @Inject constructor(@ApplicationContext context: Context) {
         return id
     }
 
+    /**
+     * The stores the signed-in person runs, as (id, name, main branch id) —
+     * saved at sign-in (POS-05) so the Register tab and the app shortcut
+     * know, offline too, whether to show. Empty when signed out.
+     */
+    val posStores: Flow<List<Triple<String, String, String>>> = store.data.map { prefs ->
+        prefs[POS_STORES].orEmpty().split(LINE).mapNotNull { row ->
+            row.split(FIELD).takeIf { it.size == 3 }?.let { Triple(it[0], it[1], it[2]) }
+        }
+    }
+
+    suspend fun setPosStores(stores: List<Triple<String, String, String>>) {
+        store.edit { prefs ->
+            prefs[POS_STORES] = stores.joinToString(LINE) { (id, name, branch) ->
+                id + FIELD + name.replace(LINE, " ").replace(FIELD, " ") + FIELD + branch
+            }
+        }
+    }
+
+    /** Where the register was last used, as (storeId, branchId). */
+    val posLastRegister: Flow<Pair<String, String>?> = store.data.map { prefs ->
+        prefs[POS_LAST_REGISTER]?.split(FIELD)?.takeIf { it.size == 2 }?.let { it[0] to it[1] }
+    }
+
+    suspend fun setPosLastRegister(storeId: String, branchId: String) {
+        store.edit { it[POS_LAST_REGISTER] = storeId + FIELD + branchId }
+    }
+
     /** The branch the inventory / register last showed for [storeId] (POS-04). */
     fun posLastBranch(storeId: String): Flow<String?> = store.data.map { it[stringPreferencesKey("pos_branch_$storeId")] }
 
@@ -155,6 +183,8 @@ class AppPreferences @Inject constructor(@ApplicationContext context: Context) {
 
     private companion object {
         val POS_DEVICE_ID = stringPreferencesKey("pos_device_id")
+        val POS_STORES = stringPreferencesKey("pos_stores")
+        val POS_LAST_REGISTER = stringPreferencesKey("pos_last_register")
         val CITY_ID = stringPreferencesKey("explore_city_id")
         val CITY_NAME = stringPreferencesKey("explore_city_name")
         val CITIES = stringPreferencesKey("explore_cities")

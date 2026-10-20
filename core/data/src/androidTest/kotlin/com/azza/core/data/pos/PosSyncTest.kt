@@ -160,6 +160,26 @@ class PosSyncTest {
     }
 
     @Test
+    fun a_sale_made_offline_is_uploaded_once_after_reconnecting() = runTest {
+        stockItem("p1", 10)
+        // Airplane mode: every upload attempt gets no answer.
+        server.offlineCalls = 3
+        val id = queue.recordSale(store, branch, PaymentMethod.CARD_TERMINAL, listOf(SaleLine("p1", "Item", 2, 1000)))
+        repeat(3) { assertThat(worker().doWork()).isEqualTo(ListenableWorker.Result.retry()) }
+        assertThat(queue.pendingCount.first()).isEqualTo(1)
+        assertThat(server.recorded).isEmpty()
+        assertThat(dao.stock("p1", branch)!!.storeQty).isEqualTo(8)
+
+        // Back online: sent, recorded once, gone from the queue. A further run sends nothing.
+        assertThat(worker().doWork()).isEqualTo(ListenableWorker.Result.success())
+        assertThat(server.recorded).containsExactly(id)
+        assertThat(queue.pendingCount.first()).isEqualTo(0)
+        val calls = server.syncCalls
+        assertThat(worker().doWork()).isEqualTo(ListenableWorker.Result.success())
+        assertThat(server.syncCalls).isEqualTo(calls)
+    }
+
+    @Test
     fun a_sale_survives_until_sent_and_its_stock_shows_at_once() = runTest {
         stockItem("p1", 4)
         val id = sell("p1", 3)

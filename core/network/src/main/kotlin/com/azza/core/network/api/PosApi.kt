@@ -5,6 +5,9 @@ import com.azza.core.network.model.AttachCodeRequest
 import com.azza.core.network.model.CreateInventoryItemRequest
 import com.azza.core.network.model.InventoryCodeDto
 import com.azza.core.network.model.InventoryItemRefDto
+import com.azza.core.network.model.RegisterSaleDto
+import com.azza.core.network.model.RegisterSalesPageDto
+import com.azza.core.network.model.RegisterSummaryDto
 import com.azza.core.network.model.SetVisibilityRequest
 import com.azza.core.network.model.StockTransferRequest
 import kotlinx.serialization.json.JsonElement
@@ -62,4 +65,25 @@ interface PosApi {
 
     @POST("stores/{storeId}/branches/{branchId}/stock/transfer")
     suspend fun transfer(@Path("storeId") storeId: String, @Path("branchId") branchId: String, @Body body: StockTransferRequest): ApiEnvelope<JsonElement>
+
+    // ---------------------------------------------------------------- register reports (POS-02)
+
+    /** One Asia/Tehran day at one branch; [date] YYYY-MM-DD, today when null. */
+    @GET("stores/{storeId}/branches/{branchId}/sales/summary")
+    suspend fun salesSummary(@Path("storeId") storeId: String, @Path("branchId") branchId: String, @Query("date") date: String? = null): ApiEnvelope<RegisterSummaryDto>
+
+    /** Newest first; [from] inclusive, [to] exclusive (ISO 8601). */
+    @GET("stores/{storeId}/branches/{branchId}/sales")
+    suspend fun sales(
+        @Path("storeId") storeId: String,
+        @Path("branchId") branchId: String,
+        @Query("from") from: String?,
+        @Query("to") to: String?,
+        @Query("cursor") cursor: String? = null,
+        @Query("take") take: Int = 60,
+    ): ApiEnvelope<RegisterSalesPageDto>
+
+    /** Owner only; idempotent. Gives the shop floor its units back. */
+    @POST("stores/{storeId}/sales/{saleId}/void")
+    suspend fun voidSale(@Path("storeId") storeId: String, @Path("saleId") saleId: String): ApiEnvelope<RegisterSaleDto>
 }

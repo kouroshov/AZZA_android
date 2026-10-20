@@ -57,7 +57,8 @@ import kotlinx.coroutines.launch
 /** Set on a widget tap's launch intent: which screen to open (AzzaApp reads it). */
 const val EXTRA_OPEN_SCREEN = "com.azza.extra.OPEN_SCREEN"
 
-enum class WidgetTarget { SEARCH, NOTIFICATIONS, BASKET }
+/** Where a widget button or the app shortcut opens the app (REGISTER is the shortcut's, not a widget button). */
+enum class WidgetTarget { SEARCH, NOTIFICATIONS, BASKET, REGISTER }
 
 /**
  * The home-screen widget (phase 4d): four shortcuts — search, scan,

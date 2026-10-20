@@ -19,4 +19,7 @@
     <string name="lock_prompt_title">کردنەوەی AZZA</string>
     <string name="lock_cancel">هەڵوەشاندنەوە</string>
     <string name="switcher_personal">پەڕەی کەسی</string>
+    <string name="nav_register">سندوق</string>
+    <string name="shortcut_register_short">سندوق</string>
+    <string name="shortcut_register_long">سندوقی فرۆشتن</string>
 </resources>

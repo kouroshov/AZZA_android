@@ -24,6 +24,7 @@ import com.azza.core.data.AuthRepository
 import com.azza.core.data.StoresRepository
 import com.azza.core.database.pos.PosDao
 import com.azza.core.database.pos.SyncStateEntity
+import com.azza.core.datastore.AppPreferences
 import com.azza.core.model.PosSignOut
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -137,6 +138,7 @@ class PosSession @Inject constructor(
     private val auth: AuthRepository,
     private val stores: StoresRepository,
     private val scheduler: PosSyncScheduler,
+    private val preferences: AppPreferences,
     @ApplicationScope private val scope: CoroutineScope,
 ) {
     /** Called once, from Application.onCreate (main thread). */
@@ -149,6 +151,7 @@ class PosSession @Inject constructor(
                     restore()
                 } else {
                     scheduler.stopCatalog()
+                    preferences.setPosStores(emptyList())
                     // Signed out some other way (session expired, password changed):
                     // keep the register's data only if sales are still waiting.
                     if (dao.pendingCount() == 0) dao.clearAll()
@@ -179,6 +182,8 @@ class PosSession @Inject constructor(
     private suspend fun restore() {
         val mine = stores.mine()
         if (mine is Outcome.Success) {
+            // Who may see the Register tab and its shortcut (POS-05): stores with a branch.
+            preferences.setPosStores(mine.value.mapNotNull { st -> st.primaryBranchId?.let { Triple(st.id, st.name, it) } })
             for (store in mine.value) {
                 val branchId = store.primaryBranchId ?: continue
                 if (dao.syncState(store.id, branchId) == null) {

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Central Kurdish (Sorani). -->
+<resources>
+    <string name="reg_title">سندوقی فرۆشتن</string>
+    <string name="reg_back">گەڕانەوە</string>
+    <string name="reg_switch_place">گۆڕینی لق</string>
+    <string name="reg_queue">فرۆشتنەکانی ناو ڕیزی ناردن</string>
+    <string name="reg_more">زیاتر</string>
+    <string name="reg_today">ئەمڕۆ</string>
+    <string name="reg_clear_cart">بەتاڵکردنی سەبەتە</string>
+    <string name="reg_no_store">سندوقی فرۆشتن بۆ خاوەن دوکانەکانە. یەکەم دوکانێک دروست بکە.</string>
+    <string name="reg_cart_empty">بۆ دەستپێکردنی فرۆشتن کاڵایەک سکان بکە.</string>
+    <string name="reg_items">%1$d کاڵا</string>
+    <string name="reg_pay">پارەدان</string>
+    <string name="reg_added">%1$s ×%2$d</string>
+    <string name="reg_post_link">ئەمە لینکی پۆستێکە، نەک کاڵا.</string>
+    <string name="reg_invalid_code">کۆدێکی دروست نییە — دووبارە سکان بکە.</string>
+    <string name="reg_unknown_offline">%1$s لە کۆگادا نییە. کاتێک ئۆنلاین بوویتەوە زیادی بکە.</string>
+    <string name="reg_sold">فرۆشتن تۆمار کرا: %1$s. کڕیاری داهاتوو.</string>
+    <string name="reg_remove">لابردن</string>
+    <string name="reg_less">یەکێک کەمتر</string>
+    <string name="reg_more_one">یەکێک زیاتر</string>
+    <string name="reg_to_pay">بڕی پارەدان: %1$s</string>
+    <string name="reg_received_optional">پارەی وەرگیراو (ئارەزوومەندانە)</string>
+    <string name="reg_change">گەڕاوە: %1$s</string>
+    <string name="reg_short">%1$s کەمە</string>
+    <string name="reg_cash">نەقد</string>
+    <string name="reg_card">کارت</string>
+    <string name="reg_card_hint">کارت = پارەدان بە ئامێری کارتی خۆت. ئەپەکە تەنها فرۆشتنەکە تۆمار دەکات، پارە وەرناگرێت.</string>
+    <string name="reg_new_item">کاڵای نوێ</string>
+    <string name="reg_new_item_hint">کۆدی %1$s لە کۆگادا نییە. زیادی بکە و دەچێتە ناو ئەم فرۆشتنە.</string>
+    <string name="reg_name">ناو</string>
+    <string name="reg_price">نرخ</string>
+    <string name="reg_name_price_needed">ناو و نرخ پێویستن.</string>
+    <string name="reg_code_taken">ئەم کۆدە پێشتر هی «%1$s» ـە.</string>
+    <string name="reg_offline_needed">بۆ ئەمە پەیوەندی بە ئینتەرنێتەوە بکە.</string>
+    <string name="reg_saving">پاشەکەوتکردن…</string>
+    <string name="reg_save_and_add">پاشەکەوت و زیادکردن بۆ فرۆشتن</string>
+    <string name="reg_queue_empty">هەموو فرۆشتنەکان گەیشتوونەتە سێرڤەر.</string>
+    <string name="reg_waiting">%1$d چاوەڕێی ناردن</string>
+    <string name="reg_waiting_hint">لەسەر ئەم مۆبایلە پاشەکەوت کراون و هەر کە ئینتەرنێت هەبوو دەنێردرێن.</string>
+    <string name="reg_rejected">%1$d لەلایەن سێرڤەرەوە ڕەتکرایەوە</string>
+    <string name="reg_dismiss">داخستن</string>
+    <string name="reg_reason_product">یەکێک لە کاڵاکان ئیتر لەم دوکانەدا نییە.</string>
+    <string name="reg_reason_branch">ئەم لقە بەشێک نییە لەم دوکانە.</string>
+    <string name="reg_reason_invalid">زانیاری فرۆشتنەکە نەخوێندرایەوە.</string>
+    <string name="reg_reason_other">ڕەتکرایەوە (%1$s).</string>
+    <string name="reg_on_server">لەسەر سێرڤەر</string>
+    <string name="reg_on_phone">لەسەر ئەم مۆبایلە</string>
+    <string name="reg_sum_count">%1$d فرۆشتن</string>
+    <string name="reg_sum_cash">نەقد: %1$s</string>
+    <string name="reg_sum_card">کارت: %1$s</string>
+    <string name="reg_sum_flagged">%1$d پێویستی بە پشکنین (نرخ، بڕ یان کاتژمێر)</string>
+    <string name="reg_sum_voided">%1$d هەڵوەشێنراوە</string>
+    <string name="reg_summary_offline">ئۆفلاین — کۆی گشتی سێرڤەر کاتێک ئۆنلاین بوویتەوە پیشان دەدرێت.</string>
+    <string name="reg_refresh">نوێکردنەوە</string>
+    <string name="reg_sales_today">فرۆشتنەکانی ئەمڕۆ</string>
+    <string name="reg_void_title">ئەم فرۆشتنە هەڵبوەشێنرێتەوە؟</string>
+    <string name="reg_void_body">%1$s. کاڵاکان دەگەڕێنەوە بۆ بڕی دوکان.</string>
+    <string name="reg_void">هەڵوەشاندنەوە</string>
+    <string name="reg_voided">هەڵوەشێنراوە</string>
+    <string name="reg_flagged">پێویستی بە پشکنین</string>
+    <string name="reg_cancel">هەڵوەشاندنەوە</string>
+</resources>
