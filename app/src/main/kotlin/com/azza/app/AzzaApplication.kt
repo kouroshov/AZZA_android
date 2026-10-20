@@ -24,6 +24,8 @@ class AzzaApplication : Application(), ImageLoaderFactory, Configuration.Provide
 
     @Inject lateinit var posSession: PosSession
 
+    @Inject lateinit var registerShortcut: RegisterShortcut
+
     // WorkManager is initialised on demand with Hilt's factory, so a worker can
     // be injected (the default initializer is removed in the manifest).
     override val workManagerConfiguration: Configuration
@@ -35,6 +37,8 @@ class AzzaApplication : Application(), ImageLoaderFactory, Configuration.Provide
         widgetCounts.start()
         // The sales register: restore on sign-in, sync on foreground / network.
         posSession.start()
+        // The "Sales register" app shortcut, for store owners (POS-05).
+        registerShortcut.start()
     }
 
     @Inject lateinit var okHttpClient: Provider<OkHttpClient>

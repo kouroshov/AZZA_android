@@ -217,6 +217,11 @@ abstract class PosDao {
     @Query("SELECT * FROM pending_sales WHERE status = 'REJECTED' ORDER BY soldAt DESC")
     abstract fun observeRejected(): Flow<List<PendingSaleWithItems>>
 
+    /** Sales still to send, oldest first — the register's queue list (POS-05). */
+    @Transaction
+    @Query("SELECT * FROM pending_sales WHERE status = 'PENDING' ORDER BY soldAt, id")
+    abstract fun observePending(): Flow<List<PendingSaleWithItems>>
+
     /** Removes a rejected sale the person has dealt with. */
     @Query("DELETE FROM pending_sales WHERE id = :id AND status = 'REJECTED'")
     abstract suspend fun dismissRejected(id: String)

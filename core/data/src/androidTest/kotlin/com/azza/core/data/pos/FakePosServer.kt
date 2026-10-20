@@ -76,4 +76,7 @@ class FakePosServer : PosApi {
     override suspend fun generateCode(storeId: String, productId: String) = error("not used")
     override suspend fun removeCode(storeId: String, productId: String, codeId: String) = error("not used")
     override suspend fun transfer(storeId: String, branchId: String, body: com.azza.core.network.model.StockTransferRequest) = error("not used")
+    override suspend fun salesSummary(storeId: String, branchId: String, date: String?) = error("not used")
+    override suspend fun sales(storeId: String, branchId: String, from: String?, to: String?, cursor: String?, take: Int) = error("not used")
+    override suspend fun voidSale(storeId: String, saleId: String) = error("not used")
 }

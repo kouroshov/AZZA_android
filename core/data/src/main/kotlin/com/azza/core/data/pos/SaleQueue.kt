@@ -36,29 +36,48 @@ import kotlinx.serialization.json.Json
  * (a retry after the answer was lost, the app killed mid-upload) records it
  * once: the server answers DUPLICATE and the copy here is dropped.
  */
-@Singleton
-class SaleQueue @Inject constructor(
-    private val dao: PosDao,
-    private val preferences: AppPreferences,
-    private val scheduler: PosSyncScheduler,
-) {
-    /** Sales still to send. */
-    val pendingCount: Flow<Int> = dao.observePendingCount()
+/** What the register needs from the sale queue — an interface so screens can be tested with a fake. */
+interface SaleRecorder {
+    val pendingCount: Flow<Int>
+    val pending: Flow<List<QueuedSale>>
+    val rejected: Flow<List<QueuedSale>>
 
-    /** Sales the server refused, newest first, with its reason. They stay until dismissed. */
-    val rejected: Flow<List<QueuedSale>> = dao.observeRejected().map { list -> list.map { it.toModel() } }
-
-    /**
-     * Records a completed sale: the sale, its lines and the local shop-floor
-     * counts in one Room transaction, then asks WorkManager to send it.
-     * Returns the sale's id. The total is computed here from the lines.
-     */
     suspend fun recordSale(
         storeId: String,
         branchId: String,
         paymentMethod: PaymentMethod,
         lines: List<SaleLine>,
         soldAtMillis: Long = System.currentTimeMillis(),
+    ): String
+
+    suspend fun dismissRejected(id: String)
+}
+
+@Singleton
+class SaleQueue @Inject constructor(
+    private val dao: PosDao,
+    private val preferences: AppPreferences,
+    private val scheduler: PosSyncScheduler,
+) : SaleRecorder {
+    /** Sales still to send. */
+    override val pendingCount: Flow<Int> = dao.observePendingCount()
+
+    override val pending: Flow<List<QueuedSale>> = dao.observePending().map { list -> list.map { it.toModel() } }
+
+    /** Sales the server refused, newest first, with its reason. They stay until dismissed. */
+    override val rejected: Flow<List<QueuedSale>> = dao.observeRejected().map { list -> list.map { it.toModel() } }
+
+    /**
+     * Records a completed sale: the sale, its lines and the local shop-floor
+     * counts in one Room transaction, then asks WorkManager to send it.
+     * Returns the sale's id. The total is computed here from the lines.
+     */
+    override suspend fun recordSale(
+        storeId: String,
+        branchId: String,
+        paymentMethod: PaymentMethod,
+        lines: List<SaleLine>,
+        soldAtMillis: Long,
     ): String {
         require(lines.isNotEmpty()) { "A sale has at least one line." }
         require(lines.all { it.quantity > 0 && it.unitPriceMinor >= 0 }) { "Quantities are positive and prices not negative." }
@@ -85,7 +104,7 @@ class SaleQueue @Inject constructor(
     }
 
     /** Forgets a refused sale once the person has seen it. */
-    suspend fun dismissRejected(id: String) = dao.dismissRejected(id)
+    override suspend fun dismissRejected(id: String) = dao.dismissRejected(id)
 }
 
 /** How one upload run ended — what the worker tells WorkManager. */

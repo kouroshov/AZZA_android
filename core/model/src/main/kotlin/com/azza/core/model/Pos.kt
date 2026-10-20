@@ -80,3 +80,30 @@ sealed interface PosSignOut {
     /** Refused: [pendingSales] sales have not reached the server and would be lost. */
     data class Blocked(val pendingSales: Int) : PosSignOut
 }
+
+/** A store the person runs, for the register's place picker. */
+data class PosStoreRef(val id: String, val name: String, val mainBranchId: String)
+
+/** A sale the server has (POS-05's day view). */
+data class ServerSale(
+    val id: String,
+    val paymentMethod: PaymentMethod,
+    val totalMinor: Long,
+    val currency: String,
+    val soldAtIso: String,
+    val voided: Boolean,
+    /** Price mismatch, stock below zero or a wrong clock. */
+    val flagged: Boolean,
+    val lines: List<SaleLine>,
+)
+
+/** The server's totals for one day at one branch (voided sales excluded). */
+data class DaySummary(
+    val count: Int,
+    val totalMinor: Long,
+    val cashMinor: Long,
+    val cardMinor: Long,
+    val flagged: Int,
+    val voided: Int,
+    val currency: String,
+)

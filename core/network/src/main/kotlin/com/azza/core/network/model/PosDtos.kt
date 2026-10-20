@@ -97,3 +97,41 @@ data class InventoryCodeDto(val id: String, val code: String, val symbology: Str
 /** [from] is STORE or ONLINE: the counter the units leave. */
 @Serializable
 data class StockTransferRequest(val productId: String, val from: String, val qty: Int)
+
+// Register reports (apps/api POS-02).
+
+@Serializable
+data class RegisterSummaryDto(
+    val date: String,
+    val count: Int,
+    @Serializable(with = FlexibleLongSerializer::class) val totalAmountMinor: Long,
+    val totalByPaymentMethod: Map<String, String> = emptyMap(),
+    val flaggedCount: Int = 0,
+    val voidedCount: Int = 0,
+    val currency: String = "IRR",
+)
+
+@Serializable
+data class RegisterSaleItemDto(
+    val productId: String,
+    val title: String,
+    val quantity: Int,
+    @Serializable(with = FlexibleLongSerializer::class) val unitPriceAmountMinor: Long,
+)
+
+@Serializable
+data class RegisterSaleDto(
+    val id: String,
+    val paymentMethod: String,
+    @Serializable(with = FlexibleLongSerializer::class) val totalAmountMinor: Long,
+    val currency: String = "IRR",
+    val soldAt: String,
+    val status: String,
+    val priceMismatch: Boolean = false,
+    val stockWentNegative: Boolean = false,
+    val clockSkew: Boolean = false,
+    val items: List<RegisterSaleItemDto> = emptyList(),
+)
+
+@Serializable
+data class RegisterSalesPageDto(val items: List<RegisterSaleDto> = emptyList(), val nextCursor: String? = null, val hasMore: Boolean = false)
