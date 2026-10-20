@@ -41,7 +41,17 @@ class ProfileViewModel @Inject constructor(
     private val profiles: ProfilesRepository,
     follow: FollowRepository,
     listings: ListingRepository,
+    private val storesRepository: com.azza.core.data.StoresRepository,
 ) : ViewModel() {
+
+    /** The stores the person runs (the web profile's Stores tab); null until first read. */
+    private val _stores = MutableStateFlow<List<com.azza.core.data.ManagedStore>?>(null)
+    val stores: StateFlow<List<com.azza.core.data.ManagedStore>?> = _stores.asStateFlow()
+
+    fun loadStores() = viewModelScope.launch {
+        (storesRepository.mine() as? com.azza.core.common.Outcome.Success)?.let { _stores.value = it.value }
+            ?: run { if (_stores.value == null) _stores.value = emptyList() }
+    }
 
     /** The signed-in person as last read — an edit elsewhere (photo, name, username) shows here at once. */
     val me: StateFlow<User?> = users.currentUser

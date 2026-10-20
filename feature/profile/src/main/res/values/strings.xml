@@ -53,4 +53,11 @@
     <string name="profile_settings">Settings</string>
     <string name="profile_directions">Directions</string>
     <string name="profile_new_post">New post</string>
+    <string name="profile_tab_stores">Stores</string>
+    <string name="profile_stores_empty">You do not run a store yet.</string>
+    <string name="profile_manage_stores">Manage stores</string>
+    <plurals name="profile_store_items">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d items</item>
+    </plurals>
 </resources>

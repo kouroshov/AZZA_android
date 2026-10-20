@@ -63,6 +63,8 @@ data class ManagedStore(
     val hasLocation: Boolean,
     /** Live listings (drafts and held ones not counted). */
     val postCount: Int = 0,
+    /** The main branch's address, when it has a place on the map. */
+    val address: String? = null,
 )
 
 /** What the store form edits. */
@@ -328,6 +330,7 @@ class StoresRepository @Inject constructor(
         hold = moderation?.let { StoreHold(it.cause, it.reason, it.at) },
         hasLocation = location != null,
         postCount = postCount,
+        address = location?.address?.takeIf { it.isNotBlank() },
     )
 
     private fun BranchDetailDto.toModel(): Branch {

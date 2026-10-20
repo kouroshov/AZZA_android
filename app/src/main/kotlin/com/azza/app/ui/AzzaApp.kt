@@ -1,5 +1,6 @@
 package com.azza.app.ui
 
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import com.azza.feature.inventory.InventoryNavigation
 import com.azza.feature.register.RegisterNavigation
 import com.azza.feature.register.registerScreens
@@ -199,11 +200,19 @@ fun AzzaApp(
         containerColor = AzzaTheme.colors.bg,
         // Only Home has a top bar (the AZZA name and the bell). Every other page is full screen;
         // Profile carries its ⋮ (settings) in its own header row.
-        topBar = { if (destination.isOn(TopLevelDestination.FOLLOWING)) AzzaTopBar(
-                unread,
-                onNotifications = { navController.navigate(NotificationsRoute) { launchSingleTop = true } },
-                onMore = null,
-            ) },
+        topBar = {
+            if (destination.isOn(TopLevelDestination.FOLLOWING)) {
+                AzzaTopBar(
+                    unread,
+                    onNotifications = { navController.navigate(NotificationsRoute) { launchSingleTop = true } },
+                    onMore = null,
+                )
+            } else if (BACK_BAR_ROUTES.any { route -> destination?.hasRoute(route) == true }) {
+                // Every page has a way back (product owner, 2026-10-20). These pages
+                // carry their own heading but no top bar of their own: the arrow is here.
+                BackBar(onBack = { navController.popBackStack() })
+            }
+        },
         bottomBar = { if (showChrome) AzzaBottomBar(destination, navController, basketCount, signedIn, appViewModel) },
     ) { padding ->
         NavHost(
@@ -507,3 +516,24 @@ private val FOCUSED_SCREENS: List<kotlin.reflect.KClass<*>> = listOf(
     com.azza.feature.stores.StoreEditRoute::class, com.azza.feature.stores.BranchRoute::class,
     com.azza.feature.stores.BranchLocationRoute::class, TimetableRoute::class, BookingSettingsRoute::class,
 )
+
+/** Pages that draw no top bar of their own: the app gives them a back arrow. */
+private val BACK_BAR_ROUTES = listOf(
+    NotificationsRoute::class, CheckoutRoute::class,
+    LoginRoute::class, RegisterRoute::class, com.azza.feature.auth.ResetPasswordRoute::class, com.azza.feature.auth.ConfirmEmailRoute::class,
+    com.azza.feature.create.CreateRoute::class, CreateForStoreRoute::class, EditListingRoute::class,
+)
+
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun BackBar(onBack: () -> Unit) {
+    androidx.compose.material3.TopAppBar(
+        title = {},
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.nav_back))
+            }
+        },
+        colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(containerColor = AzzaTheme.colors.bg),
+    )
+}

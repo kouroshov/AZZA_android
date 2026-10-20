@@ -140,38 +140,38 @@ fun SearchScreen(
     if (filtersOpen) FiltersSheet(filters, viewModel, onDismiss = { filtersOpen = false })
 
     Column(Modifier.fillMaxSize()) {
-      // The map is one of AZZA's own things (product owner, 2026-10-20): it sits
-      // beside the search box, one tap from Explore, rather than in the bar.
-      Row(Modifier.fillMaxWidth().padding(end = 12.dp), verticalAlignment = Alignment.CenterVertically) {
         OutlinedTextField(
             value = query,
             onValueChange = viewModel::onQueryChange,
             placeholder = { Text(stringResource(R.string.search_placeholder)) },
             leadingIcon = { Icon(Icons.Outlined.Search, null) },
             trailingIcon = {
-                // No scan button here (POS decision): scanning lives in the
-                // inventory and the register; a post's QR opens with the phone's camera.
-                if (query.isNotEmpty()) {
-                    IconButton(onClick = { viewModel.onQueryChange("") }) { Icon(Icons.Outlined.Close, stringResource(R.string.search_clear)) }
+                // The map is one of AZZA's own things (product owner, 2026-10-20): it
+                // lives in the search box, where the scanner was, one tap from Explore.
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (query.isNotEmpty()) {
+                        IconButton(onClick = { viewModel.onQueryChange("") }) { Icon(Icons.Outlined.Close, stringResource(R.string.search_clear)) }
+                    }
+                    Box(
+                        Modifier.padding(end = 6.dp).size(40.dp)
+                            .background(com.azza.core.designsystem.theme.AzzaTheme.colors.primary, androidx.compose.foundation.shape.CircleShape)
+                            .clickable(onClick = onOpenMap),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            androidx.compose.material.icons.Icons.Outlined.Map,
+                            stringResource(R.string.search_map),
+                            tint = com.azza.core.designsystem.theme.AzzaTheme.colors.textOnPrimary,
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
                 }
             },
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { keyboard?.hide() }),
-            modifier = Modifier.weight(1f).padding(start = 12.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
         )
-        androidx.compose.material3.FilledTonalButton(
-            onClick = onOpenMap,
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp, vertical = 12.dp),
-            colors = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(
-                containerColor = com.azza.core.designsystem.theme.AzzaTheme.colors.primary,
-                contentColor = com.azza.core.designsystem.theme.AzzaTheme.colors.textOnPrimary,
-            ),
-        ) {
-            Icon(androidx.compose.material.icons.Icons.Outlined.Map, null)
-            Text(" " + stringResource(R.string.search_map))
-        }
-      }
 
         val searching = active.length >= MIN_QUERY_LENGTH
         if (!searching && filters.isEmpty) {
