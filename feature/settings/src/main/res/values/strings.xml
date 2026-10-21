@@ -105,7 +105,4 @@
     <string name="settings_discard_body">What you changed here will be lost.</string>
     <string name="settings_discard">Leave</string>
     <string name="settings_keep_editing">Keep editing</string>
-    <string name="settings_sign_out_blocked_title">Sales not sent yet</string>
-    <string name="settings_sign_out_blocked_body">%1$d sales from the sales register have not reached the server yet. Connect to the internet and wait until they are sent before logging out — logging out now would lose them.</string>
-    <string name="settings_sign_out_blocked_ok">OK</string>
 </resources>

@@ -1,10 +1,6 @@
 package com.azza.app.ui
 
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import com.azza.feature.inventory.InventoryNavigation
-import com.azza.feature.register.RegisterNavigation
-import com.azza.feature.register.registerScreens
-import com.azza.feature.inventory.inventoryScreens
 import com.azza.feature.map.directionsScreen
 import com.azza.feature.notifications.NotificationNav
 import androidx.compose.animation.core.tween
@@ -152,8 +148,6 @@ fun AzzaApp(
         when (intent.getStringExtra(EXTRA_OPEN_SCREEN)?.let { runCatching { WidgetTarget.valueOf(it) }.getOrNull() }) {
             WidgetTarget.SEARCH -> navigateTab(navController, SearchRoute)
             WidgetTarget.NOTIFICATIONS -> navController.navigate(NotificationsRoute) { launchSingleTop = true }
-            // The app shortcut (long press on the icon): straight to the register's camera.
-            WidgetTarget.REGISTER -> navigateTab(navController, com.azza.feature.register.RegisterRoute)
             WidgetTarget.BASKET -> navigateTab(navController, BasketRoute())
             null -> Unit
         }
@@ -259,16 +253,6 @@ fun AzzaApp(
                     openListing = { id -> navController.navigate(ProductRoute(id)) },
                     postFromStore = { id -> navController.navigate(CreateForStoreRoute(id)) },
                     editListing = { id -> navController.navigate(EditListingRoute(id)) },
-                    openInventory = { id -> navController.navigate(com.azza.feature.inventory.InventoryRoute(id)) },
-                ),
-            )
-            registerScreens(RegisterNavigation(back = { navController.popBackStack() }, open = { route -> navController.navigate(route) }))
-            inventoryScreens(
-                InventoryNavigation(
-                    back = { navController.popBackStack() },
-                    open = { route -> navController.navigate(route) },
-                    editListing = { id -> navController.navigate(EditListingRoute(id)) },
-                    openPost = { id -> navController.navigate(ProductRoute(id)) },
                 ),
             )
             publicProfileScreens(
@@ -415,7 +399,6 @@ private fun AzzaTopBar(unread: Int, onNotifications: (() -> Unit)?, onMore: (() 
 @Composable
 private fun AzzaBottomBar(current: NavDestination?, navController: NavHostController, basketCount: Int, signedIn: Boolean, appViewModel: AppViewModel) {
     val myStores by appViewModel.myStores.collectAsStateWithLifecycle()
-    val ownsStore by appViewModel.ownsStore.collectAsStateWithLifecycle()
     var switcher by remember { mutableStateOf(false) }
     val haptics = LocalHapticFeedback.current
     // The tab you are browsing within: the nearest tab page under the current one (a store
@@ -431,7 +414,7 @@ private fun AzzaBottomBar(current: NavDestination?, navController: NavHostContro
     // The Profile icon's gesture handler lives across recompositions; it must call today's action.
     val openTabNow by rememberUpdatedState(openTab)
     NavigationBar(containerColor = AzzaTheme.colors.bg) {
-        TopLevelDestination.entries.filter { (signedIn || !it.signedInOnly) && (ownsStore || !it.ownersOnly) }.forEach { item ->
+        TopLevelDestination.entries.filter { signedIn || !it.signedInOnly }.forEach { item ->
             val selected = item == inTab
             NavigationBarItem(
                 selected = selected,
@@ -515,8 +498,6 @@ private val FOCUSED_SCREENS: List<kotlin.reflect.KClass<*>> = listOf(
     LoginRoute::class, RegisterRoute::class, com.azza.feature.auth.ResetPasswordRoute::class, com.azza.feature.auth.ConfirmEmailRoute::class,
     // Paying, the camera, and following directions (a map of its own).
     CheckoutRoute::class, com.azza.feature.map.DirectionsRoute::class, com.azza.feature.search.FindByBarcodeRoute::class,
-    // The inventory's scanner and item screen (POS-04).
-    com.azza.feature.inventory.InventoryScanRoute::class, com.azza.feature.inventory.InventoryItemRoute::class,
     // Settings covers the whole screen, and so do the pages it opens.
     SettingsRoute::class, EditProfileRoute::class, EmailRoute::class, AddressesRoute::class, AddressEditRoute::class,
     SupportRoute::class, NewTicketRoute::class,

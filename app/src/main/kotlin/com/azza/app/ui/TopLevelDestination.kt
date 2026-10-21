@@ -5,25 +5,22 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.PointOfSale
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.PointOfSale
 import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.azza.app.R
 import com.azza.feature.basket.BasketRoute
 import com.azza.feature.feed.FeedRoute
 import com.azza.feature.profile.ProfileRoute
-import com.azza.feature.register.RegisterRoute
 import com.azza.feature.search.SearchRoute
 import kotlin.reflect.KClass
 
 /**
- * The phone bottom bar (product owner, 2026-10-20): Home, Explore, the
- * sales register (store owners only), Basket, your own page. Destinations
+ * The phone bottom bar (product owner, 2026-10-20; the sales register was
+ * removed 2026-10-21): Home, Explore, Basket, your own page. Destinations
  * only. The map lives in Explore (one tap, beside the search box) and "new
  * post" on your own page and your store's page; the bell and the "more"
  * menu live in the top bar.
@@ -35,12 +32,9 @@ enum class TopLevelDestination(
     val icon: ImageVector,
     val selectedIcon: ImageVector,
     val signedInOnly: Boolean = false,
-    /** Only for someone who runs at least one store (the sales register, POS-05). */
-    val ownersOnly: Boolean = false,
 ) {
     FOLLOWING(FeedRoute, FeedRoute::class, R.string.nav_following, Icons.Outlined.Home, Icons.Filled.Home),
     EXPLORE(SearchRoute, SearchRoute::class, R.string.nav_explore, Icons.Outlined.Explore, Icons.Filled.Explore),
-    REGISTER(RegisterRoute, RegisterRoute::class, R.string.nav_register, Icons.Outlined.PointOfSale, Icons.Filled.PointOfSale, signedInOnly = true, ownersOnly = true),
     BASKET(BasketRoute(), BasketRoute::class, R.string.nav_basket, Icons.Outlined.ShoppingBag, Icons.Filled.ShoppingBag),
     PROFILE(ProfileRoute, ProfileRoute::class, R.string.nav_profile, Icons.Outlined.AccountCircle, Icons.Filled.AccountCircle),
 }

@@ -66,97 +66,17 @@ release on their own schedules. The contract is the coupling point, so:
   Gradle distribution are signed; if a build tool is ever refused, do not
   change the machine's security settings — find a signed alternative.
 
-## 6. The sales register — offline data (POS-03)
+## 6. The scanner
 
-The register works without internet; the server (apps/api, POS-01/02 — see
-the web repo's `docs/architecture/pos-register-api.md`) is the source of truth.
-
-- **Its own database**: `core:database/pos/PosDatabase` (`azza_pos.db`), NOT
-  the cache `AzzaDatabase`. The cache may be dropped on any schema change;
-  this one holds sales that have not reached the server, so its schema is
-  exported (`core/database/schemas`), every version step gets a migration in
-  `PosMigrations`, and there is no destructive fallback.
-- **Tables**: `catalog_products`, `catalog_codes` (looked up by storeId +
-  code, never across stores), `branch_stock` (`serverStoreQty` as the server
-  said; `storeQty` = that less the sales still queued), `sync_state` (the
-  server's cursor per store/branch), `pending_sales` + `pending_sale_items`.
-- **Codes**: `core:common/ProductCodes` is a line-for-line port of apps/api's
-  `product-code.util.ts`; its unit test runs the server's own vectors.
-  `PosCatalogRepository.lookup()` answers Product / UnknownCode / PostLink
-  (an AZZA `/store/<id>` or `/q/<…>` address) / Invalid, from the local copy.
-- **Catalog sync**: full on the first open of a store/branch
-  (`PosCatalogRepository.open`), then deltas with the cursor, tombstones
-  applied; a refused cursor starts over. Triggers: app to foreground, network
-  back, after an upload that recorded sales, every 30 min (WorkManager),
-  and on sign-in (each own store's main branch).
-- **Sales**: `SaleQueue.recordSale()` writes the sale, its lines and the local
-  shop-floor counts in ONE Room transaction, with an id made on the phone —
-  the server's idempotency key — then enqueues `SaleUploadWorker` (unique,
-  APPEND_OR_REPLACE, network constraint, exponential backoff). Batches of up
-  to 100; ACCEPTED/DUPLICATE leave the queue, REJECTED stay with the reason
-  (`SaleQueue.rejected`). A batch with no answer is resent whole: safe,
-  because the server records an id once.
-- **Account**: `PosSession.signOut()` is refused while sales are queued
-  (Settings shows how many); with an empty queue it clears the register's
-  tables. A sign-out the app cannot refuse (expired session, password
-  changed) keeps queued sales; they upload when that account signs in again.
-  `AppPreferences.posDeviceId()` is the phone's stable register id.
-
-## 7. The store inventory and the scanner (POS-04)
-
-- **No universal scan button** (POS decision): the Search field's scanner,
-  the widget's Scan shortcut and `ScanRoute` are gone. Scanning lives only
-  in the inventory (and, in POS-05, the register). A post's QR is opened by
-  the phone's own camera, as a link.
-- **`core:scanner`** (the former `feature:scan`, moved so the inventory and
-  the register share it): `CodeScanner` — CameraX + ZXing, EAN-13 / EAN-8 /
+- **`core:scanner`**: `CodeScanner` — CameraX + ZXing, EAN-13 / EAN-8 /
   UPC-A / UPC-E (expanded to its UPC-A) / Code 128 / QR, the same value
   ignored for 1.5 s, beep + buzz on a new one, torch, camera-permission
   explanation with typing as the fallback, and keyboard-wedge (Bluetooth /
-  USB) scanners. ZXing, not ML Kit, as before: no Google Play Services
-  needed. A `ScanSource` replaces the camera in tests. `BarcodeImages`
-  draws any code's label on the phone, so share / save / print work offline.
-- **`feature:inventory`**: entry from the store's management page
-  ("Inventory"). The list (branch switcher — remembered per store — search
-  by name or code, Private / Public / Needs review / Out of stock) reads the
-  register's local catalog and works offline; every change goes through
-  `InventoryRepository` to apps/api and then refreshes the catalog, and is
-  refused offline with "connect to edit". Scan-to-create: a known code opens
-  its item, an unknown one opens a sheet (name + price required) that saves
-  a PRIVATE item and returns to the scanner; "No barcode" asks the server
-  for an internal EAN-13. The item screen edits name / price / photo,
-  manages codes (CODE_ALREADY_ASSIGNED names the item that has it), moves
-  stock between the two counters, and publishes — PRODUCT_NOT_PUBLISHABLE
-  lists what is missing, with description / category leading to the full
-  listing editor.
-- `AppError.Api.details` now carries the error envelope's `details` (raw JSON).
-
-## 8. The sales register (POS-05)
-
-Labelled "Sales register" — it records sales, it is not a certified cash
-register and it takes no payments.
-
-- **Entry points**: a Register tab in the bottom bar (`TopLevelDestination.
-  REGISTER`, `ownersOnly`), shown only while `RegisterRepository.stores` is
-  not empty — the stores are saved at sign-in by `PosSession`, so the tab
-  holds offline; and a dynamic app shortcut (`app/RegisterShortcut`, long
-  press on the icon) published / withdrawn with the same list. The shortcut
-  opens `MainActivity` with `EXTRA_OPEN_SCREEN = REGISTER`.
-- **Taps**: from the home screen, Register tab (1) → the camera is live,
-  each scan adds the item (0) → Pay (2) → Cash or Card (3). Three taps for a
-  three-item sale, online or offline.
-- **Screen** (`feature:register`): camera on top (core:scanner, running from
-  the start, paused only while a sheet is open), cart below (steppers,
-  swipe to remove), total and Pay. The place (store · branch) is in the top
-  bar and remembered (`AppPreferences.posLastRegister`); switching store
-  empties the cart. A queue badge counts sales not yet sent (red when one
-  was refused) and lists them with the reason.
-- **Codes**: known → in the cart (one more if already there); unknown and
-  online → a sheet makes a PRIVATE item with that code and adds it without
-  leaving; unknown and offline → "add it when back online", the sale goes
-  on; a post link or an invalid code → a short message.
-- **The cart** lives in `SavedStateHandle` (survives rotation and process
-  death) and never leaves the phone; Pay → `SaleRecorder.recordSale()` (the
-  POS-03 queue), the cart empties at once.
-- **Today** (register menu): the server's day summary and sales (online),
-  this phone's waiting / refused sales, and Void for a synced sale.
+  USB) scanners. ZXing, not ML Kit: no Google Play Services needed. A
+  `ScanSource` replaces the camera in tests. Used by the Search box's
+  barcode button (`FindByBarcodeRoute`), which opens the post with that
+  code.
+- The sales register and the store inventory (POS-03 to POS-05) were
+  removed on 2026-10-21 at the product owner's request; the app cleans up
+  what they left on a phone (`AzzaApplication.removeSalesRegisterLeftovers`).
+- `AppError.Api.details` carries the error envelope's `details` (raw JSON).

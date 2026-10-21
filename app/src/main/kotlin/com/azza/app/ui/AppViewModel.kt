@@ -4,7 +4,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import com.azza.core.common.Outcome
 import com.azza.core.data.StoresRepository
-import com.azza.core.data.pos.RegisterRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.azza.core.data.AccountRepository
@@ -28,12 +27,7 @@ class AppViewModel @Inject constructor(
     auth: AuthRepository,
     private val account: AccountRepository,
     private val stores: StoresRepository,
-    register: RegisterRepository,
 ) : ViewModel() {
-
-    /** Runs a store: the Register tab shows (saved at sign-in, so it holds offline). */
-    val ownsStore: StateFlow<Boolean> = register.stores.map { it.isNotEmpty() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     /** The stores the person runs, for the Profile tab's switcher (read when it is opened). */
     private val _myStores = MutableStateFlow<List<Pair<String, String>>>(emptyList())

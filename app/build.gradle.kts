@@ -73,8 +73,6 @@ dependencies {
     implementation(project(":feature:map"))
     implementation(project(":feature:settings"))
     implementation(project(":feature:stores"))
-    implementation(project(":feature:inventory"))
-    implementation(project(":feature:register"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

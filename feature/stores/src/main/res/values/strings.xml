@@ -130,5 +130,4 @@
     <string name="stores_setup_body">Customers find a store on the map and see when it is open. Add where it is and its opening hours.</string>
     <string name="stores_set_hours">Set opening hours</string>
     <string name="stores_posts_short">%1$d posts</string>
-    <string name="stores_inventory">Inventory (items, codes, stock)</string>
 </resources>
