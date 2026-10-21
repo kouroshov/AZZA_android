@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- What the inventory hands to other apps: code labels to share, and the
-     file the camera writes a new item's photo into. Nothing else. -->
-<paths>
-    <cache-path name="labels" path="labels/" />
-    <cache-path name="photos" path="photos/" />
-</paths>

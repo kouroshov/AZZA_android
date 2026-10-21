@@ -20,8 +20,5 @@
     <string name="lock_prompt_title">Unlock AZZA</string>
     <string name="lock_cancel">Cancel</string>
     <string name="switcher_personal">Personal page</string>
-    <string name="nav_register">Register</string>
-    <string name="shortcut_register_short">Register</string>
-    <string name="shortcut_register_long">Sales register</string>
     <string name="nav_back">Back</string>
 </resources>

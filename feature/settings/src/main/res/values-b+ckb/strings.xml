@@ -103,7 +103,4 @@
     <string name="settings_discard_body">ئەو گۆڕانکارییانەی لێرە کردت لەدەست دەچن.</string>
     <string name="settings_discard">دەرچوون</string>
     <string name="settings_keep_editing">بەردەوامبوون لە دەستکاری</string>
-    <string name="settings_sign_out_blocked_title">فرۆشتنی نەنێردراو</string>
-    <string name="settings_sign_out_blocked_body">%1$d فرۆشتن لە سندوقی فرۆشتنەوە هێشتا نەگەیشتوونەتە سێرڤەر. پەیوەندی بە ئینتەرنێتەوە بکە و چاوەڕێ بکە تا دەنێردرێن، دواتر بچۆ دەرەوە؛ ئەگەر ئێستا بچیتە دەرەوە لەدەست دەچن.</string>
-    <string name="settings_sign_out_blocked_ok">باشە</string>
 </resources>

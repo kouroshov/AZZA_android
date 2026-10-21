@@ -4,7 +4,6 @@ import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.azza.app.widget.WidgetCounts
-import com.azza.core.data.pos.PosSession
 import com.azza.feature.notifications.NotificationPolling
 import coil.ImageLoader
 import coil.ImageLoaderFactory
@@ -22,10 +21,6 @@ class AzzaApplication : Application(), ImageLoaderFactory, Configuration.Provide
 
     @Inject lateinit var widgetCounts: WidgetCounts
 
-    @Inject lateinit var posSession: PosSession
-
-    @Inject lateinit var registerShortcut: RegisterShortcut
-
     // WorkManager is initialised on demand with Hilt's factory, so a worker can
     // be injected (the default initializer is removed in the manifest).
     override val workManagerConfiguration: Configuration
@@ -35,10 +30,7 @@ class AzzaApplication : Application(), ImageLoaderFactory, Configuration.Provide
         super.onCreate()
         notificationPolling.start()
         widgetCounts.start()
-        // The sales register: restore on sign-in, sync on foreground / network.
-        posSession.start()
-        // The "Sales register" app shortcut, for store owners (POS-05).
-        registerShortcut.start()
+        removeSalesRegisterLeftovers()
     }
 
     @Inject lateinit var okHttpClient: Provider<OkHttpClient>
@@ -55,4 +47,18 @@ class AzzaApplication : Application(), ImageLoaderFactory, Configuration.Provide
         // the response's cache headers say, so saved lists show them offline.
         .respectCacheHeaders(false)
         .build()
+
+    /**
+     * The sales register was removed (product owner, 2026-10-21). On a phone
+     * that had it: its app shortcut, its scheduled syncs and its local
+     * database. Each step is a no-op once done.
+     */
+    private fun removeSalesRegisterLeftovers() {
+        runCatching { androidx.core.content.pm.ShortcutManagerCompat.removeDynamicShortcuts(this, listOf("register")) }
+        runCatching {
+            val work = androidx.work.WorkManager.getInstance(this)
+            listOf("pos-sale-upload", "pos-catalog-sync", "pos-catalog-sync-periodic").forEach(work::cancelUniqueWork)
+        }
+        runCatching { deleteDatabase("azza_pos.db") }
+    }
 }
