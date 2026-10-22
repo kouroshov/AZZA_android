@@ -60,6 +60,8 @@ data class CreateUiState(
     val schema: CategorySchema? = null,
     val schemaLoading: Boolean = false,
     val offeringKind: OfferingKind = OfferingKind.GOOD,
+    /** ✅ (2026-10-23) The kind of ad (SALE, RENT, WANTED, JOB_VACANCY…); null = the category's default. */
+    val listingType: String? = null,
     val title: String = "",
     val description: String = "",
     val price: String = "",
@@ -115,7 +117,16 @@ data class CreateUiState(
             return if (isPersonal) kinds.filter { it == OfferingKind.GOOD } else kinds
         }
 
-    val ruleContext: RuleContext get() = RuleContext(condition = condition.name, offeringKind = offeringKind.name)
+    /** What the chosen kind of ad says about the price: REQUIRED, OPTIONAL or NONE. */
+    val priceMode: String get() = schema?.listingType?.priceMode ?: "REQUIRED"
+
+    /** "New / Used" is asked only where the category says it means something (not land, jobs, services). */
+    val usesCondition: Boolean get() = schema?.usesCondition ?: true
+
+    private val effectiveCondition: String get() = if (usesCondition) condition.name else "USED"
+
+    val ruleContext: RuleContext
+        get() = RuleContext(condition = effectiveCondition, offeringKind = offeringKind.name, listingType = schema?.listingType?.code ?: listingType)
 }
 
 enum class FormError { CATEGORY, TITLE, DESCRIPTION, PRICE, DISCOUNT, QUANTITY, GOODS_ONLY, PARCEL }
@@ -243,6 +254,7 @@ class CreateListingViewModel @Inject constructor(
                             loadingListing = false,
                             storeId = l.storeId,
                             offeringKind = l.offeringKind,
+                            listingType = l.listingType,
                             category = ChosenCategory(l.categoryId, l.categoryName, emptyList()),
                             title = l.title,
                             description = l.description,
@@ -322,6 +334,12 @@ class CreateListingViewModel @Inject constructor(
 
     fun chooseKind(kind: OfferingKind) {
         _state.update { it.copy(offeringKind = kind) }
+        _state.value.category?.let { loadSchema(it.id) }
+    }
+
+    /** ✅ (2026-10-23) A different kind of ad is a different form (a vacancy vs a job-seeker's post). */
+    fun chooseListingType(code: String) {
+        _state.update { it.copy(listingType = code, formErrors = it.formErrors - FormError.PRICE) }
         _state.value.category?.let { loadSchema(it.id) }
     }
 
@@ -415,7 +433,7 @@ class CreateListingViewModel @Inject constructor(
         _state.update { it.copy(schemaLoading = true) }
         viewModelScope.launch {
             val s = _state.value
-            when (val r = listings.schema(categoryId, s.offeringKind)) {
+            when (val r = listings.schema(categoryId, s.offeringKind, s.listingType)) {
                 is Outcome.Success -> _state.update { cur ->
                     val schema = r.value
                     // The category decides which kinds exist; keep the choice if it still fits.
@@ -424,9 +442,18 @@ class CreateListingViewModel @Inject constructor(
                         cur.isPersonal -> OfferingKind.GOOD
                         else -> schema.offeringKind
                     }
-                    cur.copy(schema = schema, schemaLoading = false, offeringKind = kind)
+                    cur.copy(schema = schema, schemaLoading = false, offeringKind = kind, listingType = schema.listingType?.code ?: cur.listingType)
                 }
-                is Outcome.Failure -> _state.update { it.copy(schemaLoading = false, error = r.error) }
+                is Outcome.Failure -> {
+                    // A kind of ad carried over from another category that this one does not
+                    // take: drop it and load this category's default.
+                    if ((r.error as? AppError.Api)?.code == "LISTING_TYPE_NOT_ALLOWED" && s.listingType != null) {
+                        _state.update { it.copy(listingType = null) }
+                        loadSchema(categoryId)
+                    } else {
+                        _state.update { it.copy(schemaLoading = false, error = r.error) }
+                    }
+                }
             }
         }
     }
@@ -449,9 +476,11 @@ class CreateListingViewModel @Inject constructor(
             categoryId = s.category!!.id,
             title = s.title,
             description = s.description,
-            price = s.price,
+            // A kind of ad without a price (a job, a giveaway) always sends 0.
+            price = if (s.priceMode == "NONE") "0" else s.price,
             discountPercentage = s.discount,
-            condition = s.condition,
+            condition = if (s.usesCondition) s.condition else ItemCondition.USED,
+            listingType = s.schema?.listingType?.code ?: s.listingType,
             quantity = s.quantity,
             // Only what the rules accept: hidden fields and empty inputs are not sent.
             attributeValues = schemaResult?.values.orEmpty(),
@@ -500,8 +529,12 @@ class CreateListingViewModel @Inject constructor(
         if (s.category == null) add(FormError.CATEGORY)
         if (s.title.isBlank() || s.title.length > 200) add(FormError.TITLE)
         if (s.description.isBlank()) add(FormError.DESCRIPTION)
-        val price = number(s.price)
-        if (price == null || price <= 0) add(FormError.PRICE)
+        // ✅ (2026-10-23) the price rule of the kind of ad — apps/api's PRICE_REQUIRED / PRICE_NOT_ALLOWED.
+        when (s.priceMode) {
+            "NONE" -> Unit
+            "OPTIONAL" -> if (s.price.isNotBlank() && (number(s.price) ?: -1.0) < 0) add(FormError.PRICE)
+            else -> if ((number(s.price) ?: 0.0) <= 0) add(FormError.PRICE)
+        }
         if (s.discount.isNotBlank()) {
             val d = number(s.discount)
             if (d == null || d < 0 || d > 100) add(FormError.DISCOUNT)

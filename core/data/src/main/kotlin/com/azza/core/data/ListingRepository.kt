@@ -86,15 +86,26 @@ class ListingRepository @Inject constructor(
             hits.map { h -> CategoryHit(h.id, LocalizedText(h.name.fa, h.name.en), h.path.map { LocalizedText(it.name.fa, it.name.en) }) }
         }
 
-    suspend fun schema(categoryId: String, kind: OfferingKind?): Outcome<CategorySchema> =
-        safeApiCall(json) { categoriesApi.schema(categoryId, kind?.name).data }.map { s ->
+    suspend fun schema(categoryId: String, kind: OfferingKind?, listingType: String? = null): Outcome<CategorySchema> =
+        safeApiCall(json) { categoriesApi.schema(categoryId, kind?.name, listingType).data }.map { s ->
             CategorySchema(
                 categoryId = s.categoryId,
                 offeringKind = kindOf(s.offeringKind),
                 allowedKinds = s.allowedKinds.map(::kindOf),
                 fields = s.fields.map { it.toModel() },
+                listingType = s.listingType?.toModel(),
+                allowedListingTypes = s.allowedListingTypes.map { it.toModel() },
+                usesCondition = s.usesCondition,
             )
         }
+
+    private fun com.azza.core.network.model.ListingTypeDto.toModel() =
+        com.azza.core.model.ListingType(
+            code = code,
+            name = LocalizedText(name.fa?.takeIf { it.isNotBlank() } ?: name.en, name.en, name.ckb),
+            priceMode = priceMode,
+            purchasable = purchasable,
+        )
 
     /** A listing loaded into the edit form: its fields as the form holds them, and its photos. */
     suspend fun loadForEdit(productId: String): Outcome<EditableListing> =
@@ -110,6 +121,7 @@ class ListingRepository @Inject constructor(
                 price = majorText(p.priceAmountMinor),
                 discountPercentage = p.discountPercentage?.let { if (it == Math.floor(it)) it.toLong().toString() else it.toString() }.orEmpty(),
                 condition = runCatching { ItemCondition.valueOf(p.condition ?: "USED") }.getOrDefault(ItemCondition.USED),
+                listingType = p.listingType?.code,
                 attributes = p.attributeValues.mapNotNull { v -> v.toFormValue()?.let { v.categoryAttribute.slug to it } }.toMap(),
                 photos = p.media.filter { it.mediaType == "IMAGE" }.mapNotNull { m -> mediaUrls.resolve(m.url ?: m.storageKey)?.let { ExistingPhoto(m.id, it) } },
                 options = p.options.map { OptionDraft(it.name, majorText(it.extraPriceAmountMinor), it.maxQuantity) },
@@ -233,6 +245,8 @@ class ListingRepository @Inject constructor(
         put("price", draft.price.toLatinNumber() ?: 0.0)
         put("condition", draft.condition.name)
         put("offeringKind", draft.offeringKind.name)
+        // ✅ (2026-10-23) the kind of ad; absent = the category's default.
+        draft.listingType?.let { put("listingType", it) }
         // Always sent, blank = 0: on an edit a missing field is left as it was, so clearing it would not clear it.
         put("discountPercentage", draft.discountPercentage.toLatinNumber() ?: 0.0)
         put("attributeValues", JsonObject(draft.attributeValues.mapValues { (_, v) -> v.toJson() }))
@@ -290,7 +304,7 @@ class ListingRepository @Inject constructor(
         children = children.map { it.toModel() },
     )
 
-    private fun NullableLocalizedDto.toModel() = LocalizedText(fa?.takeIf { it.isNotBlank() } ?: en, en)
+    private fun NullableLocalizedDto.toModel() = LocalizedText(fa?.takeIf { it.isNotBlank() } ?: en, en, ckb)
 
     private fun SchemaFieldDto.toModel() = SchemaField(
         slug = slug,
@@ -351,6 +365,8 @@ private fun majorText(minor: Long): String =
 private fun com.azza.core.network.model.AttributeValueDto.toFormValue(): Any? = when {
     valueJson is JsonArray -> (valueJson as JsonArray).mapNotNull { (it as? JsonPrimitive)?.content }
     valueBoolean != null -> valueBoolean
+    // ✅ (2026-10-23) MONEY is stored in minor units; the form holds major.
+    valueNumber != null && categoryAttribute.dataType == "MONEY" -> majorText(valueNumber!!.toLong())
     valueNumber != null -> valueNumber!!.let { if (it == Math.floor(it)) it.toLong().toString() else it.toString() }
     valueDate != null -> valueDate!!.take(10)
     valueText != null -> valueText

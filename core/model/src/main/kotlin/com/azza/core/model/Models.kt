@@ -87,8 +87,13 @@ data class ListingHold(val cause: String, val reason: String?, val at: String) {
     val appealable: Boolean get() = cause == "ADMIN_UNPUBLISHED"
 }
 
-data class LocalizedText(val fa: String, val en: String) {
-    fun forLanguage(language: String): String = if (language == "fa" || language == "ckb") fa else en
+data class LocalizedText(val fa: String, val en: String, val ckb: String? = null) {
+    /** Kurdish where it exists (2026-10-23: the newer categories and the kinds of ad), else Persian. */
+    fun forLanguage(language: String): String = when (language) {
+        "ckb" -> ckb?.takeIf { it.isNotBlank() } ?: fa
+        "fa" -> fa
+        else -> en
+    }
 }
 
 data class Page<T>(

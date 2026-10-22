@@ -10,6 +10,9 @@
     <string name="create_cancel">پاشگەزبوونەوە</string>
     <string name="create_title">سەردێڕ</string>
     <string name="create_description">وەسف</string>
+    <string name="create_listing_type">جۆری ڕیکلام</string>
+    <string name="create_price_optional">نرخ یان بودجە (ئارەزوومەندانە)</string>
+    <string name="create_error_listing_type">ئەم پۆلە ئەم جۆرە ڕیکلامە وەرناگرێت. جۆرێکی تر هەڵبژێرە.</string>
     <string name="create_price">نرخ</string>
     <string name="create_discount">داشکاندن (%)</string>
     <string name="create_condition">دۆخ</string>

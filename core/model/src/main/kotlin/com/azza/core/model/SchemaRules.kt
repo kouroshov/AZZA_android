@@ -15,11 +15,11 @@ import java.util.TimeZone
 //
 // Values are what a form produces: String, Number, Boolean, List<String>.
 
-enum class AttributeDataType { TEXT, LONG_TEXT, NUMBER, BOOLEAN, ENUM, MULTI_ENUM, DATE, UNKNOWN }
+enum class AttributeDataType { TEXT, LONG_TEXT, NUMBER, MONEY, BOOLEAN, ENUM, MULTI_ENUM, DATE, UNKNOWN }
 
 data class SchemaOption(val value: String, val label: LocalizedText)
 
-/** A small, data-only condition AST. A leaf reads an attribute slug, or `$condition` / `$offeringKind`. */
+/** A small, data-only condition AST. A leaf reads an attribute slug, or `$condition` / `$offeringKind` / `$listingType`. */
 sealed interface Condition {
     data class All(val conditions: List<Condition>) : Condition
     data class AnyOf(val conditions: List<Condition>) : Condition
@@ -44,14 +44,28 @@ data class SchemaField(
     val group: String? = null,
 )
 
+/** ✅ (2026-10-23) A kind of ad: for sale, for rent, wanted, a vacancy… */
+data class ListingType(
+    val code: String,
+    val name: LocalizedText,
+    /** REQUIRED: a price above 0; OPTIONAL: may be 0; NONE: always 0. */
+    val priceMode: String = "REQUIRED",
+    val purchasable: Boolean = true,
+)
+
 data class CategorySchema(
     val categoryId: String,
     val offeringKind: OfferingKind,
     val allowedKinds: List<OfferingKind>,
     val fields: List<SchemaField>,
+    /** ✅ (2026-10-23) the kind of ad the fields were resolved for, and the ones the category takes. */
+    val listingType: ListingType? = null,
+    val allowedListingTypes: List<ListingType> = emptyList(),
+    /** Whether "New / Used" is asked in this category. */
+    val usesCondition: Boolean = true,
 )
 
-data class RuleContext(val condition: String? = null, val offeringKind: String? = null)
+data class RuleContext(val condition: String? = null, val offeringKind: String? = null, val listingType: String? = null)
 
 enum class FieldErrorCode { REQUIRED, UNKNOWN_FIELD, INVALID_TYPE, NOT_AN_OPTION, DUPLICATE_OPTION, TOO_SMALL, TOO_LARGE, TOO_LONG, PATTERN_MISMATCH }
 
@@ -101,6 +115,7 @@ object SchemaRules {
     private fun readField(field: String, values: Map<String, Any?>, ctx: RuleContext): Any? = when (field) {
         "\$condition" -> ctx.condition
         "\$offeringKind" -> ctx.offeringKind
+        "\$listingType" -> ctx.listingType
         else -> values[field]
     }
 
@@ -145,6 +160,8 @@ object SchemaRules {
     }
 
     private val NUMBER_SHAPE = Regex("^-?\\d+(\\.\\d+)?$")
+    /** An amount in major units: no sign, at most two decimals (the server stores minor units). */
+    private val MONEY_SHAPE = Regex("^\\d+(\\.\\d{1,2})?$")
     private val DATE_SHAPE = Regex("^(\\d{4})-(\\d{2})-(\\d{2})$")
 
     private fun coerce(field: SchemaField, raw: Any?): Coerced {
@@ -173,6 +190,19 @@ object SchemaRules {
                     }
                     else -> return Coerced.Err(FieldErrorCode.INVALID_TYPE)
                 }
+                if (n.isNaN() || n.isInfinite()) return Coerced.Err(FieldErrorCode.INVALID_TYPE)
+                if (field.min != null && n < field.min) return Coerced.Err(FieldErrorCode.TOO_SMALL)
+                if (field.max != null && n > field.max) return Coerced.Err(FieldErrorCode.TOO_LARGE)
+                Coerced.Ok(n)
+            }
+            AttributeDataType.MONEY -> {
+                val text = when (raw) {
+                    is Number -> numberText(raw)
+                    is String -> toLatinDigits(raw.trim()).replace(Regex("[,٬]"), "").replaceFirst('٫', '.')
+                    else -> return Coerced.Err(FieldErrorCode.INVALID_TYPE)
+                }
+                if (!MONEY_SHAPE.matches(text)) return Coerced.Err(FieldErrorCode.INVALID_TYPE)
+                val n = text.toDouble()
                 if (n.isNaN() || n.isInfinite()) return Coerced.Err(FieldErrorCode.INVALID_TYPE)
                 if (field.min != null && n < field.min) return Coerced.Err(FieldErrorCode.TOO_SMALL)
                 if (field.max != null && n > field.max) return Coerced.Err(FieldErrorCode.TOO_LARGE)

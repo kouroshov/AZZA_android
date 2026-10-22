@@ -176,6 +176,20 @@ fun CreateListingScreen(onPosted: (String) -> Unit, onDeleted: () -> Unit, viewM
                 }
             }
             if (FormError.GOODS_ONLY in state.formErrors) ErrorText(stringResource(R.string.create_error_goods_only))
+            // ✅ (2026-10-23) The kind of ad, right after the category: it decides the rest of the form.
+            val types = state.schema?.allowedListingTypes.orEmpty()
+            if (types.size > 1) {
+                Text(stringResource(R.string.create_listing_type), style = MaterialTheme.typography.labelLarge)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    types.forEach { type ->
+                        FilterChip(
+                            state.schema?.listingType?.code == type.code,
+                            { viewModel.chooseListingType(type.code) },
+                            { Text(type.name.local()) },
+                        )
+                    }
+                }
+            }
         }
 
         // 3. The basics.
@@ -184,12 +198,16 @@ fun CreateListingScreen(onPosted: (String) -> Unit, onDeleted: () -> Unit, viewM
         Field(state.description, { v -> viewModel.edit { copy(description = v, formErrors = formErrors - FormError.DESCRIPTION) } }, R.string.create_description,
             singleLine = false, error = (FormError.DESCRIPTION in state.formErrors).then(R.string.create_error_description))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Field(state.price, { v -> viewModel.edit { copy(price = v, formErrors = formErrors - FormError.PRICE) } }, R.string.create_price,
-                type = KeyboardType.Decimal, modifier = Modifier.weight(1f), error = (FormError.PRICE in state.formErrors).then(R.string.create_error_price))
+            // A job ad or a giveaway has no price at all; a "wanted" ad may state a budget.
+            if (state.priceMode != "NONE") {
+                Field(state.price, { v -> viewModel.edit { copy(price = v, formErrors = formErrors - FormError.PRICE) } },
+                    if (state.priceMode == "OPTIONAL") R.string.create_price_optional else R.string.create_price,
+                    type = KeyboardType.Decimal, modifier = Modifier.weight(1f), error = (FormError.PRICE in state.formErrors).then(R.string.create_error_price))
+            }
             Field(state.discount, { v -> viewModel.edit { copy(discount = v, formErrors = formErrors - FormError.DISCOUNT) } }, R.string.create_discount,
                 type = KeyboardType.Decimal, modifier = Modifier.weight(1f), error = (FormError.DISCOUNT in state.formErrors).then(R.string.create_error_discount))
         }
-        if (state.offeringKind == OfferingKind.GOOD) {
+        if (state.offeringKind == OfferingKind.GOOD && state.usesCondition) {
             Section(stringResource(R.string.create_condition)) {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     ItemCondition.entries.forEach { c ->
@@ -546,7 +564,7 @@ private fun AttributeInput(field: SchemaField, required: Boolean, value: Any?, e
             supportingText = (errorText ?: field.help?.local())?.let { { Text(it) } },
             keyboardOptions = KeyboardOptions(
                 keyboardType = when (field.dataType) {
-                    AttributeDataType.NUMBER -> KeyboardType.Decimal
+                    AttributeDataType.NUMBER, AttributeDataType.MONEY -> KeyboardType.Decimal
                     AttributeDataType.DATE -> KeyboardType.Number
                     else -> KeyboardType.Text
                 },
@@ -643,5 +661,7 @@ private fun postErrorText(error: AppError): String = when ((error as? AppError.A
     "ACCOUNT_NOT_ACTIVE" -> stringResource(R.string.create_error_not_active)
     "MEDIA_LIMIT_REACHED" -> stringResource(R.string.create_error_media_limit)
     "STORE_MODERATED" -> stringResource(R.string.create_error_store_moderated)
+    "LISTING_TYPE_NOT_ALLOWED" -> stringResource(R.string.create_error_listing_type)
+    "PRICE_REQUIRED", "PRICE_NOT_ALLOWED" -> stringResource(R.string.create_error_price)
     else -> errorMessage(error)
 }

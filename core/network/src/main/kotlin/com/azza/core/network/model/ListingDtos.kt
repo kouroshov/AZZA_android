@@ -47,11 +47,23 @@ data class CategorySchemaDto(
     val allowedKinds: List<String> = emptyList(),
     val defaultKind: String? = null,
     val fields: List<SchemaFieldDto> = emptyList(),
+    // ✅ (2026-10-23) listing types: sale, rent, wanted, a vacancy…
+    val listingType: ListingTypeDto? = null,
+    val allowedListingTypes: List<ListingTypeDto> = emptyList(),
+    val usesCondition: Boolean = true,
+)
+
+@Serializable
+data class ListingTypeDto(
+    val code: String,
+    val name: NullableLocalizedDto,
+    val priceMode: String = "REQUIRED",
+    val purchasable: Boolean = true,
 )
 
 /** `fa` may be null on a field label — the web falls back to `en`. */
 @Serializable
-data class NullableLocalizedDto(val en: String = "", val fa: String? = null)
+data class NullableLocalizedDto(val en: String = "", val fa: String? = null, val ckb: String? = null)
 
 @Serializable
 data class SchemaOptionDto(val value: String, val label: NullableLocalizedDto)

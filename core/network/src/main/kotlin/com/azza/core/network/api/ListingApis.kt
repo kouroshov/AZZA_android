@@ -45,7 +45,11 @@ interface CategoriesApi {
 
     /** The fields a listing in this category takes, for this offering kind (the category's default when null). */
     @GET("taxonomy/categories/{categoryId}/schema")
-    suspend fun schema(@Path("categoryId") categoryId: String, @Query("kind") kind: String? = null): ApiEnvelope<CategorySchemaDto>
+    suspend fun schema(
+        @Path("categoryId") categoryId: String,
+        @Query("kind") kind: String? = null,
+        @Query("listingType") listingType: String? = null,
+    ): ApiEnvelope<CategorySchemaDto>
 }
 
 interface ListingsApi {

@@ -135,6 +135,8 @@ data class ProductDto(
     val categoryId: String? = null,
     val category: ProductCategoryDto? = null,
     val condition: String? = null,
+    /** ✅ (2026-10-23) the kind of ad; null on a listing older than listing types. */
+    val listingType: ProductListingTypeDto? = null,
     val status: String = "ACTIVE",
     val attributeValues: List<AttributeValueDto> = emptyList(),
     // A moderation hold (all null when there is none). Only the owner's
@@ -219,3 +221,6 @@ data class ProductSellerDto(val username: String, val profile: ProductSellerProf
 
 @Serializable
 data class ProductStoreDto(val slug: String, val name: String = "", val avatarMediaKey: String? = null)
+
+@Serializable
+data class ProductListingTypeDto(val code: String, val priceMode: String = "REQUIRED", val purchasable: Boolean = true)

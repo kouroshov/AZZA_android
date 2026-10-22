@@ -9,6 +9,9 @@
     <string name="create_cancel">Cancel</string>
     <string name="create_title">Title</string>
     <string name="create_description">Description</string>
+    <string name="create_listing_type">Type of ad</string>
+    <string name="create_price_optional">Price or budget (optional)</string>
+    <string name="create_error_listing_type">This category does not take that kind of ad. Choose another.</string>
     <string name="create_price">Price</string>
     <string name="create_discount">Discount (%)</string>
     <string name="create_condition">Condition</string>
