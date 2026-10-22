@@ -17,14 +17,18 @@ const val MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty"
 
 /**
  * Satellite imagery (product owner, 2026-10-22: the map switches between
- * the plain map and satellite). The same source as the website's
- * NEXT_PUBLIC_MAP_SATELLITE_TILES — Esri World Imagery, for DEVELOPMENT:
- * production needs a licensed source (web repo, docs/PRODUCTION-READINESS.md
- * §8). Empty → the satellite option is not offered.
+ * the plain map and satellite).
+ *
+ * ⚠️ TEMPORARY (product owner, 2026-10-22: "the best quality for now"):
+ * Google's satellite tiles, called directly — sharper and newer over Bukan
+ * than Esri or Bing, but NOT allowed by Google's terms outside its paid Map
+ * Tiles API, and Google may block it. Development only; to be replaced by a
+ * source licensed for Iran before real users (web repo,
+ * docs/PRODUCTION-READINESS.md §8). Empty → no satellite option.
  */
-const val SATELLITE_TILES = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-const val SATELLITE_ATTRIBUTION = "Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community"
-private const val SATELLITE_MAX_ZOOM = 19f
+const val SATELLITE_TILES = "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
+const val SATELLITE_ATTRIBUTION = "Imagery © Google"
+private const val SATELLITE_MAX_ZOOM = 20f
 
 val hasSatellite: Boolean get() = SATELLITE_TILES.isNotBlank()
 
