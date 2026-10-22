@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="map_style_map">نەخشە</string>
+    <string name="map_style_satellite">مانگی دەستکرد</string>
+    <string name="parcel_section_title">شوێن لەسەر نەخشە (ئارەزوومەندانە)</string>
+    <string name="parcel_section_hint_boundary">بە کڕیار پیشان بدە لە کوێیە: بە خاڵێک، یان بە کێشانی سنووری زەوییەکە لەسەر نەخشە.</string>
+    <string name="parcel_section_hint_point">بە خاڵێک لەسەر نەخشە بە کڕیار پیشان بدە لە کوێیە.</string>
+    <string name="parcel_mode_none">لەسەر نەخشە نەبێت</string>
+    <string name="parcel_mode_point">خاڵێک</string>
+    <string name="parcel_mode_boundary">کێشانی سنوور</string>
+    <string name="parcel_point_set">خاڵێک لەسەر نەخشە دانراوە.</string>
+    <string name="parcel_summary">ڕووبەر %1$s · چێوە %2$s</string>
+    <string name="parcel_edit_on_map">دەستکاری لەسەر نەخشە</string>
+    <string name="parcel_hint_point">لە شوێنی خانوبەرەکە بدە. بۆ جوڵاندن، دەرزییەکە ڕابکێشە.</string>
+    <string name="parcel_hint_boundary">لە هەر گۆشەیەکی زەوییەکە بدە. بۆ جوڵاندن، گۆشەکە ڕابکێشە؛ بە ڕاکێشانی خاڵی ناوەڕاستی لایەک، گۆشەیەکی نوێ زیاد دەبێت.</string>
+    <string name="parcel_undo">گەڕاندنەوە</string>
+    <string name="parcel_clear">سڕینەوە</string>
+    <string name="parcel_done">تەواو</string>
+    <string name="parcel_cancel">پاشگەزبوونەوە</string>
+    <string name="parcel_my_location">شوێنی من</string>
+    <string name="parcel_go_to_city">چوون بۆ شار</string>
+    <string name="parcel_province">پارێزگا</string>
+    <string name="parcel_city">شار</string>
+    <string name="parcel_location_unavailable">شوێنی تۆ لێرە نەدۆزرایەوە.</string>
+    <string name="parcel_point_missing">بۆ دانانی خاڵەکە لە نەخشە بدە.</string>
+    <string name="parcel_problem_too_few">لانیکەم لە ٣ گۆشە بدە.</string>
+    <string name="parcel_problem_too_many">زۆرترین ١٠٠ گۆشە.</string>
+    <string name="parcel_problem_repeated">دوو گۆشە لەسەر یەک خاڵن. دواینیان بگەڕێنەوە.</string>
+    <string name="parcel_problem_crossing">دوو لا یەکتر دەبڕن. گۆشەیەک بجوڵێنە بۆ ئەوەی سنوورەکان یەکتر نەبڕن.</string>
+    <string name="parcel_problem_too_small">ئەم شێوەیە بۆ پارچە زەوییەک زۆر بچووکە.</string>
+    <string name="parcel_problem_too_large">ئەم شێوەیە لە ١٠٠ کیلۆمەتری چوارگۆشە گەورەترە.</string>
+    <string name="parcel_similar_found">ئەم زەوییە لەوانەیە پێشتر لەسەر نەخشە تۆمار کرابێت (ڕیکلامێکی تر کێشاویەتی). هەمان سنوور بەکاردەهێنیت بۆ ئەوەی هەردووکیان وەک یەک شوێن پیشان بدرێن؟</string>
+    <string name="parcel_similar_use">هەمان سنوور بەکاربهێنە</string>
+    <string name="parcel_similar_keep">سنووری خۆم بمێنێت</string>
+    <string name="parcel_incomplete">شوێنەکە لەسەر نەخشە تەواو بکە یان «لەسەر نەخشە نەبێت» هەڵبژێرە.</string>
+    <string name="parcel_unit_m">م</string>
+    <string name="parcel_unit_km">کم</string>
+    <string name="parcel_unit_m2">م²</string>
+    <string name="parcel_unit_ha">هێکتار</string>
+    <string name="parcel_deal_SALE">فرۆشتن</string>
+    <string name="parcel_deal_RENT">کرێ</string>
+    <string name="parcel_deal_SHORT_TERM">کرێی کورتخایەن</string>
+    <string name="parcel_deal_PARTNERSHIP">هاوبەشی لە دروستکردن</string>
+    <string name="parcel_deal_PRESALE">پێشفرۆشتن</string>
+    <string name="parcel_deal_MIXED">چەند جۆر مامەڵە</string>
+    <string name="parcel_deal_OTHER">خانوبەرە</string>
+    <plurals name="parcel_corners">
+        <item quantity="one">%d گۆشە</item>
+        <item quantity="other">%d گۆشە</item>
+    </plurals>
+</resources>

@@ -80,3 +80,25 @@ release on their own schedules. The contract is the coupling point, so:
   removed on 2026-10-21 at the product owner's request; the app cleans up
   what they left on a phone (`AzzaApplication.removeSalesRegisterLeftovers`).
 - `AppError.Api.details` carries the error envelope's `details` (raw JSON).
+
+## 7. The real-estate map (2026-10-22)
+
+- **`core:map`**: what every map shares — `MAP_STYLE_URL`, the satellite
+  look (`Style.applyBaseLook`: one raster layer above the background, the
+  base style's fills and lines hidden while it shows; `SATELLITE_TILES` is
+  Esri World Imagery for development only — licensing is the web repo's
+  docs/PRODUCTION-READINESS.md §8), the deal colours, `currentLocation`,
+  the boundary geometry (the same formulas as apps/api's parcel-geometry;
+  the server measures again on save) and the boundary editor.
+- **The listing form** (`feature:create`): for a category apps/api says goes
+  on the map (`GET /map/parcels/rules`), `ParcelSection` offers none / a
+  point / (land) the borders. Drawing is full screen (`ParcelEditorDialog`):
+  a tap adds a corner, side lengths are drawn on the map, area and perimeter
+  live; a touch that starts on a corner, a side's middle dot or the pin is
+  the editor's (`MapView.setOnTouchListener`), anything else is the map's.
+  An existing boundary of the same land is offered (`POST /map/parcels/similar`)
+  — a copy, never a link.
+- **The map** (`feature:map`): Stores | Real estate, and Satellite, as chips.
+  Real estate: dots and clusters, boundaries from zoom 14 (`RealEstateLayer.kt`),
+  deal filter chips; a tap opens `ParcelCard` — every listing on that spot,
+  newest first, with the agency's (or seller's) page.

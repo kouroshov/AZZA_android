@@ -92,4 +92,14 @@
         <item quantity="other">%1$d دوکان</item>
     </plurals>
     <string name="map_back">گەڕانەوە</string>
+    <string name="map_mode_stores">دوکانەکان</string>
+    <string name="map_mode_real_estate">خانوبەرە</string>
+    <string name="map_parcel_title">خانوبەرە</string>
+    <string name="map_parcel_same_land">ئەم ڕیکلامانە هەمان زەوی دیاری دەکەن. تازەترین سەرەتا.</string>
+    <string name="map_parcel_agency_page">پەڕەی نووسینگە</string>
+    <string name="map_parcel_seller_page">پەڕەی فرۆشیار</string>
+    <plurals name="map_parcel_listings_here">
+        <item quantity="one">%d ڕیکلام لێرە</item>
+        <item quantity="other">%d ڕیکلام لێرە</item>
+    </plurals>
 </resources>

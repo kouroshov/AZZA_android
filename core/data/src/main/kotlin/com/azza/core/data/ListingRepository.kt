@@ -114,6 +114,7 @@ class ListingRepository @Inject constructor(
                 photos = p.media.filter { it.mediaType == "IMAGE" }.mapNotNull { m -> mediaUrls.resolve(m.url ?: m.storageKey)?.let { ExistingPhoto(m.id, it) } },
                 options = p.options.map { OptionDraft(it.name, majorText(it.extraPriceAmountMinor), it.maxQuantity) },
                 features = freeFeatures(p),
+                parcel = p.parcel.toDraft(),
             )
         }
 
@@ -235,6 +236,29 @@ class ListingRepository @Inject constructor(
         // Always sent, blank = 0: on an edit a missing field is left as it was, so clearing it would not clear it.
         put("discountPercentage", draft.discountPercentage.toLatinNumber() ?: 0.0)
         put("attributeValues", JsonObject(draft.attributeValues.mapValues { (_, v) -> v.toJson() }))
+        // ✅ (2026-10-22) its point or boundary on the real-estate map: only for a
+        // category that takes one (null draft = nothing sent); NONE sends null,
+        // which removes it on an edit.
+        draft.parcel?.let { parcel ->
+            when {
+                parcel.mode == com.azza.core.model.ParcelMode.POINT && parcel.point != null -> put(
+                    "parcel",
+                    buildJsonObject {
+                        put("kind", "POINT")
+                        put("lat", parcel.point!!.lat)
+                        put("lng", parcel.point!!.lng)
+                    },
+                )
+                parcel.mode == com.azza.core.model.ParcelMode.POLYGON && parcel.ring.size >= 3 -> put(
+                    "parcel",
+                    buildJsonObject {
+                        put("kind", "POLYGON")
+                        put("ring", JsonArray(parcel.ring.map { JsonArray(listOf(kotlinx.serialization.json.JsonPrimitive(it.lng), kotlinx.serialization.json.JsonPrimitive(it.lat))) }))
+                    },
+                )
+                else -> put("parcel", kotlinx.serialization.json.JsonNull)
+            }
+        }
         // Always sent: on an edit the map replaces the listing's free-form features.
         put("attributes", JsonObject(draft.features.filter { it.first.isNotBlank() && it.second.isNotBlank() }.associate { (k, v) -> k.trim().take(60) to kotlinx.serialization.json.JsonPrimitive(v.trim().take(200)) }))
         // Always sent: on an edit the list REPLACES the listing's options, so an empty one removes them.
@@ -338,5 +362,17 @@ private fun freeFeatures(p: com.azza.core.network.model.ProductDto): List<Pair<S
     val typed = p.attributeValues.map { it.categoryAttribute.slug }.toSet()
     return (p.attributesCache as? JsonObject).orEmpty().mapNotNull { (k, v) ->
         if (k in typed) null else (v as? kotlinx.serialization.json.JsonPrimitive)?.content?.takeIf { it.isNotBlank() }?.let { k to it }
+    }
+}
+
+/** A stored point or boundary → the edit form's draft. */
+private fun com.azza.core.network.model.ProductParcelDto?.toDraft(): com.azza.core.model.ParcelDraft {
+    val p = this ?: return com.azza.core.model.ParcelDraft()
+    val ring = p.ring.orEmpty().mapNotNull { if (it.size == 2) com.azza.core.model.MapPoint(it[0], it[1]) else null }
+    return when {
+        p.kind == "POLYGON" && ring.size >= 3 -> com.azza.core.model.ParcelDraft(com.azza.core.model.ParcelMode.POLYGON, null, ring)
+        p.latitude != null && p.longitude != null ->
+            com.azza.core.model.ParcelDraft(com.azza.core.model.ParcelMode.POINT, com.azza.core.model.MapPoint(p.longitude!!, p.latitude!!))
+        else -> com.azza.core.model.ParcelDraft()
     }
 }

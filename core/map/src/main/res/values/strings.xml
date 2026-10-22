@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="map_style_map">Map</string>
+    <string name="map_style_satellite">Satellite</string>
+    <string name="parcel_section_title">Location on the map (optional)</string>
+    <string name="parcel_section_hint_boundary">Show buyers where it is: a point, or the land\'s borders drawn on the map.</string>
+    <string name="parcel_section_hint_point">Show buyers where it is with a point on the map.</string>
+    <string name="parcel_mode_none">Not on the map</string>
+    <string name="parcel_mode_point">A point</string>
+    <string name="parcel_mode_boundary">Draw the borders</string>
+    <string name="parcel_point_set">A point is set on the map.</string>
+    <string name="parcel_summary">Area %1$s · perimeter %2$s</string>
+    <string name="parcel_edit_on_map">Edit on the map</string>
+    <string name="parcel_hint_point">Tap where the property is. Drag the pin to move it.</string>
+    <string name="parcel_hint_boundary">Tap each corner of the land. Drag a corner to move it; drag the dot in the middle of a side to add a corner.</string>
+    <string name="parcel_undo">Undo</string>
+    <string name="parcel_clear">Clear</string>
+    <string name="parcel_done">Done</string>
+    <string name="parcel_cancel">Cancel</string>
+    <string name="parcel_my_location">My location</string>
+    <string name="parcel_go_to_city">Go to a city</string>
+    <string name="parcel_province">Province</string>
+    <string name="parcel_city">City</string>
+    <string name="parcel_location_unavailable">Your location could not be found here.</string>
+    <string name="parcel_point_missing">Tap the map to place the point.</string>
+    <string name="parcel_problem_too_few">Tap at least 3 corners.</string>
+    <string name="parcel_problem_too_many">At most 100 corners.</string>
+    <string name="parcel_problem_repeated">Two corners are on the same spot. Undo the last one.</string>
+    <string name="parcel_problem_crossing">Two sides cross. Move a corner so the borders do not cross.</string>
+    <string name="parcel_problem_too_small">The shape is too small to be a piece of land.</string>
+    <string name="parcel_problem_too_large">The shape is larger than 100 km².</string>
+    <string name="parcel_similar_found">This land may already be on the map (another listing drew it). Use the same borders, so both show as one place?</string>
+    <string name="parcel_similar_use">Use those borders</string>
+    <string name="parcel_similar_keep">Keep mine</string>
+    <string name="parcel_incomplete">Finish the location on the map, or choose \"Not on the map\".</string>
+    <string name="parcel_unit_m">m</string>
+    <string name="parcel_unit_km">km</string>
+    <string name="parcel_unit_m2">m²</string>
+    <string name="parcel_unit_ha">ha</string>
+    <string name="parcel_deal_SALE">For sale</string>
+    <string name="parcel_deal_RENT">For rent</string>
+    <string name="parcel_deal_SHORT_TERM">Short-term rent</string>
+    <string name="parcel_deal_PARTNERSHIP">Build partnership</string>
+    <string name="parcel_deal_PRESALE">Pre-sale</string>
+    <string name="parcel_deal_MIXED">Several deals</string>
+    <string name="parcel_deal_OTHER">Real estate</string>
+    <plurals name="parcel_corners">
+        <item quantity="one">%d corner</item>
+        <item quantity="other">%d corners</item>
+    </plurals>
+</resources>
