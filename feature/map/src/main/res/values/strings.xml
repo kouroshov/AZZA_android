@@ -91,4 +91,14 @@
         <item quantity="other">%1$d shops</item>
     </plurals>
     <string name="map_back">Back</string>
+    <string name="map_mode_stores">Stores</string>
+    <string name="map_mode_real_estate">Real estate</string>
+    <string name="map_parcel_title">Property</string>
+    <string name="map_parcel_same_land">These listings mark the same land. Newest first.</string>
+    <string name="map_parcel_agency_page">Agency page</string>
+    <string name="map_parcel_seller_page">Seller\'s page</string>
+    <plurals name="map_parcel_listings_here">
+        <item quantity="one">%d listing here</item>
+        <item quantity="other">%d listings here</item>
+    </plurals>
 </resources>

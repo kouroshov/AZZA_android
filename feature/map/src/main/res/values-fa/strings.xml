@@ -91,4 +91,14 @@
         <item quantity="other">%1$d مغازه</item>
     </plurals>
     <string name="map_back">بازگشت</string>
+    <string name="map_mode_stores">فروشگاه‌ها</string>
+    <string name="map_mode_real_estate">املاک</string>
+    <string name="map_parcel_title">ملک</string>
+    <string name="map_parcel_same_land">این آگهی‌ها همین زمین را مشخص کرده‌اند. جدیدترین اول.</string>
+    <string name="map_parcel_agency_page">صفحهٔ بنگاه</string>
+    <string name="map_parcel_seller_page">صفحهٔ فروشنده</string>
+    <plurals name="map_parcel_listings_here">
+        <item quantity="one">%d آگهی در این محل</item>
+        <item quantity="other">%d آگهی در این محل</item>
+    </plurals>
 </resources>

@@ -1,5 +1,11 @@
 package com.azza.feature.map
 
+import androidx.compose.material.icons.outlined.Layers
+import com.azza.core.map.applyBaseLook
+import com.azza.core.model.ParcelMapItem
+import com.azza.core.model.ParcelDeal
+import com.azza.core.data.ParcelsRepository
+import com.azza.core.map.currentLocation
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import org.maplibre.android.geometry.LatLngBounds
 import com.azza.core.data.CityCount
@@ -109,12 +115,18 @@ import org.maplibre.geojson.Point
 /** The web's "/" — the marketplace map of store branches. */
 @Serializable data object MapRoute
 
-fun NavGraphBuilder.mapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, onDirections: (branchId: String, name: String) -> Unit, onBack: () -> Unit = {}) {
-    composable<MapRoute> { MapScreen(onOpenStore, onOpenProduct, onDirections, onBack = onBack) }
+fun NavGraphBuilder.mapScreen(
+    onOpenStore: (String) -> Unit,
+    onOpenProduct: (String) -> Unit,
+    onDirections: (branchId: String, name: String) -> Unit,
+    onBack: () -> Unit = {},
+    onOpenUser: (String) -> Unit = {},
+) {
+    composable<MapRoute> { MapScreen(onOpenStore, onOpenProduct, onDirections, onBack = onBack, onOpenUser = onOpenUser) }
 }
 
-/** The web's NEXT_PUBLIC_MAP_STYLE_URL: OpenFreeMap, no key, the same tiles as the website. */
-private const val STYLE_URL = "https://tiles.openfreemap.org/styles/liberty"
+/** The web's NEXT_PUBLIC_MAP_STYLE_URL (core:map). */
+private const val STYLE_URL = com.azza.core.map.MAP_STYLE_URL
 private const val SOURCE = "azza-branches"
 private const val LAYER = "azza-branches-dots"
 
@@ -215,6 +227,14 @@ data class MapUiState(
     val selected: String? = null,
     val preview: BranchPreview? = null,
     val previewLoading: Boolean = false,
+    /** ✅ (2026-10-22) What the map shows: stores, or land and property (the real-estate map). */
+    val realEstate: Boolean = false,
+    /** How it looks: the plain map or satellite imagery. */
+    val satellite: Boolean = false,
+    /** The deals shown on the real-estate map; empty = all. */
+    val deals: Set<ParcelDeal> = emptySet(),
+    val parcels: List<ParcelMapItem> = emptyList(),
+    val parcelSelected: ParcelMapItem? = null,
 )
 
 @HiltViewModel
@@ -222,6 +242,7 @@ class MapViewModel @Inject constructor(
     private val repository: MapRepository,
     private val listings: ListingRepository,
     private val geography: GeographyRepository,
+    private val parcelsRepository: ParcelsRepository,
 ) : ViewModel() {
     private val _state = MutableStateFlow(MapUiState())
     val state: StateFlow<MapUiState> = _state.asStateFlow()
@@ -261,11 +282,53 @@ class MapViewModel @Inject constructor(
 
     fun setHere(here: Here?) = _state.update { it.copy(here = here) }
 
+    // ---- the real-estate map (2026-10-22) ----
+
+    fun setRealEstate(on: Boolean) {
+        _state.update { it.copy(realEstate = on, selected = null, preview = null, parcelSelected = null, error = null) }
+        lastViewport?.let { (n, s, e, w) -> onViewport(n, s, e, w, lastLevel) }
+    }
+
+    fun setSatellite(on: Boolean) = _state.update { it.copy(satellite = on) }
+
+    /** From "all", a tap means "only this one"; switching every deal off means "all" again. */
+    fun toggleDeal(deal: ParcelDeal) {
+        _state.update { s ->
+            val next = when {
+                s.deals.isEmpty() -> setOf(deal)
+                deal in s.deals -> s.deals - deal
+                else -> s.deals + deal
+            }
+            s.copy(deals = if (next.size == ParcelDeal.entries.size - 1) emptySet() else next, parcelSelected = null)
+        }
+        lastViewport?.let { (n, s, e, w) -> onViewport(n, s, e, w, lastLevel) }
+    }
+
+    fun selectParcel(item: ParcelMapItem?) = _state.update { it.copy(parcelSelected = item, selected = null, preview = null) }
+
+    private fun loadParcels(north: Double, south: Double, east: Double, west: Double) {
+        viewportJob = viewModelScope.launch {
+            delay(250)
+            _state.update { it.copy(loading = true, tooFarOut = false) }
+            val (n, s) = clampSpan(south, north)
+            val (e, w) = clampSpan(west, east)
+            when (val r = parcelsRepository.inView(n, s, e, w, _state.value.deals.takeIf { it.isNotEmpty() })) {
+                is Outcome.Success -> _state.update { it.copy(parcels = r.value, loading = false, error = null) }
+                is Outcome.Failure -> _state.update { it.copy(loading = false, error = r.error) }
+            }
+        }
+    }
+
     /** Called when the camera settles; a short pause so panning does not fire a request per frame. */
     fun onViewport(north: Double, south: Double, east: Double, west: Double, level: MapLevel) {
         lastViewport = doubleArrayOf(north, south, east, west)
         lastLevel = level
         viewportJob?.cancel()
+        // The real-estate map lists at every zoom: its dots cluster.
+        if (_state.value.realEstate) {
+            _state.update { it.copy(level = level) }
+            return loadParcels(north, south, east, west)
+        }
         // Zoomed out, the circles say it all: no shop is fetched, none can be tapped by accident.
         if (level != MapLevel.SHOPS) {
             _state.update {
@@ -311,8 +374,16 @@ class MapViewModel @Inject constructor(
 }
 
 @Composable
-fun MapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, onDirections: (branchId: String, name: String) -> Unit, viewModel: MapViewModel = hiltViewModel(), onBack: (() -> Unit)? = null) {
+fun MapScreen(
+    onOpenStore: (String) -> Unit,
+    onOpenProduct: (String) -> Unit,
+    onDirections: (branchId: String, name: String) -> Unit,
+    viewModel: MapViewModel = hiltViewModel(),
+    onBack: (() -> Unit)? = null,
+    onOpenUser: (String) -> Unit = {},
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val latestState by rememberUpdatedState(state)
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     var map by remember { mutableStateOf<MapLibreMap?>(null) }
@@ -390,6 +461,10 @@ fun MapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, on
                     ),
                     // Single shops only once zoomed in: zoomed out, a tap must never open one shop.
                 ).also { style.getLayer(LAYER)?.setMinZoom(SHOP_ZOOM.toFloat()) }
+                // ✅ (2026-10-22) the real-estate mode's layers, hidden until chosen.
+                addParcelLayers(style)
+                style.showRealEstate(latestState.realEstate)
+                style.applyBaseLook(latestState.satellite)
                 styleReady = true
                 val bounds = m.projection.visibleRegion.latLngBounds
                 viewModel.onViewport(bounds.latitudeNorth, bounds.latitudeSouth, bounds.longitudeEast, bounds.longitudeWest, levelAt(m.cameraPosition.zoom))
@@ -412,6 +487,33 @@ fun MapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, on
                 // A finger is wider than a point: the circles answer to a tap anywhere near them.
                 val slop = 24 * context.resources.displayMetrics.density
                 val near = android.graphics.RectF(screen.x - slop, screen.y - slop, screen.x + slop, screen.y + slop)
+                if (latestState.realEstate) {
+                    m.queryRenderedFeatures(near, L_PARCEL_CLUSTERS).firstOrNull()?.let { cluster ->
+                        val p = cluster.geometry() as? Point
+                        // Straight to the zoom where the cluster splits.
+                        val split = runCatching { m.style?.getSourceAs<GeoJsonSource>(PARCEL_DOTS)?.getClusterExpansionZoom(cluster)?.toDouble() }.getOrNull()
+                        val zoom = maxOf(split ?: 0.0, m.cameraPosition.zoom + 2)
+                        if (p != null) m.flyTo(org.maplibre.android.camera.CameraUpdateFactory.newLatLngZoom(LatLng(p.latitude(), p.longitude()), zoom), 600)
+                        return@addOnMapClickListener true
+                    }
+                    // Everything under the finger: two pins at one address, a pin on a field.
+                    val items = latestState.parcels
+                    val hits = (m.queryRenderedFeatures(near, L_PARCEL_DOTS) + m.queryRenderedFeatures(screen, L_PARCEL_FILL))
+                        .mapNotNull { f -> f.getNumberProperty("index")?.toInt()?.let(items::getOrNull) }
+                        .distinct()
+                    viewModel.selectParcel(
+                        when (hits.size) {
+                            0 -> null
+                            1 -> hits[0]
+                            else -> hits[0].copy(
+                                isBoundary = false,
+                                deal = if (hits.map { it.deal }.distinct().size == 1) hits[0].deal else ParcelDeal.MIXED,
+                                listings = hits.flatMap { it.listings },
+                            )
+                        },
+                    )
+                    return@addOnMapClickListener hits.isNotEmpty()
+                }
                 // The Iran circle opens the cities; a city's circle flies to that city's shops.
                 if (m.queryRenderedFeatures(near, "azza-country-circle").isNotEmpty()) {
                     // Straight to where the shops are: every city with one, framed — never so far
@@ -485,6 +587,11 @@ fun MapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, on
         )
     }
 
+    // ✅ (2026-10-22) the real-estate mode, its data and the satellite look.
+    LaunchedEffect(state.realEstate, styleReady) { if (styleReady) map?.style?.showRealEstate(state.realEstate) }
+    LaunchedEffect(state.satellite, styleReady) { if (styleReady) map?.style?.applyBaseLook(state.satellite) }
+    LaunchedEffect(state.parcels, styleReady) { if (styleReady) map?.style?.setParcels(state.parcels) }
+
     // "Near me": the phone's own position service (not Google's — no Play Services needed), asked for when used.
     var locating by remember { mutableStateOf(false) }
     var locationProblem by remember { mutableStateOf(false) }
@@ -533,6 +640,34 @@ fun MapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, on
         }
         // Category chips, the city chooser and the list of stores in view (the web's map section).
         Column(Modifier.align(Alignment.TopStart).padding(start = 64.dp, top = 12.dp, end = 48.dp)) {
+            // ✅ (2026-10-22) What the map shows, and how it looks.
+            Row(Modifier.horizontalScroll(rememberScrollState()).padding(bottom = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                FilterChip(selected = !state.realEstate, onClick = { viewModel.setRealEstate(false) }, label = { Text(stringResource(R.string.map_mode_stores)) }, colors = filterColors())
+                FilterChip(selected = state.realEstate, onClick = { viewModel.setRealEstate(true) }, label = { Text(stringResource(R.string.map_mode_real_estate)) }, colors = filterColors())
+                if (com.azza.core.map.hasSatellite) {
+                    FilterChip(
+                        selected = state.satellite,
+                        onClick = { viewModel.setSatellite(!state.satellite) },
+                        label = { Text(stringResource(com.azza.core.map.R.string.map_style_satellite)) },
+                        leadingIcon = { Icon(androidx.compose.material.icons.Icons.Outlined.Layers, null, Modifier.size(18.dp)) },
+                        colors = filterColors(),
+                    )
+                }
+            }
+            if (state.realEstate) {
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    AssistChip(onClick = { cityOpen = true }, label = { Text(stringResource(R.string.map_choose_city)) }, colors = chipColors())
+                    ParcelDeal.entries.filter { it != ParcelDeal.MIXED }.forEach { deal ->
+                        FilterChip(
+                            selected = deal in state.deals,
+                            onClick = { viewModel.toggleDeal(deal) },
+                            label = { Text(stringResource(dealLabel(deal))) },
+                            leadingIcon = { Box(Modifier.size(10.dp).clip(androidx.compose.foundation.shape.CircleShape).background(com.azza.core.map.dealColor(deal))) },
+                            colors = filterColors(),
+                        )
+                    }
+                }
+            } else {
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 AssistChip(onClick = { cityOpen = true }, label = { Text(stringResource(R.string.map_choose_city)) }, colors = chipColors())
                 val inView = when (state.level) {
@@ -548,6 +683,7 @@ fun MapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, on
                 state.categories.forEach { c ->
                     FilterChip(selected = state.categoryId == c.id, onClick = { viewModel.setCategory(c.id) }, label = { Text(c.name.forLanguage(language)) }, colors = filterColors())
                 }
+            }
             }
         }
         if (outsideIran) {
@@ -580,6 +716,15 @@ fun MapScreen(onOpenStore: (String) -> Unit, onOpenProduct: (String) -> Unit, on
                 val lng = area.longitude
                 if (lat != null && lng != null) map?.flyTo(org.maplibre.android.camera.CameraUpdateFactory.newLatLngZoom(LatLng(lat, lng), 11.5))
             }
+        }
+        state.parcelSelected?.let { item ->
+            ParcelCard(
+                item = item,
+                onClose = { viewModel.selectParcel(null) },
+                onOpenProduct = onOpenProduct,
+                onOpenOwner = { l -> if (l.owner.isStore) onOpenStore(l.owner.handle) else onOpenUser(l.owner.handle) },
+                modifier = Modifier.align(Alignment.BottomCenter),
+            )
         }
         if (state.selected != null) {
             PreviewCard(
@@ -760,45 +905,4 @@ private fun CityDialog(state: MapUiState, onProvince: (Area) -> Unit, onDismiss:
         confirmButton = {},
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.map_close)) } },
     )
-}
-
-/**
- * One position fix from the phone's own location service (no Play
- * Services): every enabled provider (GPS and network) is asked at once and
- * the first answer wins; after [timeoutMs] the freshest last-known position
- * is used instead. [onResult] is called exactly once, with nulls when there
- * is nothing at all.
- */
-@android.annotation.SuppressLint("MissingPermission") // checked by the caller
-internal fun currentLocation(context: android.content.Context, timeoutMs: Long = 12_000L, onResult: (Double?, Double?) -> Unit) {
-    val manager = context.getSystemService(android.content.Context.LOCATION_SERVICE) as android.location.LocationManager
-    val providers = listOf(android.location.LocationManager.GPS_PROVIDER, android.location.LocationManager.NETWORK_PROVIDER)
-        .filter { runCatching { manager.isProviderEnabled(it) }.getOrDefault(false) }
-    if (providers.isEmpty()) return onResult(null, null)
-    val main = android.os.Handler(android.os.Looper.getMainLooper())
-    var done = false
-    val finish: (android.location.Location?) -> Unit = { l ->
-        if (!done) {
-            done = true
-            onResult(l?.latitude, l?.longitude)
-        }
-    }
-    val lastKnown = {
-        providers.mapNotNull { runCatching { manager.getLastKnownLocation(it) }.getOrNull() }.maxByOrNull { it.time }
-    }
-    if (android.os.Build.VERSION.SDK_INT >= 30) {
-        val executor = androidx.core.content.ContextCompat.getMainExecutor(context)
-        var unanswered = providers.size
-        providers.forEach { provider ->
-            runCatching {
-                manager.getCurrentLocation(provider, null, executor) { fix ->
-                    unanswered--
-                    if (fix != null) finish(fix) else if (unanswered == 0) finish(lastKnown())
-                }
-            }.onFailure { unanswered-- }
-        }
-        main.postDelayed({ finish(lastKnown()) }, timeoutMs)
-    } else {
-        finish(lastKnown())
-    }
 }

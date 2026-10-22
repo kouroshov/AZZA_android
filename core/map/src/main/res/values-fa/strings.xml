@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="map_style_map">نقشه</string>
+    <string name="map_style_satellite">ماهواره</string>
+    <string name="parcel_section_title">موقعیت روی نقشه (اختیاری)</string>
+    <string name="parcel_section_hint_boundary">به خریدار نشان دهید ملک کجاست: با یک نقطه، یا با کشیدن مرزهای زمین روی نقشه.</string>
+    <string name="parcel_section_hint_point">با یک نقطه روی نقشه به خریدار نشان دهید ملک کجاست.</string>
+    <string name="parcel_mode_none">روی نقشه نباشد</string>
+    <string name="parcel_mode_point">یک نقطه</string>
+    <string name="parcel_mode_boundary">رسم مرزها</string>
+    <string name="parcel_point_set">یک نقطه روی نقشه گذاشته شده.</string>
+    <string name="parcel_summary">مساحت %1$s · محیط %2$s</string>
+    <string name="parcel_edit_on_map">ویرایش روی نقشه</string>
+    <string name="parcel_hint_point">روی جای ملک بزنید. برای جابه‌جایی، سنجاق را بکشید.</string>
+    <string name="parcel_hint_boundary">روی هر گوشهٔ زمین بزنید. برای جابه‌جایی، گوشه را بکشید؛ با کشیدن نقطهٔ وسط هر ضلع، گوشهٔ تازه اضافه می‌شود.</string>
+    <string name="parcel_undo">برگرداندن</string>
+    <string name="parcel_clear">پاک کردن</string>
+    <string name="parcel_done">تمام</string>
+    <string name="parcel_cancel">انصراف</string>
+    <string name="parcel_my_location">موقعیت من</string>
+    <string name="parcel_go_to_city">رفتن به شهر</string>
+    <string name="parcel_province">استان</string>
+    <string name="parcel_city">شهر</string>
+    <string name="parcel_location_unavailable">موقعیت شما اینجا پیدا نشد.</string>
+    <string name="parcel_point_missing">برای گذاشتن نقطه روی نقشه بزنید.</string>
+    <string name="parcel_problem_too_few">دست‌کم ۳ گوشه را بزنید.</string>
+    <string name="parcel_problem_too_many">حداکثر ۱۰۰ گوشه.</string>
+    <string name="parcel_problem_repeated">دو گوشه روی یک نقطه افتاده‌اند. آخری را برگردانید.</string>
+    <string name="parcel_problem_crossing">دو ضلع از روی هم رد شده‌اند. یک گوشه را جابه‌جا کنید تا مرزها هم را قطع نکنند.</string>
+    <string name="parcel_problem_too_small">این شکل برای یک قطعه زمین خیلی کوچک است.</string>
+    <string name="parcel_problem_too_large">این شکل بزرگ‌تر از ۱۰۰ کیلومتر مربع است.</string>
+    <string name="parcel_similar_found">این زمین احتمالاً قبلاً روی نقشه ثبت شده (آگهی دیگری آن را کشیده). از همان مرز استفاده می‌کنید تا هر دو یک‌جا نمایش داده شوند؟</string>
+    <string name="parcel_similar_use">از همان مرز استفاده کن</string>
+    <string name="parcel_similar_keep">مرز خودم بماند</string>
+    <string name="parcel_incomplete">موقعیت روی نقشه را کامل کنید یا «روی نقشه نباشد» را انتخاب کنید.</string>
+    <string name="parcel_unit_m">متر</string>
+    <string name="parcel_unit_km">کیلومتر</string>
+    <string name="parcel_unit_m2">متر مربع</string>
+    <string name="parcel_unit_ha">هکتار</string>
+    <string name="parcel_deal_SALE">فروش</string>
+    <string name="parcel_deal_RENT">اجاره</string>
+    <string name="parcel_deal_SHORT_TERM">اجارهٔ کوتاه‌مدت</string>
+    <string name="parcel_deal_PARTNERSHIP">مشارکت در ساخت</string>
+    <string name="parcel_deal_PRESALE">پیش‌فروش</string>
+    <string name="parcel_deal_MIXED">چند نوع معامله</string>
+    <string name="parcel_deal_OTHER">املاک</string>
+    <plurals name="parcel_corners">
+        <item quantity="one">%d گوشه</item>
+        <item quantity="other">%d گوشه</item>
+    </plurals>
+</resources>

@@ -349,6 +349,8 @@ fun AzzaApp(
                 onOpenProduct = { id -> navController.navigate(ProductRoute(id, source = "MAP")) },
                 onDirections = { id, name -> navController.navigate(com.azza.feature.map.DirectionsRoute(id, name)) },
                 onBack = { navController.popBackStack() },
+                // A property's seller with no store: their own page.
+                onOpenUser = openUser,
             )
             settingsScreens(
                 onBack = { navController.popBackStack() },

@@ -1,5 +1,12 @@
 package com.azza.feature.create
 
+import com.azza.core.map.isComplete
+import com.azza.core.model.MapPoint
+import com.azza.core.model.Area
+import com.azza.core.model.ParcelRule
+import com.azza.core.model.ParcelDraft
+import com.azza.core.data.GeographyRepository
+import com.azza.core.data.ParcelsRepository
 import com.azza.core.model.CategorySuggestion
 import com.azza.core.model.OccupationRef
 import com.azza.core.model.OptionDraft
@@ -88,6 +95,16 @@ data class CreateUiState(
     val occupationHits: List<OccupationRef> = emptyList(),
     val myOccupations: List<OccupationRef> = emptyList(),
     val suggestions: List<CategorySuggestion> = emptyList(),
+    /**
+     * ✅ (2026-10-22) A real-estate listing's place on the map, and whether
+     * its category takes one (null until the server answered) — apps/api's
+     * rule, read for each category, never a copy of it.
+     */
+    val parcel: ParcelDraft = ParcelDraft(),
+    val parcelRule: ParcelRule? = null,
+    /** For the boundary editor's "go to a city". */
+    val provinces: List<Area> = emptyList(),
+    val cities: List<Area> = emptyList(),
 ) {
     val isPersonal: Boolean get() = storeId == null
 
@@ -101,7 +118,7 @@ data class CreateUiState(
     val ruleContext: RuleContext get() = RuleContext(condition = condition.name, offeringKind = offeringKind.name)
 }
 
-enum class FormError { CATEGORY, TITLE, DESCRIPTION, PRICE, DISCOUNT, QUANTITY, GOODS_ONLY }
+enum class FormError { CATEGORY, TITLE, DESCRIPTION, PRICE, DISCOUNT, QUANTITY, GOODS_ONLY, PARCEL }
 
 const val MAX_PHOTOS = 10
 const val MAX_STORE_QUANTITY = 1_000_000
@@ -111,6 +128,8 @@ const val MAX_STORE_QUANTITY = 1_000_000
 class CreateListingViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val listings: ListingRepository,
+    private val parcels: ParcelsRepository,
+    private val geography: GeographyRepository,
 ) : ViewModel() {
 
     /** Set when the screen was opened as EditListingRoute. */
@@ -197,6 +216,8 @@ class CreateListingViewModel @Inject constructor(
         if (index !in s.photos.indices) s else s.copy(photos = listOf(s.photos[index]) + s.photos.filterIndexed { i, _ -> i != index })
     }
 
+    private var lastRuleCategory: String? = null
+
     private val _picker = MutableStateFlow(CategoryPickerState())
     val picker: StateFlow<CategoryPickerState> = _picker.asStateFlow()
 
@@ -232,6 +253,7 @@ class CreateListingViewModel @Inject constructor(
                             features = l.features,
                             existingPhotos = l.photos,
                             options = l.options,
+                            parcel = l.parcel,
                         )
                     }
                     loadSchema(l.categoryId)
@@ -352,7 +374,44 @@ class CreateListingViewModel @Inject constructor(
         loadSchema(category.id)
     }
 
+    // ---- the real-estate map (2026-10-22) ----
+
+    private var ruleJob: Job? = null
+
+    private fun loadParcelRule(categoryId: String) {
+        ruleJob?.cancel()
+        _state.update { it.copy(parcelRule = null) }
+        ruleJob = viewModelScope.launch {
+            (parcels.rule(categoryId) as? Outcome.Success)?.let { r ->
+                _state.update { if (it.category?.id == categoryId) it.copy(parcelRule = r.value) else it }
+            }
+        }
+    }
+
+    fun setParcel(parcel: ParcelDraft) = _state.update { it.copy(parcel = parcel, formErrors = it.formErrors - FormError.PARCEL) }
+
+    /** Boundaries already on the map for the land being drawn (shape only); nothing when it cannot ask. */
+    suspend fun similarParcels(ring: List<MapPoint>): List<List<MapPoint>> =
+        (parcels.similar(ring, editId) as? Outcome.Success)?.value.orEmpty()
+
+    fun loadProvinces() {
+        if (_state.value.provinces.isNotEmpty()) return
+        viewModelScope.launch {
+            (geography.provinces() as? Outcome.Success)?.let { r -> _state.update { it.copy(provinces = r.value) } }
+        }
+    }
+
+    fun loadCities(province: Area) = viewModelScope.launch {
+        _state.update { it.copy(cities = emptyList()) }
+        (geography.cities(province.id) as? Outcome.Success)?.let { r -> _state.update { it.copy(cities = r.value) } }
+    }
+
     private fun loadSchema(categoryId: String) {
+        // Once per category (the schema also reloads when the kind changes).
+        if (categoryId != lastRuleCategory) {
+            lastRuleCategory = categoryId
+            loadParcelRule(categoryId)
+        }
         _state.update { it.copy(schemaLoading = true) }
         viewModelScope.launch {
             val s = _state.value
@@ -400,6 +459,8 @@ class CreateListingViewModel @Inject constructor(
             options = s.options,
             features = s.features,
             occupationId = s.occupation?.id,
+            // Only a category that goes on the map sends a place (NONE removes it on an edit).
+            parcel = s.parcel.takeIf { s.parcelRule?.allowed == true },
         )
         _state.update { it.copy(posting = true, error = null, formErrors = emptySet(), fieldErrors = emptyMap()) }
         if (editId != null) {
@@ -453,6 +514,8 @@ class CreateListingViewModel @Inject constructor(
         // physical item, so a category that only takes services is posted from a store.
         val goodsAllowed = s.schema?.allowedKinds?.let { it.isEmpty() || OfferingKind.GOOD in it } ?: true
         if (s.isPersonal && (s.offeringKind != OfferingKind.GOOD || !goodsAllowed)) add(FormError.GOODS_ONLY)
+        // A chosen point or boundary must be finished (or "not on the map" chosen).
+        if (s.parcelRule?.allowed == true && !s.parcel.isComplete()) add(FormError.PARCEL)
     }
 
     private fun number(text: String): Double? =

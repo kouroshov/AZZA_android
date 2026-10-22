@@ -51,7 +51,75 @@ data class BranchPreviewProductDto(
     val primaryImage: String? = null,
 )
 
+// ✅ (2026-10-22) The real-estate map (apps/api parcels module).
+@kotlinx.serialization.Serializable
+data class ParcelMapPageDto(val items: List<ParcelMapItemDto> = emptyList(), val truncated: Boolean = false)
+
+@kotlinx.serialization.Serializable
+data class ParcelMapItemDto(
+    val kind: String,
+    val lat: Double,
+    val lng: Double,
+    /** [lng, lat] pairs, not closed; null for a point. */
+    val ring: List<List<Double>>? = null,
+    val deal: String? = null,
+    val listings: List<ParcelListingDto> = emptyList(),
+)
+
+@kotlinx.serialization.Serializable
+data class ParcelListingDto(
+    val productId: String,
+    val title: String,
+    @kotlinx.serialization.Serializable(with = com.azza.core.network.model.FlexibleLongSerializer::class)
+    val priceAmountMinor: Long,
+    val currency: String = "IRR",
+    val deal: String? = null,
+    val areaM2: Double? = null,
+    val image: ParcelImageDto? = null,
+    val owner: ParcelOwnerDto,
+)
+
+@kotlinx.serialization.Serializable
+data class ParcelImageDto(val url: String? = null, val storageKey: String)
+
+@kotlinx.serialization.Serializable
+data class ParcelOwnerDto(
+    val kind: String,
+    val slug: String? = null,
+    val username: String? = null,
+    val name: String,
+    val avatarMediaKey: String? = null,
+)
+
+@kotlinx.serialization.Serializable
+data class ParcelRuleDto(val allowed: Boolean = false, val boundary: Boolean = false, val deal: String? = null)
+
+@kotlinx.serialization.Serializable
+data class SimilarParcelsRequest(val ring: List<List<Double>>, val excludeProductId: String? = null)
+
+@kotlinx.serialization.Serializable
+data class SimilarParcelDto(val ring: List<List<Double>>, val overlap: Double, val areaM2: Double)
+
 interface MapApi {
+    /** Real-estate listings with a point or boundary inside the viewport, grouped by land. Public. */
+    @GET("map/parcels")
+    suspend fun parcels(
+        @Query("north") north: Double,
+        @Query("south") south: Double,
+        @Query("east") east: Double,
+        @Query("west") west: Double,
+        /** Comma-separated deals; null = all. */
+        @Query("deal") deal: String? = null,
+    ): ApiEnvelope<ParcelMapPageDto>
+
+    /** Whether a category goes on the real-estate map, and with a boundary. Public. */
+    @GET("map/parcels/rules")
+    suspend fun parcelRule(@Query("categoryId") categoryId: String): ApiEnvelope<ParcelRuleDto>
+
+    /** Boundaries already on the map that cover nearly the same land. Signed in. */
+    @retrofit2.http.POST("map/parcels/similar")
+    suspend fun similarParcels(@retrofit2.http.Body body: SimilarParcelsRequest): ApiEnvelope<List<SimilarParcelDto>>
+
     /** Branches inside the viewport (the bounds are validated together by apps/api). Public. */
     @GET("map/branches")
     suspend fun branches(

@@ -149,6 +149,18 @@ data class ProductDto(
     val attributesSchemaHash: String? = null,
     /** EAN-13 made by the database for every listing. */
     val barcode: String? = null,
+    /** A real-estate listing's point or boundary on the map (2026-10-22). */
+    val parcel: ProductParcelDto? = null,
+)
+
+@Serializable
+data class ProductParcelDto(
+    val kind: String,
+    @Serializable(with = FlexibleDoubleSerializer::class)
+    val latitude: Double? = null,
+    @Serializable(with = FlexibleDoubleSerializer::class)
+    val longitude: Double? = null,
+    val ring: List<List<Double>>? = null,
 )
 
 @Serializable

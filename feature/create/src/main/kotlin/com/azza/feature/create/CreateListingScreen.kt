@@ -1,5 +1,6 @@
 package com.azza.feature.create
 
+import com.azza.core.map.ParcelSection
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material3.AssistChip
 import androidx.compose.material.icons.outlined.Star
@@ -254,6 +255,22 @@ fun CreateListingScreen(onPosted: (String) -> Unit, onDeleted: () -> Unit, viewM
                     onChange = { viewModel.setAttribute(field.slug, it) },
                 )
             }
+        }
+
+        // 4a. ✅ (2026-10-22) A real-estate listing's place on the map: optional —
+        // a point, or (land) its borders drawn like Google Maps' measuring tool.
+        if (state.parcelRule?.allowed == true) {
+            LaunchedEffect(Unit) { viewModel.loadProvinces() }
+            ParcelSection(
+                draft = state.parcel,
+                allowBoundary = state.parcelRule?.boundary == true,
+                onChange = viewModel::setParcel,
+                findSimilar = viewModel::similarParcels,
+                provinces = state.provinces,
+                cities = state.cities,
+                onProvince = { viewModel.loadCities(it) },
+                error = if (FormError.PARCEL in state.formErrors) stringResource(com.azza.core.map.R.string.parcel_incomplete) else null,
+            )
         }
 
         // 4b. Free-form features ("Colour: red") beside the category's own fields.

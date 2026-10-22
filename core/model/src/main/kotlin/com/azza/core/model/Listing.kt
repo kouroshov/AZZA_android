@@ -48,6 +48,11 @@ data class ListingDraft(
     val features: List<Pair<String, String>> = emptyList(),
     /** What the seller does; sent on create only (the web's occupation step). */
     val occupationId: String? = null,
+    /**
+     * A real-estate listing's place on the map (2026-10-22). Null = the
+     * category takes none, and nothing is sent; NONE on an edit removes it.
+     */
+    val parcel: ParcelDraft? = null,
 )
 
 /** One option as the form edits it: a name, an extra price in major units (text), and a per-item cap 1..10. */
@@ -70,6 +75,7 @@ data class EditableListing(
     val photos: List<ExistingPhoto>,
     val options: List<OptionDraft> = emptyList(),
     val features: List<Pair<String, String>> = emptyList(),
+    val parcel: ParcelDraft = ParcelDraft(),
 )
 
 data class ExistingPhoto(val mediaId: String, val url: String)
