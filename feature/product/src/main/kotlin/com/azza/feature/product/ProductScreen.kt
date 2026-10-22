@@ -1,5 +1,7 @@
 package com.azza.feature.product
 
+import androidx.compose.material.icons.outlined.Place
+import com.azza.core.model.ProductPlace
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import com.azza.core.model.PostAuthor
 import androidx.compose.material.icons.outlined.QrCode2
@@ -104,6 +106,7 @@ fun NavGraphBuilder.productScreen(
     onBookingSettings: (String) -> Unit,
     onOpenTimetable: (storeId: String?) -> Unit,
     onOpenAuthor: (PostAuthor) -> Unit,
+    onShowOnMap: (productId: String, place: ProductPlace) -> Unit = { _, _ -> },
 ) {
     composable<ProductRoute> {
         androidx.compose.runtime.CompositionLocalProvider(LocalOpenAuthor provides onOpenAuthor) {
@@ -115,6 +118,7 @@ fun NavGraphBuilder.productScreen(
             onOpenAppointments = onOpenAppointments,
             onBookingSettings = onBookingSettings,
             onOpenTimetable = onOpenTimetable,
+            onShowOnMap = onShowOnMap,
         )
         }
     }
@@ -129,6 +133,7 @@ fun ProductScreen(
     onOpenAppointments: () -> Unit,
     onBookingSettings: (String) -> Unit,
     onOpenTimetable: (storeId: String?) -> Unit,
+    onShowOnMap: (productId: String, place: ProductPlace) -> Unit = { _, _ -> },
     viewModel: ProductViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -221,7 +226,32 @@ fun ProductScreen(
             val ready = state as? ProductUiState.Ready
             // Only a physical good goes through the basket; checkout refuses a
             // bookable line (BOOKING_REQUIRED) — that is booked on a timetable.
-            if (ready != null && ready.product.offeringKind == OfferingKind.GOOD && !isMine && ready.product.status == "ACTIVE") {
+            // ✅ (2026-10-23) …and only what can be bought: not land and property, nor a "wanted" ad,
+            // a job or a giveaway (checkout refuses them: LISTING_NOT_PURCHASABLE). Those get the
+            // map and the person offering it instead.
+            if (ready != null && !ready.product.purchasable && !isMine && ready.product.status == "ACTIVE") {
+                val openAuthor = LocalOpenAuthor.current
+                Column(
+                    Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(stringResource(R.string.product_not_purchasable), style = MaterialTheme.typography.bodySmall, color = AzzaTheme.colors.textSecondary)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        ready.product.place?.let { place ->
+                            Button(onClick = { onShowOnMap(ready.product.id, place) }, modifier = Modifier.weight(1f).height(48.dp)) {
+                                Icon(Icons.Outlined.Place, contentDescription = null)
+                                Text(stringResource(R.string.product_show_on_map), modifier = Modifier.padding(start = 6.dp))
+                            }
+                        }
+                        val author = ready.product.author
+                        if (author != null && openAuthor != null) {
+                            OutlinedButton(onClick = { openAuthor(author) }, modifier = Modifier.weight(1f).height(48.dp)) {
+                                Text(stringResource(if (author.isStore) R.string.product_view_agency else R.string.product_view_seller))
+                            }
+                        }
+                    }
+                }
+            } else if (ready != null && ready.product.offeringKind == OfferingKind.GOOD && !isMine && ready.product.status == "ACTIVE") {
                 val soldOut = ready.product.quantityAvailable == 0
                 // Price × quantity, with the chosen options for each item (the web's "Total with options").
                 val unit = ready.product.price.discounted(ready.product.discountPercentage).amountMinor +
@@ -260,7 +290,7 @@ fun ProductScreen(
             when (val s = state) {
                 ProductUiState.Loading -> LoadingState()
                 is ProductUiState.Failed -> ErrorState(s.error, onRetry = viewModel::load)
-                is ProductUiState.Ready -> ProductBody(s.product, top = {
+                is ProductUiState.Ready -> ProductBody(s.product, onShowOnMap = { place -> onShowOnMap(s.product.id, place) }, top = {
                     if (isMine) {
                         OwnerStatus(s.product, appeal, viewModel::appeal)
                         // A timed service's own settings (length, gaps, notice, deposit); the week is the store's timetable.
@@ -270,7 +300,8 @@ fun ProductScreen(
                                 OutlinedButton(onClick = { onOpenTimetable(s.product.storeId) }) { Text(stringResource(R.string.product_view_calendar)) }
                             }
                         }
-                        if (s.product.offeringKind == OfferingKind.GOOD) {
+                        // Stock means nothing for a property (or anything not bought through the basket).
+                        if (s.product.offeringKind == OfferingKind.GOOD && s.product.purchasable) {
                             LaunchedEffect(s.product.id) { viewModel.loadOwnerStock(s.product) }
                             OwnerStock(s.product, branchStock)
                         }
@@ -293,7 +324,12 @@ fun ProductScreen(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ProductBody(product: ProductDetail, top: @Composable () -> Unit = {}, extra: @Composable () -> Unit = {}) {
+private fun ProductBody(
+    product: ProductDetail,
+    onShowOnMap: (ProductPlace) -> Unit = {},
+    top: @Composable () -> Unit = {},
+    extra: @Composable () -> Unit = {},
+) {
     val colors = AzzaTheme.colors
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         top()
@@ -343,6 +379,16 @@ private fun ProductBody(product: ProductDetail, top: @Composable () -> Unit = {}
                 }
             }
             Text(product.title, style = MaterialTheme.typography.headlineSmall, color = colors.textPrimary)
+            // ✅ (2026-10-23) the kind of ad, as on the web: for sale, for rent, wanted…
+            product.listingTypeName?.let { name ->
+                val language = LocalConfiguration.current.locales[0].language
+                Text(
+                    name.forLanguage(language),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = colors.textPrimary,
+                    modifier = Modifier.clip(RoundedCornerShape(50)).background(colors.selectedContainer).padding(horizontal = 12.dp, vertical = 4.dp),
+                )
+            }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
                     product.price.discounted(product.discountPercentage).format(),
@@ -359,7 +405,7 @@ private fun ProductBody(product: ProductDetail, top: @Composable () -> Unit = {}
                 }
             }
             // Stock means nothing on a listing that is not on sale.
-            product.quantityAvailable?.takeIf { product.status == "ACTIVE" }?.let { qty ->
+            product.quantityAvailable?.takeIf { product.status == "ACTIVE" && product.purchasable }?.let { qty ->
                 Text(
                     if (qty > 0) stringResource(R.string.product_in_stock) else stringResource(R.string.product_out_of_stock),
                     style = MaterialTheme.typography.bodySmall,
@@ -370,6 +416,7 @@ private fun ProductBody(product: ProductDetail, top: @Composable () -> Unit = {}
                 Text(product.description!!, style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
             }
             Specifications(product)
+            product.place?.let { PropertyPlace(it, onShowOnMap) }
         }
         extra()
     }
@@ -426,6 +473,31 @@ private fun Specifications(product: ProductDetail) {
                 SpecCell(if (fa) spec.labelFa else spec.labelEn, value)
             }
             product.features.forEach { (name, value) -> SpecCell(name, value) }
+        }
+    }
+}
+
+/**
+ * ✅ (2026-10-23, the web's "Location of the property"): how it was placed,
+ * what the server measured, and one tap to the real-estate map, zoomed onto it.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun PropertyPlace(place: ProductPlace, onShowOnMap: (ProductPlace) -> Unit) {
+    val digits = java.text.NumberFormat.getIntegerInstance(java.util.Locale.getDefault())
+    Column(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(stringResource(R.string.product_property_location), style = MaterialTheme.typography.titleSmall)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            SpecCell(
+                stringResource(R.string.product_property_marked_as),
+                stringResource(if (place.isBoundary) R.string.product_property_boundary else R.string.product_property_point),
+            )
+            place.areaM2?.let { SpecCell(stringResource(R.string.product_property_area), digits.format(Math.round(it)) + " m²") }
+            place.perimeterM?.let { SpecCell(stringResource(R.string.product_property_perimeter), digits.format(Math.round(it)) + " m") }
+        }
+        OutlinedButton(onClick = { onShowOnMap(place) }) {
+            Icon(Icons.Outlined.Place, contentDescription = null)
+            Text(stringResource(R.string.product_show_on_map), modifier = Modifier.padding(start = 6.dp))
         }
     }
 }

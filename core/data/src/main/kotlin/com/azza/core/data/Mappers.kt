@@ -83,6 +83,23 @@ internal fun ProductDto.toModel(media: MediaUrlResolver) = ProductDetail(
     barcode = barcode,
     stockQuantity = inventory?.quantity,
     stockReserved = inventory?.reservedQuantity,
+    listingTypeName = listingType?.let { t ->
+        com.azza.core.model.LocalizedText(t.nameFa?.takeIf { it.isNotBlank() } ?: t.nameEn, t.nameEn, t.nameCkb)
+    },
+    purchasable = purchasable,
+    place = parcel?.let { p ->
+        val lat = p.latitude ?: return@let null
+        val lng = p.longitude ?: return@let null
+        com.azza.core.model.ProductPlace(
+            isBoundary = p.kind == "POLYGON",
+            areaM2 = p.areaM2,
+            perimeterM = p.perimeterM,
+            west = p.minLng ?: lng,
+            south = p.minLat ?: lat,
+            east = p.maxLng ?: lng,
+            north = p.maxLat ?: lat,
+        )
+    },
 )
 
 /** A typed value in words: an option's label, a number without a needless ".0", yes/no left to the UI. */
@@ -99,6 +116,12 @@ private fun com.azza.core.network.model.AttributeValueDto.toSpec(): Spec? {
     fun word(v: String) = labels[v] ?: (v to v)
     val (en, fa, yes) = when (a.dataType) {
         "BOOLEAN" -> Triple("", "", valueBoolean ?: return null)
+        // ✅ (2026-10-23) an amount, stored in minor units: shown in major, grouped.
+        "MONEY" -> {
+            val minor = valueNumber ?: return null
+            val text = java.text.NumberFormat.getIntegerInstance(java.util.Locale.US).format(Math.round(minor) / 100)
+            Triple(text, text, null)
+        }
         "NUMBER", "INTEGER", "DECIMAL" -> {
             val n = valueNumber ?: return null
             val text = if (n == Math.floor(n)) n.toLong().toString() else n.toString()

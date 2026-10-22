@@ -64,4 +64,14 @@
     <string name="product_your_stock">Your stock</string>
     <string name="product_stock_line">%1$d in stock · %2$d reserved · %3$d available</string>
     <string name="product_not_stocked">Not stocked yet.</string>
+    <string name="product_not_purchasable">This listing is not bought through the basket: see where it is and contact whoever is offering it.</string>
+    <string name="product_show_on_map">Show on the map</string>
+    <string name="product_view_agency">The agency\'s page</string>
+    <string name="product_view_seller">The seller\'s page</string>
+    <string name="product_property_location">Location of the property</string>
+    <string name="product_property_marked_as">Marked as</string>
+    <string name="product_property_boundary">Drawn boundary</string>
+    <string name="product_property_point">A point</string>
+    <string name="product_property_area">Measured area</string>
+    <string name="product_property_perimeter">Perimeter</string>
 </resources>
