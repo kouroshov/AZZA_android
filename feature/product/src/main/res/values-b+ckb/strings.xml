@@ -75,4 +75,11 @@
     <string name="product_property_point">خاڵێک</string>
     <string name="product_property_area">ڕووبەری پێوراو</string>
     <string name="product_property_perimeter">چێوە</string>
+    <string name="product_contact">زانیاری پەیوەندی</string>
+    <string name="product_contact_call">پەیوەندی بە %1$s</string>
+    <string name="product_contact_dial">پەیوەندی</string>
+    <string name="product_contact_copy">کۆپی ژمارە</string>
+    <string name="product_contact_warning">پێش بینینی کاڵا یان موڵک لە نزیکەوە، هیچ پێشەکییەک مەدە.</string>
+    <string name="product_contact_hidden">ئەم ڕیکلامە ژمارەی تەلەفۆن پیشان نادات.</string>
+    <string name="product_contact_limit">ئەمڕۆ ژمارەی زۆرت بینیوە. سبەینێ هەوڵ بدەرەوە.</string>
 </resources>

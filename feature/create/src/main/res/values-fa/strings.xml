@@ -10,9 +10,9 @@
     <string name="create_title">عنوان</string>
     <string name="create_description">توضیحات</string>
     <string name="create_listing_type">نوع آگهی</string>
-    <string name="create_price_optional">قیمت یا بودجه (اختیاری)</string>
+    <string name="create_price_optional">قیمت یا بودجه (اختیاری، تومان)</string>
     <string name="create_error_listing_type">این دسته این نوع آگهی را نمی‌پذیرد. نوع دیگری انتخاب کنید.</string>
-    <string name="create_price">قیمت</string>
+    <string name="create_price">قیمت (تومان)</string>
     <string name="create_discount">تخفیف (درصد)</string>
     <string name="create_condition">وضعیت</string>
     <string name="create_quantity_main_branch">موجودی (در شعبهٔ اصلی فروشگاه)</string>
@@ -77,4 +77,6 @@
     <string name="create_move_photo_later">انتقال به بعد</string>
     <string name="create_make_cover">عکس اصلی شود</string>
     <string name="create_personal_single_item">پست شخصی یک کالا را می‌فروشد. برای تعیین موجودی، از طرف یکی از فروشگاه‌هایتان پست بگذارید.</string>
+    <string name="create_show_phone">نمایش شمارهٔ تماس من</string>
+    <string name="create_show_phone_hint">کاربرانی که وارد شده‌اند با زدن «اطلاعات تماس» آن را می‌بینند.</string>
 </resources>

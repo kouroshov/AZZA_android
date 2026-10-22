@@ -43,8 +43,9 @@ class SearchRepository @Inject constructor(
                 categoryId = filters.categoryId,
                 condition = filters.condition?.name,
                 availability = filters.availability?.name,
-                priceMin = filters.priceMin.trim().ifBlank { null },
-                priceMax = filters.priceMax.trim().ifBlank { null },
+                // ✅ (2026-10-23) a typed range is toman; apps/api filters in rial.
+                priceMin = filters.priceMin.trim().ifBlank { null }?.let(::tomanToRialText),
+                priceMax = filters.priceMax.trim().ifBlank { null }?.let(::tomanToRialText),
             ).data
         }.map { Page(it.items.map { p -> p.toModel(media) }, it.nextCursor, it.hasMore, total = it.total) }
 
@@ -129,3 +130,9 @@ class NotificationsRepository @Inject constructor(
 
 /** One page is enough: fifteen minutes rarely brings more, and the shade summarises the rest. */
 private const val POLL_PAGE = 20
+
+/** "۱۲۰۰" or "1,200" toman → "12000" rial; anything unreadable is passed on unchanged. */
+private fun tomanToRialText(toman: String): String {
+    val n = com.azza.core.model.SchemaRules.toLatinDigits(toman).replace(Regex("[,٬]"), "").toDoubleOrNull() ?: return toman
+    return com.azza.core.model.Money.tomanToRial(n).toLong().toString()
+}

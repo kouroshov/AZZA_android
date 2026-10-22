@@ -74,4 +74,11 @@
     <string name="product_property_point">یک نقطه</string>
     <string name="product_property_area">مساحت اندازه‌گیری‌شده</string>
     <string name="product_property_perimeter">محیط</string>
+    <string name="product_contact">اطلاعات تماس</string>
+    <string name="product_contact_call">تماس با %1$s</string>
+    <string name="product_contact_dial">تماس</string>
+    <string name="product_contact_copy">کپی شماره</string>
+    <string name="product_contact_warning">پیش از دیدن کالا یا ملک از نزدیک، هیچ بیعانه‌ای پرداخت نکنید.</string>
+    <string name="product_contact_hidden">این آگهی شمارهٔ تماس نشان نمی‌دهد.</string>
+    <string name="product_contact_limit">امروز شمارهٔ زیادی دیده‌اید. فردا دوباره امتحان کنید.</string>
 </resources>

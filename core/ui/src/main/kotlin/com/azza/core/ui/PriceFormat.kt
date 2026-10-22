@@ -17,19 +17,24 @@ fun Money.discounted(discountPercentage: Double?): Money {
 }
 
 /**
- * Same output as the web card today: `$` + the major amount grouped for the
- * current locale (`toLocaleString()`), which gives Persian digits under fa.
- * When the web picks a real currency label, change both together.
+ * ✏️ (2026-10-23, the audit's first finding) Toman, as on the web
+ * (src/lib/money.ts) and on Divar: the rial amount ÷ 10, grouped in the
+ * app language's digits, with the currency word — never "$".
  */
 fun Money.format(locale: Locale = Locale.getDefault()): String {
-    val whole = amountMinor % Money.MINOR_PER_MAJOR == 0L
-    val formatter = NumberFormat.getNumberInstance(locale).apply {
-        minimumFractionDigits = if (whole) 0 else 2
-        maximumFractionDigits = if (whole) 0 else 2
-    }
-    val value = if (whole) amountMinor / Money.MINOR_PER_MAJOR else amountMinor
-    val text = if (whole) formatter.format(value) else formatter.format(value / Money.MINOR_PER_MAJOR.toDouble())
-    return "$$text"
+    val half = Money.MINOR_PER_TOMAN / 2
+    val toman = if (amountMinor >= 0) (amountMinor + half) / Money.MINOR_PER_TOMAN else -((-amountMinor + half) / Money.MINOR_PER_TOMAN)
+    val text = NumberFormat.getIntegerInstance(locale).format(toman)
+    return "$text ${tomanWord(locale)}"
+}
+
+/** The amount alone, for an input to start from: rial minor units → toman, Latin digits. */
+fun Money.tomanInput(): String = (amountMinor / Money.MINOR_PER_TOMAN).toString()
+
+private fun tomanWord(locale: Locale): String = when (locale.language) {
+    "fa" -> "تومان"
+    "ckb" -> "تمەن"
+    else -> "toman"
 }
 
 /**

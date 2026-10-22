@@ -40,7 +40,7 @@
     <string name="filters_condition">دۆخی کاڵا</string>
     <string name="filters_availability">بەردەستبوون</string>
     <string name="filters_any">هەموو</string>
-    <string name="filters_price">مەودای نرخ</string>
+    <string name="filters_price">مەودای نرخ (تمەن)</string>
     <string name="filters_price_min">کەمترین نرخ</string>
     <string name="filters_price_max">زۆرترین نرخ</string>
     <string name="filters_price_invalid">کەمترین نرخ لە زۆرترین نرخ زیاترە.</string>

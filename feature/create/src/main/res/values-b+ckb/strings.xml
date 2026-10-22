@@ -11,9 +11,9 @@
     <string name="create_title">سەردێڕ</string>
     <string name="create_description">وەسف</string>
     <string name="create_listing_type">جۆری ڕیکلام</string>
-    <string name="create_price_optional">نرخ یان بودجە (ئارەزوومەندانە)</string>
+    <string name="create_price_optional">نرخ یان بودجە (ئارەزوومەندانە، تمەن)</string>
     <string name="create_error_listing_type">ئەم پۆلە ئەم جۆرە ڕیکلامە وەرناگرێت. جۆرێکی تر هەڵبژێرە.</string>
-    <string name="create_price">نرخ</string>
+    <string name="create_price">نرخ (تمەن)</string>
     <string name="create_discount">داشکاندن (%)</string>
     <string name="create_condition">دۆخ</string>
     <string name="create_quantity_main_branch">بڕی بەردەست (لە لقی سەرەکیی فرۆشگا دادەنرێت)</string>
@@ -78,4 +78,6 @@
     <string name="create_move_photo_later">بردن بۆ دواوە</string>
     <string name="create_make_cover">بکرێتە وێنەی سەرەکی</string>
     <string name="create_personal_single_item">پۆستی کەسی یەک کاڵا دەفرۆشێت. بۆ دیاریکردنی بڕ، لە ناوی یەکێک لە دوکانەکانتەوە پۆست بکە.</string>
+    <string name="create_show_phone">ژمارەی تەلەفۆنەکەم پیشان بدە</string>
+    <string name="create_show_phone_hint">بەکارهێنەرانی چوونەژوورەوە بە لێدانی «زانیاری پەیوەندی» دەیبینن.</string>
 </resources>

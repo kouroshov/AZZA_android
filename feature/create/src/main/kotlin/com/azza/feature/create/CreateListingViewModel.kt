@@ -62,6 +62,8 @@ data class CreateUiState(
     val offeringKind: OfferingKind = OfferingKind.GOOD,
     /** ✅ (2026-10-23) The kind of ad (SALE, RENT, WANTED, JOB_VACANCY…); null = the category's default. */
     val listingType: String? = null,
+    /** ✅ (2026-10-23) «اطلاعات تماس» on this listing. */
+    val showPhone: Boolean = true,
     val title: String = "",
     val description: String = "",
     val price: String = "",
@@ -255,6 +257,7 @@ class CreateListingViewModel @Inject constructor(
                             storeId = l.storeId,
                             offeringKind = l.offeringKind,
                             listingType = l.listingType,
+                            showPhone = l.showPhone,
                             category = ChosenCategory(l.categoryId, l.categoryName, emptyList()),
                             title = l.title,
                             description = l.description,
@@ -481,9 +484,14 @@ class CreateListingViewModel @Inject constructor(
             discountPercentage = s.discount,
             condition = if (s.usesCondition) s.condition else ItemCondition.USED,
             listingType = s.schema?.listingType?.code ?: s.listingType,
+            showPhone = s.showPhone,
             quantity = s.quantity,
             // Only what the rules accept: hidden fields and empty inputs are not sent.
-            attributeValues = schemaResult?.values.orEmpty(),
+            // ✅ (2026-10-23) an amount field is typed in toman and stored in rial.
+            attributeValues = schemaResult?.values.orEmpty().mapValues { (slug, v) ->
+                val money = s.schema?.fields?.any { it.slug == slug && it.dataType == com.azza.core.model.AttributeDataType.MONEY } == true
+                if (money && v is Number) com.azza.core.model.Money.tomanToRial(v.toDouble()) else v
+            },
             photos = s.photos,
             options = s.options,
             features = s.features,

@@ -76,7 +76,12 @@ data class ProductDetail(
     val purchasable: Boolean = true,
     /** A real-estate listing's place on the map. */
     val place: ProductPlace? = null,
+    /** ✅ (2026-10-23) «اطلاعات تماس» has a number behind it. */
+    val contactAvailable: Boolean = false,
 )
+
+/** ✅ (2026-10-23) The number a listing shows, and who answers it. */
+data class ContactDetails(val phone: String, val name: String, val isStore: Boolean)
 
 /**
  * ✅ (2026-10-23) Where a property is: a drawn boundary or a point, what the

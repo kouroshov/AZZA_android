@@ -39,7 +39,7 @@
     <string name="filters_condition">وضعیت کالا</string>
     <string name="filters_availability">موجودی</string>
     <string name="filters_any">همه</string>
-    <string name="filters_price">بازهٔ قیمت</string>
+    <string name="filters_price">بازهٔ قیمت (تومان)</string>
     <string name="filters_price_min">حداقل قیمت</string>
     <string name="filters_price_max">حداکثر قیمت</string>
     <string name="filters_price_invalid">حداقل قیمت از حداکثر بیشتر است.</string>

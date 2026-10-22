@@ -74,6 +74,10 @@ class ProductRepository @Inject constructor(
             safeApiCall(json) { api.byId(id, source).data }
         }.map { it.value.toModel(media) }
 
+    /** ✅ (2026-10-23) «اطلاعات تماس»: 409 CONTACT_HIDDEN, 429 CONTACT_LIMIT_REACHED. */
+    suspend fun contact(id: String): Outcome<com.azza.core.model.ContactDetails> =
+        safeApiCall(json) { api.contact(id).data }.map { com.azza.core.model.ContactDetails(it.phone, it.name, it.isStore) }
+
     /** The listing a scanned label belongs to; 404 PRODUCT_NOT_FOUND when none (or none visible). */
     suspend fun idByBarcode(code: String): Outcome<String> =
         safeApiCall(json) { api.byBarcode(code).data }.map { it.productId }

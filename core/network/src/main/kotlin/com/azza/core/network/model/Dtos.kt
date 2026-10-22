@@ -158,6 +158,9 @@ data class ProductDto(
      * "wanted" ad, a job, a giveaway, and anything in land and property.
      */
     val purchasable: Boolean = true,
+    /** ✅ (2026-10-23) whether «اطلاعات تماس» has a number behind it, and the seller's own switch. */
+    val contactAvailable: Boolean = false,
+    val showPhone: Boolean = false,
 )
 
 @Serializable
@@ -249,3 +252,6 @@ data class ProductListingTypeDto(
     val nameFa: String? = null,
     val nameCkb: String? = null,
 )
+
+@Serializable
+data class ContactDto(val phone: String, val name: String = "", val isStore: Boolean = false)

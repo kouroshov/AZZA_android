@@ -74,4 +74,11 @@
     <string name="product_property_point">A point</string>
     <string name="product_property_area">Measured area</string>
     <string name="product_property_perimeter">Perimeter</string>
+    <string name="product_contact">Contact details</string>
+    <string name="product_contact_call">Call %1$s</string>
+    <string name="product_contact_dial">Call</string>
+    <string name="product_contact_copy">Copy number</string>
+    <string name="product_contact_warning">Never pay a deposit before seeing the item or the property in person.</string>
+    <string name="product_contact_hidden">This listing does not show a phone number.</string>
+    <string name="product_contact_limit">You have seen many numbers today. Try again tomorrow.</string>
 </resources>

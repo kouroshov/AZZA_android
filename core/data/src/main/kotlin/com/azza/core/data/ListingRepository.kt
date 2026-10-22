@@ -118,13 +118,15 @@ class ListingRepository @Inject constructor(
                 categoryName = LocalizedText(p.category?.nameFa?.takeIf { it.isNotBlank() } ?: p.category?.nameEn.orEmpty(), p.category?.nameEn.orEmpty()),
                 title = p.title,
                 description = p.description.orEmpty(),
-                price = majorText(p.priceAmountMinor),
+                // ✅ (2026-10-23) the form speaks toman; the listing is stored in rial.
+                price = tomanText(p.priceAmountMinor),
                 discountPercentage = p.discountPercentage?.let { if (it == Math.floor(it)) it.toLong().toString() else it.toString() }.orEmpty(),
                 condition = runCatching { ItemCondition.valueOf(p.condition ?: "USED") }.getOrDefault(ItemCondition.USED),
                 listingType = p.listingType?.code,
+                showPhone = p.showPhone,
                 attributes = p.attributeValues.mapNotNull { v -> v.toFormValue()?.let { v.categoryAttribute.slug to it } }.toMap(),
                 photos = p.media.filter { it.mediaType == "IMAGE" }.mapNotNull { m -> mediaUrls.resolve(m.url ?: m.storageKey)?.let { ExistingPhoto(m.id, it) } },
-                options = p.options.map { OptionDraft(it.name, majorText(it.extraPriceAmountMinor), it.maxQuantity) },
+                options = p.options.map { OptionDraft(it.name, tomanText(it.extraPriceAmountMinor), it.maxQuantity) },
                 features = freeFeatures(p),
                 parcel = p.parcel.toDraft(),
             )
@@ -242,11 +244,13 @@ class ListingRepository @Inject constructor(
         put("title", draft.title.trim())
         put("description", draft.description.trim())
         put("categoryId", draft.categoryId)
-        put("price", draft.price.toLatinNumber() ?: 0.0)
+        // ✅ (2026-10-23) typed in toman, sent in rial.
+        put("price", com.azza.core.model.Money.tomanToRial(draft.price.toLatinNumber() ?: 0.0))
         put("condition", draft.condition.name)
         put("offeringKind", draft.offeringKind.name)
         // ✅ (2026-10-23) the kind of ad; absent = the category's default.
         draft.listingType?.let { put("listingType", it) }
+        put("showPhone", draft.showPhone)
         // Always sent, blank = 0: on an edit a missing field is left as it was, so clearing it would not clear it.
         put("discountPercentage", draft.discountPercentage.toLatinNumber() ?: 0.0)
         put("attributeValues", JsonObject(draft.attributeValues.mapValues { (_, v) -> v.toJson() }))
@@ -282,7 +286,7 @@ class ListingRepository @Inject constructor(
                 draft.options.filter { it.name.isNotBlank() }.map { o ->
                     buildJsonObject {
                         put("name", o.name.trim().take(80))
-                        put("extraPrice", o.extraPrice.toLatinNumber() ?: 0.0)
+                        put("extraPrice", com.azza.core.model.Money.tomanToRial(o.extraPrice.toLatinNumber() ?: 0.0))
                         put("maxQuantity", o.maxQuantity.coerceIn(1, 10))
                     }
                 },
@@ -358,6 +362,9 @@ private fun String.toLatinNumber(): Double? {
 }
 
 /** Minor units as the price field shows them: "350", "349.5". */
+/** Rial minor units → toman, as the form shows it (whole toman, Latin digits). */
+private fun tomanText(minor: Long): String = (minor / com.azza.core.model.Money.MINOR_PER_TOMAN).toString()
+
 private fun majorText(minor: Long): String =
     if (minor % 100 == 0L) (minor / 100).toString() else (minor / 100.0).toString()
 
@@ -366,7 +373,7 @@ private fun com.azza.core.network.model.AttributeValueDto.toFormValue(): Any? = 
     valueJson is JsonArray -> (valueJson as JsonArray).mapNotNull { (it as? JsonPrimitive)?.content }
     valueBoolean != null -> valueBoolean
     // ✅ (2026-10-23) MONEY is stored in minor units; the form holds major.
-    valueNumber != null && categoryAttribute.dataType == "MONEY" -> majorText(valueNumber!!.toLong())
+    valueNumber != null && categoryAttribute.dataType == "MONEY" -> tomanText(valueNumber!!.toLong())
     valueNumber != null -> valueNumber!!.let { if (it == Math.floor(it)) it.toLong().toString() else it.toString() }
     valueDate != null -> valueDate!!.take(10)
     valueText != null -> valueText

@@ -87,6 +87,7 @@ internal fun ProductDto.toModel(media: MediaUrlResolver) = ProductDetail(
         com.azza.core.model.LocalizedText(t.nameFa?.takeIf { it.isNotBlank() } ?: t.nameEn, t.nameEn, t.nameCkb)
     },
     purchasable = purchasable,
+    contactAvailable = contactAvailable,
     place = parcel?.let { p ->
         val lat = p.latitude ?: return@let null
         val lng = p.longitude ?: return@let null
@@ -119,8 +120,9 @@ private fun com.azza.core.network.model.AttributeValueDto.toSpec(): Spec? {
         // ✅ (2026-10-23) an amount, stored in minor units: shown in major, grouped.
         "MONEY" -> {
             val minor = valueNumber ?: return null
-            val text = java.text.NumberFormat.getIntegerInstance(java.util.Locale.US).format(Math.round(minor) / 100)
-            Triple(text, text, null)
+            val money = com.azza.core.model.Money(Math.round(minor), "IRR")
+            // In toman, with the word: the unit column would repeat it.
+            return Spec(a.name.ifBlank { a.slug }, a.nameFa?.takeIf { it.isNotBlank() } ?: a.name, tomanLabel(money, "en"), tomanLabel(money, "fa"), null, null)
         }
         "NUMBER", "INTEGER", "DECIMAL" -> {
             val n = valueNumber ?: return null
@@ -146,4 +148,11 @@ private fun com.azza.core.network.model.AttributeValueDto.toSpec(): Spec? {
         }
     }
     return Spec(a.name.ifBlank { a.slug }, a.nameFa?.takeIf { it.isNotBlank() } ?: a.name, en, fa, a.unit, yes)
+}
+
+/** Toman for a spec cell, in that language's digits (core:data cannot reach core:ui's formatter). */
+private fun tomanLabel(money: com.azza.core.model.Money, language: String): String {
+    val toman = (money.amountMinor + com.azza.core.model.Money.MINOR_PER_TOMAN / 2) / com.azza.core.model.Money.MINOR_PER_TOMAN
+    val locale = if (language == "fa") java.util.Locale.forLanguageTag("fa-IR") else java.util.Locale.US
+    return java.text.NumberFormat.getIntegerInstance(locale).format(toman) + if (language == "fa") " تومان" else " toman"
 }

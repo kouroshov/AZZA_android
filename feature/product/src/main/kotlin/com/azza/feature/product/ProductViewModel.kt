@@ -91,6 +91,24 @@ class ProductViewModel @Inject constructor(
         return false
     }
 
+    /** ✅ (2026-10-23) «اطلاعات تماس»: null while not asked; signed-out callers are sent to sign in. */
+    private val _contact = MutableStateFlow<com.azza.core.model.ContactDetails?>(null)
+    val contact: StateFlow<com.azza.core.model.ContactDetails?> = _contact.asStateFlow()
+    private val _contactLoading = MutableStateFlow(false)
+    val contactLoading: StateFlow<Boolean> = _contactLoading.asStateFlow()
+
+    fun revealContact() = viewModelScope.launch {
+        if (!auth.isSignedIn.first()) return@launch _events.send(ProductEvent.SignInRequired)
+        _contactLoading.value = true
+        when (val r = products.contact(route.productId)) {
+            is Outcome.Success -> _contact.value = r.value
+            is Outcome.Failure -> _events.send(ProductEvent.Failed(r.error))
+        }
+        _contactLoading.value = false
+    }
+
+    fun closeContact() { _contact.value = null }
+
     suspend fun report(reason: ReportReason, details: String) =
         reports.report(ReportTarget.PRODUCT, route.productId, reason, details)
 

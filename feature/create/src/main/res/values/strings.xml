@@ -10,9 +10,9 @@
     <string name="create_title">Title</string>
     <string name="create_description">Description</string>
     <string name="create_listing_type">Type of ad</string>
-    <string name="create_price_optional">Price or budget (optional)</string>
+    <string name="create_price_optional">Price or budget (optional, toman)</string>
     <string name="create_error_listing_type">This category does not take that kind of ad. Choose another.</string>
-    <string name="create_price">Price</string>
+    <string name="create_price">Price (toman)</string>
     <string name="create_discount">Discount (%)</string>
     <string name="create_condition">Condition</string>
     <string name="create_quantity_main_branch">Stock (placed at the store\'s main branch)</string>
@@ -77,4 +77,6 @@
     <string name="create_move_photo_later">Move later</string>
     <string name="create_make_cover">Make cover</string>
     <string name="create_personal_single_item">A personal post sells one item. To set a stock, post as one of your stores.</string>
+    <string name="create_show_phone">Show my phone number</string>
+    <string name="create_show_phone_hint">Signed-in visitors can tap "Contact details" to see it.</string>
 </resources>

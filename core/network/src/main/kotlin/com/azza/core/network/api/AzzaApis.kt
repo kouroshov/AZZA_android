@@ -130,6 +130,10 @@ interface DiscoveryApi {
 }
 
 interface ProductsApi {
+    /** ✅ (2026-10-23) «اطلاعات تماس»: the number a listing shows; signed in, counted, capped. */
+    @POST("products/{id}/contact")
+    suspend fun contact(@Path("id") id: String): ApiEnvelope<com.azza.core.network.model.ContactDto>
+
     @GET("products/{id}")
     suspend fun byId(
         @Path("id") id: String,

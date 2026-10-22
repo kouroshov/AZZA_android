@@ -39,6 +39,8 @@ data class ListingDraft(
     val condition: ItemCondition,
     /** ✅ (2026-10-23) The kind of ad (SALE, RENT, WANTED, JOB_VACANCY…); null = the category's default. */
     val listingType: String? = null,
+    /** ✅ (2026-10-23) Show my number («اطلاعات تماس»). */
+    val showPhone: Boolean = true,
     /** Stores only; a personal listing's quantity is always 1, set by the server. */
     val quantity: String,
     val attributeValues: Map<String, Any>,
@@ -74,6 +76,7 @@ data class EditableListing(
     val condition: ItemCondition,
     /** Null on a listing older than listing types. */
     val listingType: String? = null,
+    val showPhone: Boolean = false,
     /** Raw form values per slug: String, Boolean or List<String>. */
     val attributes: Map<String, Any>,
     val photos: List<ExistingPhoto>,

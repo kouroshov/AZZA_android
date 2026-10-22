@@ -207,6 +207,14 @@ fun CreateListingScreen(onPosted: (String) -> Unit, onDeleted: () -> Unit, viewM
             Field(state.discount, { v -> viewModel.edit { copy(discount = v, formErrors = formErrors - FormError.DISCOUNT) } }, R.string.create_discount,
                 type = KeyboardType.Decimal, modifier = Modifier.weight(1f), error = (FormError.DISCOUNT in state.formErrors).then(R.string.create_error_discount))
         }
+        // ✅ (2026-10-23) «اطلاعات تماس» — Divar's per-listing choice.
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.create_show_phone), style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.create_show_phone_hint), style = MaterialTheme.typography.bodySmall, color = AzzaTheme.colors.textMuted)
+            }
+            androidx.compose.material3.Switch(checked = state.showPhone, onCheckedChange = { on -> viewModel.edit { copy(showPhone = on) } })
+        }
         if (state.offeringKind == OfferingKind.GOOD && state.usesCondition) {
             Section(stringResource(R.string.create_condition)) {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

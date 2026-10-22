@@ -1,5 +1,6 @@
 package com.azza.feature.product
 
+import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.Place
 import com.azza.core.model.ProductPlace
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -145,6 +146,9 @@ fun ProductScreen(
     val quantity by viewModel.quantity.collectAsStateWithLifecycle()
     val branchStock by viewModel.branchStock.collectAsStateWithLifecycle()
     var showBarcode by remember { mutableStateOf(false) }
+    val contact by viewModel.contact.collectAsStateWithLifecycle()
+    val contactLoading by viewModel.contactLoading.collectAsStateWithLifecycle()
+    contact?.let { ContactDialog(it, onDismiss = viewModel::closeContact) }
     LifecycleResumeEffect(viewModel) {
         viewModel.refreshQuietly()
         onPauseOrDispose { }
@@ -237,14 +241,21 @@ fun ProductScreen(
                 ) {
                     Text(stringResource(R.string.product_not_purchasable), style = MaterialTheme.typography.bodySmall, color = AzzaTheme.colors.textSecondary)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        // ✅ (2026-10-23) «اطلاعات تماس» first, as on Divar.
+                        if (ready.product.contactAvailable) {
+                            Button(onClick = viewModel::revealContact, enabled = !contactLoading, modifier = Modifier.weight(1f).height(48.dp)) {
+                                Icon(Icons.Outlined.Phone, contentDescription = null)
+                                Text(stringResource(R.string.product_contact), modifier = Modifier.padding(start = 6.dp))
+                            }
+                        }
                         ready.product.place?.let { place ->
-                            Button(onClick = { onShowOnMap(ready.product.id, place) }, modifier = Modifier.weight(1f).height(48.dp)) {
+                            OutlinedButton(onClick = { onShowOnMap(ready.product.id, place) }, modifier = Modifier.weight(1f).height(48.dp)) {
                                 Icon(Icons.Outlined.Place, contentDescription = null)
                                 Text(stringResource(R.string.product_show_on_map), modifier = Modifier.padding(start = 6.dp))
                             }
                         }
                         val author = ready.product.author
-                        if (author != null && openAuthor != null) {
+                        if (!ready.product.contactAvailable && author != null && openAuthor != null) {
                             OutlinedButton(onClick = { openAuthor(author) }, modifier = Modifier.weight(1f).height(48.dp)) {
                                 Text(stringResource(if (author.isStore) R.string.product_view_agency else R.string.product_view_seller))
                             }
@@ -310,6 +321,17 @@ fun ProductScreen(
                     // A bookable listing is booked on its timetable, not through the basket (BOOKING_REQUIRED);
                     // you cannot book yourself (BOOKING_SELF_NOT_ALLOWED).
                     // The seller's options, for a buyer: each one item may take up to its cap.
+                    // ✅ (2026-10-23) «اطلاعات تماس» for a listing bought through the basket too.
+                    if (s.product.purchasable && s.product.contactAvailable && !isMine && s.product.status == "ACTIVE") {
+                        OutlinedButton(
+                            onClick = viewModel::revealContact,
+                            enabled = !contactLoading,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp).fillMaxWidth().height(48.dp),
+                        ) {
+                            Icon(Icons.Outlined.Phone, contentDescription = null)
+                            Text(stringResource(R.string.product_contact), modifier = Modifier.padding(start = 6.dp))
+                        }
+                    }
                     if (s.product.options.isNotEmpty() && s.product.offeringKind == OfferingKind.GOOD && !isMine && s.product.status == "ACTIVE") {
                         OptionsPicker(s.product.options, chosenOptions, viewModel::setOption)
                     }
@@ -428,6 +450,8 @@ private fun errorText(context: Context, error: AppError): String = when (error) 
     AppError.Unauthenticated -> context.getString(com.azza.core.ui.R.string.core_ui_error_signed_out)
     is AppError.Api -> when (error.code) {
         "PRODUCT_NOT_AVAILABLE" -> context.getString(R.string.product_not_available)
+        "CONTACT_HIDDEN" -> context.getString(R.string.product_contact_hidden)
+        "CONTACT_LIMIT_REACHED" -> context.getString(R.string.product_contact_limit)
         else -> error.message.ifBlank { context.getString(com.azza.core.ui.R.string.core_ui_error_generic) }
     }
     is AppError.Unexpected -> context.getString(com.azza.core.ui.R.string.core_ui_error_generic)
@@ -500,6 +524,40 @@ private fun PropertyPlace(place: ProductPlace, onShowOnMap: (ProductPlace) -> Un
             Text(stringResource(R.string.product_show_on_map), modifier = Modifier.padding(start = 6.dp))
         }
     }
+}
+
+/** ✅ (2026-10-23) The number, a call and a copy button, and Divar's safety advice. */
+@Composable
+private fun ContactDialog(contact: com.azza.core.model.ContactDetails, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.product_contact_call, contact.name)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    "\u2066${contact.phone}\u2069",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(stringResource(R.string.product_contact_warning), style = MaterialTheme.typography.bodySmall, color = AzzaTheme.colors.warning)
+            }
+        },
+        confirmButton = {
+            Button(onClick = {
+                context.startActivity(android.content.Intent(android.content.Intent.ACTION_DIAL, android.net.Uri.parse("tel:${contact.phone}")))
+            }) {
+                Icon(Icons.Outlined.Phone, contentDescription = null)
+                Text(stringResource(R.string.product_contact_dial), modifier = Modifier.padding(start = 6.dp))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { clipboard.setText(androidx.compose.ui.text.AnnotatedString(contact.phone)) }) {
+                Text(stringResource(R.string.product_contact_copy))
+            }
+        },
+    )
 }
 
 @Composable

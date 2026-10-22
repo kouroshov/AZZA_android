@@ -39,7 +39,7 @@
     <string name="filters_condition">Condition</string>
     <string name="filters_availability">Availability</string>
     <string name="filters_any">Any</string>
-    <string name="filters_price">Price range</string>
+    <string name="filters_price">Price range (toman)</string>
     <string name="filters_price_min">Min price</string>
     <string name="filters_price_max">Max price</string>
     <string name="filters_price_invalid">The minimum price is higher than the maximum.</string>
