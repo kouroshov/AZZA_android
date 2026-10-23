@@ -97,6 +97,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import androidx.navigation.toRoute
 import kotlinx.serialization.Serializable
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
@@ -112,8 +113,25 @@ import org.maplibre.geojson.Feature
 import org.maplibre.geojson.FeatureCollection
 import org.maplibre.geojson.Point
 
-/** The web's "/" — the marketplace map of store branches. */
-@Serializable data object MapRoute
+/**
+ * The web's "/" — the marketplace map of store branches (and the real-estate
+ * map). ✅ (2026-10-23) A property's "show on the map" opens it on that
+ * listing: [focusProductId] and its box, in the real-estate mode, selected.
+ * [showBack] is false when it is the bottom bar's tab.
+ */
+@Serializable
+data class MapRoute(
+    val showBack: Boolean = true,
+    val focusProductId: String? = null,
+    val west: Double? = null,
+    val south: Double? = null,
+    val east: Double? = null,
+    val north: Double? = null,
+    val satellite: Boolean = false,
+)
+
+/** A listing the map opens on. */
+data class MapFocus(val productId: String, val west: Double, val south: Double, val east: Double, val north: Double, val satellite: Boolean)
 
 fun NavGraphBuilder.mapScreen(
     onOpenStore: (String) -> Unit,
@@ -122,7 +140,15 @@ fun NavGraphBuilder.mapScreen(
     onBack: () -> Unit = {},
     onOpenUser: (String) -> Unit = {},
 ) {
-    composable<MapRoute> { MapScreen(onOpenStore, onOpenProduct, onDirections, onBack = onBack, onOpenUser = onOpenUser) }
+    composable<MapRoute> { entry ->
+        val route = entry.toRoute<MapRoute>()
+        val focus = route.focusProductId?.let { id ->
+            if (route.west != null && route.south != null && route.east != null && route.north != null) {
+                MapFocus(id, route.west, route.south, route.east, route.north, route.satellite)
+            } else null
+        }
+        MapScreen(onOpenStore, onOpenProduct, onDirections, onBack = if (route.showBack) onBack else null, onOpenUser = onOpenUser, focus = focus)
+    }
 }
 
 /** The web's NEXT_PUBLIC_MAP_STYLE_URL (core:map). */
@@ -235,6 +261,8 @@ data class MapUiState(
     val deals: Set<ParcelDeal> = emptySet(),
     val parcels: List<ParcelMapItem> = emptyList(),
     val parcelSelected: ParcelMapItem? = null,
+    /** ✅ (2026-10-23) A listing to select once its place has loaded ("show on the map"). */
+    val pendingProductId: String? = null,
 )
 
 @HiltViewModel
@@ -306,6 +334,12 @@ class MapViewModel @Inject constructor(
 
     fun selectParcel(item: ParcelMapItem?) = _state.update { it.copy(parcelSelected = item, selected = null, preview = null) }
 
+    /** ✅ (2026-10-23) Open on a listing: the real-estate map, satellite for a boundary, it selected once loaded. */
+    fun focusOn(focus: MapFocus) = _state.update {
+        if (it.pendingProductId == focus.productId || it.parcelSelected?.listings?.any { l -> l.productId == focus.productId } == true) it
+        else it.copy(realEstate = true, satellite = focus.satellite || it.satellite, pendingProductId = focus.productId, selected = null, preview = null)
+    }
+
     private fun loadParcels(north: Double, south: Double, east: Double, west: Double) {
         viewportJob = viewModelScope.launch {
             delay(250)
@@ -313,7 +347,17 @@ class MapViewModel @Inject constructor(
             val (n, s) = clampSpan(south, north)
             val (e, w) = clampSpan(west, east)
             when (val r = parcelsRepository.inView(n, s, e, w, _state.value.deals.takeIf { it.isNotEmpty() })) {
-                is Outcome.Success -> _state.update { it.copy(parcels = r.value, loading = false, error = null) }
+                is Outcome.Success -> _state.update { s ->
+                    val pending = s.pendingProductId
+                    val hit = pending?.let { id -> r.value.firstOrNull { item -> item.listings.any { it.productId == id } } }
+                    s.copy(
+                        parcels = r.value,
+                        loading = false,
+                        error = null,
+                        parcelSelected = hit ?: s.parcelSelected,
+                        pendingProductId = if (hit != null) null else pending,
+                    )
+                }
                 is Outcome.Failure -> _state.update { it.copy(loading = false, error = r.error) }
             }
         }
@@ -381,7 +425,9 @@ fun MapScreen(
     viewModel: MapViewModel = hiltViewModel(),
     onBack: (() -> Unit)? = null,
     onOpenUser: (String) -> Unit = {},
+    focus: MapFocus? = null,
 ) {
+    LaunchedEffect(focus) { focus?.let(viewModel::focusOn) }
     val state by viewModel.state.collectAsStateWithLifecycle()
     val latestState by rememberUpdatedState(state)
     val context = LocalContext.current
@@ -437,6 +483,18 @@ fun MapScreen(
                 val minZoom = fit?.zoom ?: 3.9
                 m.setMinZoomPreference(minZoom)
                 if (fit != null) m.cameraPosition = fit
+                // ✅ (2026-10-23) "show on the map": straight onto the listing.
+                focus?.let { f ->
+                    val point = f.east - f.west < 1e-5 && f.north - f.south < 1e-5
+                    m.cameraPosition = if (point) {
+                        CameraPosition.Builder().target(LatLng(f.south, f.west)).zoom(17.0).build()
+                    } else {
+                        val box = LatLngBounds.Builder().include(LatLng(f.south, f.west)).include(LatLng(f.north, f.east)).build()
+                        m.getCameraForLatLngBounds(box, intArrayOf(80, 260, 80, 320))?.let { c ->
+                            CameraPosition.Builder().target(c.target).zoom(minOf(c.zoom, 18.0)).build()
+                        } ?: m.cameraPosition
+                    }
+                }
                 countryZoom = minZoom + 0.9
                 val blue = android.graphics.Color.argb(255, (primary.red * 255).toInt(), (primary.green * 255).toInt(), (primary.blue * 255).toInt())
                 style.addSource(GeoJsonSource(COUNTRY_SOURCE))

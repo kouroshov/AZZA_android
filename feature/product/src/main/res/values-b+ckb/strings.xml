@@ -65,4 +65,14 @@
     <string name="product_your_stock">کاڵای بەردەستت</string>
     <string name="product_stock_line">%1$d هەیە · %2$d گیراوە · %3$d بەردەست</string>
     <string name="product_not_stocked">هێشتا کاڵا تۆمار نەکراوە.</string>
+    <string name="product_not_purchasable">ئەم ڕیکلامە لە ڕێگەی سەبەتەوە مامەڵە ناکرێت؛ شوێنەکەی ببینە و پەیوەندی بە بڵاوکەرەوە بکە.</string>
+    <string name="product_show_on_map">پیشاندان لەسەر نەخشە</string>
+    <string name="product_view_agency">پەڕەی نووسینگە / فرۆشگا</string>
+    <string name="product_view_seller">پەڕەی بڵاوکەرەوە</string>
+    <string name="product_property_location">شوێنی موڵک</string>
+    <string name="product_property_marked_as">تۆمارکراوە وەک</string>
+    <string name="product_property_boundary">سنووری کێشراو</string>
+    <string name="product_property_point">خاڵێک</string>
+    <string name="product_property_area">ڕووبەری پێوراو</string>
+    <string name="product_property_perimeter">چێوە</string>
 </resources>

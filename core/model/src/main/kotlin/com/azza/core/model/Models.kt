@@ -70,6 +70,26 @@ data class ProductDetail(
     /** A personal listing's stock (a store's lives per branch). */
     val stockQuantity: Int? = null,
     val stockReserved: Int? = null,
+    /** ✅ (2026-10-23) The kind of ad (for sale, for rent, wanted…); null on an older listing. */
+    val listingTypeName: LocalizedText? = null,
+    /** Whether it goes through the basket (not land and property, nor a "wanted" ad). */
+    val purchasable: Boolean = true,
+    /** A real-estate listing's place on the map. */
+    val place: ProductPlace? = null,
+)
+
+/**
+ * ✅ (2026-10-23) Where a property is: a drawn boundary or a point, what the
+ * server measured, and the box [west, south, east, north] the map frames.
+ */
+data class ProductPlace(
+    val isBoundary: Boolean,
+    val areaM2: Double?,
+    val perimeterM: Double?,
+    val west: Double,
+    val south: Double,
+    val east: Double,
+    val north: Double,
 )
 
 /** One typed detail; [yes] set for a yes/no attribute (worded by the UI). */
@@ -87,8 +107,13 @@ data class ListingHold(val cause: String, val reason: String?, val at: String) {
     val appealable: Boolean get() = cause == "ADMIN_UNPUBLISHED"
 }
 
-data class LocalizedText(val fa: String, val en: String) {
-    fun forLanguage(language: String): String = if (language == "fa" || language == "ckb") fa else en
+data class LocalizedText(val fa: String, val en: String, val ckb: String? = null) {
+    /** Kurdish where it exists (2026-10-23: the newer categories and the kinds of ad), else Persian. */
+    fun forLanguage(language: String): String = when (language) {
+        "ckb" -> ckb?.takeIf { it.isNotBlank() } ?: fa
+        "fa" -> fa
+        else -> en
+    }
 }
 
 data class Page<T>(

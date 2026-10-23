@@ -37,8 +37,18 @@ fun AzzaTheme(
             surfaceVariant = colors.surfaceRaised,
             onSurfaceVariant = colors.textSecondary,
             surfaceContainer = colors.navPopover,
-            outline = colors.border,
-            outlineVariant = colors.navDivider,
+            // ✏️ (2026-10-23) Fields, chips and outlined buttons draw their edge
+            // with these two; at the old 10% they disappeared (see Color.kt).
+            outline = colors.controlOutline,
+            outlineVariant = colors.controlOutline,
+            // Selected chips: the brand, not Material's default lavender.
+            secondaryContainer = colors.selectedContainer,
+            onSecondaryContainer = colors.textPrimary,
+            // Floating buttons and the like: no Material lavender either.
+            primaryContainer = colors.selectedContainer,
+            onPrimaryContainer = colors.textPrimary,
+            tertiaryContainer = colors.selectedContainer,
+            onTertiaryContainer = colors.textPrimary,
             error = colors.error,
         )
     } else {
@@ -54,8 +64,18 @@ fun AzzaTheme(
             surfaceVariant = colors.surfaceRaised,
             onSurfaceVariant = colors.textSecondary,
             surfaceContainer = colors.navPopover,
-            outline = colors.border,
-            outlineVariant = colors.navDivider,
+            // ✏️ (2026-10-23) Fields, chips and outlined buttons draw their edge
+            // with these two; at the old 10% they disappeared (see Color.kt).
+            outline = colors.controlOutline,
+            outlineVariant = colors.controlOutline,
+            // Selected chips: the brand, not Material's default lavender.
+            secondaryContainer = colors.selectedContainer,
+            onSecondaryContainer = colors.textPrimary,
+            // Floating buttons and the like: no Material lavender either.
+            primaryContainer = colors.selectedContainer,
+            onPrimaryContainer = colors.textPrimary,
+            tertiaryContainer = colors.selectedContainer,
+            onTertiaryContainer = colors.textPrimary,
             error = colors.error,
         )
     }

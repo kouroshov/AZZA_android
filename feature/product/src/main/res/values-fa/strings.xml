@@ -64,4 +64,14 @@
     <string name="product_your_stock">موجودی شما</string>
     <string name="product_stock_line">%1$d موجود · %2$d رزروشده · %3$d در دسترس</string>
     <string name="product_not_stocked">هنوز موجودی ثبت نشده.</string>
+    <string name="product_not_purchasable">این آگهی از راه سبد خرید معامله نمی‌شود؛ موقعیتش را ببینید و با آگهی‌دهنده در ارتباط باشید.</string>
+    <string name="product_show_on_map">نمایش روی نقشه</string>
+    <string name="product_view_agency">صفحهٔ بنگاه / فروشگاه</string>
+    <string name="product_view_seller">صفحهٔ آگهی‌دهنده</string>
+    <string name="product_property_location">موقعیت ملک</string>
+    <string name="product_property_marked_as">ثبت‌شده به‌صورت</string>
+    <string name="product_property_boundary">مرز کشیده‌شده</string>
+    <string name="product_property_point">یک نقطه</string>
+    <string name="product_property_area">مساحت اندازه‌گیری‌شده</string>
+    <string name="product_property_perimeter">محیط</string>
 </resources>

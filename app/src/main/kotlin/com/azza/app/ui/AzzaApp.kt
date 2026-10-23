@@ -235,7 +235,7 @@ fun AzzaApp(
                 onOpenUser = openUser,
                 onOpenStore = openStore,
                 onOpenAuthor = openAuthor,
-                onOpenMap = { navController.navigate(com.azza.feature.map.MapRoute) },
+                onOpenMap = { navigateTab(navController, com.azza.feature.map.MapRoute(showBack = false)) },
                 onScan = { navController.navigate(com.azza.feature.search.FindByBarcodeRoute) },
             )
             findByBarcodeScreen(
@@ -282,6 +282,19 @@ fun AzzaApp(
                     else navController.navigate(BasketRoute(tab = BasketTab.APPOINTMENTS.ordinal))
                 },
                 onOpenAuthor = openAuthor,
+                // ✅ (2026-10-23) a property's "show on the map".
+                onShowOnMap = { id, place ->
+                    navController.navigate(
+                        com.azza.feature.map.MapRoute(
+                            focusProductId = id,
+                            west = place.west,
+                            south = place.south,
+                            east = place.east,
+                            north = place.north,
+                            satellite = place.isBoundary,
+                        ),
+                    )
+                },
             )
             profileScreen(
                 onSignIn = signIn,
@@ -461,7 +474,8 @@ private fun AzzaBottomBar(current: NavDestination?, navController: NavHostContro
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = AzzaTheme.colors.navInk,
                     unselectedIconColor = AzzaTheme.colors.navInk.copy(alpha = 0.6f),
-                    indicatorColor = AzzaTheme.colors.surfaceRaised,
+                    // ✏️ (2026-10-23) was a 10% grey pill — the selected tab barely showed.
+                    indicatorColor = AzzaTheme.colors.selectedContainer,
                 ),
             )
         }

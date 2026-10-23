@@ -9,6 +9,9 @@
     <string name="create_cancel">انصراف</string>
     <string name="create_title">عنوان</string>
     <string name="create_description">توضیحات</string>
+    <string name="create_listing_type">نوع آگهی</string>
+    <string name="create_price_optional">قیمت یا بودجه (اختیاری)</string>
+    <string name="create_error_listing_type">این دسته این نوع آگهی را نمی‌پذیرد. نوع دیگری انتخاب کنید.</string>
     <string name="create_price">قیمت</string>
     <string name="create_discount">تخفیف (درصد)</string>
     <string name="create_condition">وضعیت</string>

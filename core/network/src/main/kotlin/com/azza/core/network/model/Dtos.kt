@@ -135,6 +135,8 @@ data class ProductDto(
     val categoryId: String? = null,
     val category: ProductCategoryDto? = null,
     val condition: String? = null,
+    /** ✅ (2026-10-23) the kind of ad; null on a listing older than listing types. */
+    val listingType: ProductListingTypeDto? = null,
     val status: String = "ACTIVE",
     val attributeValues: List<AttributeValueDto> = emptyList(),
     // A moderation hold (all null when there is none). Only the owner's
@@ -151,6 +153,11 @@ data class ProductDto(
     val barcode: String? = null,
     /** A real-estate listing's point or boundary on the map (2026-10-22). */
     val parcel: ProductParcelDto? = null,
+    /**
+     * ✅ (2026-10-23) Whether it goes through the basket — false for a
+     * "wanted" ad, a job, a giveaway, and anything in land and property.
+     */
+    val purchasable: Boolean = true,
 )
 
 @Serializable
@@ -161,6 +168,19 @@ data class ProductParcelDto(
     @Serializable(with = FlexibleDoubleSerializer::class)
     val longitude: Double? = null,
     val ring: List<List<Double>>? = null,
+    // ✅ (2026-10-23) measured by the server, and the box "show on the map" frames.
+    @Serializable(with = FlexibleDoubleSerializer::class)
+    val areaM2: Double? = null,
+    @Serializable(with = FlexibleDoubleSerializer::class)
+    val perimeterM: Double? = null,
+    @Serializable(with = FlexibleDoubleSerializer::class)
+    val minLat: Double? = null,
+    @Serializable(with = FlexibleDoubleSerializer::class)
+    val maxLat: Double? = null,
+    @Serializable(with = FlexibleDoubleSerializer::class)
+    val minLng: Double? = null,
+    @Serializable(with = FlexibleDoubleSerializer::class)
+    val maxLng: Double? = null,
 )
 
 @Serializable
@@ -219,3 +239,13 @@ data class ProductSellerDto(val username: String, val profile: ProductSellerProf
 
 @Serializable
 data class ProductStoreDto(val slug: String, val name: String = "", val avatarMediaKey: String? = null)
+
+@Serializable
+data class ProductListingTypeDto(
+    val code: String,
+    val priceMode: String = "REQUIRED",
+    val purchasable: Boolean = true,
+    val nameEn: String = "",
+    val nameFa: String? = null,
+    val nameCkb: String? = null,
+)

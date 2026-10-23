@@ -41,6 +41,12 @@ class SchemaRulesConformanceTest {
         ),
         field("mileage", AttributeDataType.NUMBER, visibleWhen = Condition.Leaf("\$condition", "neq", "NEW")),
         field("area", AttributeDataType.TEXT, visibleWhen = Condition.Leaf("many", "contains", "b")),
+        field("deposit", AttributeDataType.MONEY, min = 0.0, max = 1000000.0),
+        field(
+            "salary", AttributeDataType.MONEY,
+            visibleWhen = Condition.Leaf("\$listingType", "eq", "JOB_VACANCY"),
+            requiredWhen = Condition.Leaf("\$listingType", "eq", "JOB_VACANCY"),
+        ),
         field(
             "nested", AttributeDataType.TEXT,
             visibleWhen = Condition.All(
@@ -128,6 +134,21 @@ class SchemaRulesConformanceTest {
         mapOf("title" to "x", "count" to 10, "pick" to "c", "nested" to "yes"),
         mapOf("title" to "x", "count" to 10, "pick" to "c", "nested" to "yes"),
     )
+
+    @Test fun `money - major units, Persian digits and separators accepted`() =
+        check(mapOf("title" to "x", "deposit" to "۱۲٬۵۰۰٫۵"), mapOf("title" to "x", "deposit" to 12500.5))
+
+    @Test fun `money - negative, three decimals and text are refused`() =
+        check(mapOf("title" to "x", "deposit" to "-5"), mapOf("title" to "x"), listOf("deposit" to FieldErrorCode.INVALID_TYPE))
+
+    @Test fun `money - above the maximum`() =
+        check(mapOf("title" to "x", "deposit" to 2000000), mapOf("title" to "x"), listOf("deposit" to FieldErrorCode.TOO_LARGE))
+
+    @Test fun `listing type - a vacancy must state a salary`() =
+        check(mapOf("title" to "x"), mapOf("title" to "x"), listOf("salary" to FieldErrorCode.REQUIRED), RuleContext(listingType = "JOB_VACANCY"))
+
+    @Test fun `listing type - a job seeker has no salary field at all`() =
+        check(mapOf("title" to "x", "salary" to 900), mapOf("title" to "x"), ctx = RuleContext(listingType = "JOB_SEEKING"))
 
     @Test fun `nested all-any-not - hidden by the not`() =
         check(mapOf("title" to "x", "count" to 90, "pick" to "c", "nested" to "no"), mapOf("title" to "x", "count" to 90, "pick" to "c"))

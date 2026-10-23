@@ -38,8 +38,22 @@ data class AzzaColors(
     val surface: Color get() = surfaceTint.copy(alpha = 0.06f)
     /** `bg-surface/10` — raised panels, inputs. */
     val surfaceRaised: Color get() = surfaceTint.copy(alpha = 0.10f)
-    /** `border-border/10`. */
-    val border: Color get() = surfaceTint.copy(alpha = 0.10f)
+    /**
+     * ✏️ (2026-10-23, product owner: "buttons, the space around them and the
+     * line between them are hard to tell apart") was 10%: an outline at that
+     * strength vanished on white. Borders that mark a control are now
+     * [controlOutline]; this one stays for quiet edges (cards).
+     */
+    val border: Color get() = surfaceTint.copy(alpha = 0.16f)
+
+    /**
+     * The edge of something you can press or type into (a field, a chip, an
+     * outlined button): ≥ 3:1 against the page (WCAG 1.4.11) in both themes.
+     */
+    val controlOutline: Color get() = surfaceTint.copy(alpha = if (isDark) 0.42f else 0.45f)
+
+    /** A selected chip / segmented item: the brand colour, lightly. */
+    val selectedContainer: Color get() = primary.copy(alpha = if (isDark) 0.28f else 0.16f)
 }
 
 val DarkAzzaColors = AzzaColors(
