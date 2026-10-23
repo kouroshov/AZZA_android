@@ -72,4 +72,25 @@
     <string name="scan_find_hint">برچسب یک پست را اسکن کنید یا ۱۳ رقم آن را پایین وارد کنید.</string>
     <string name="scan_looking">در حال جست‌وجوی %1$s…</string>
     <string name="scan_not_found">هیچ پستی کد %1$s را ندارد.</string>
+    <string name="filters_listing_type">نوع آگهی</string>
+    <string name="filters_toman">تومان</string>
+    <string name="filters_from">از</string>
+    <string name="filters_to">تا</string>
+    <plurals name="filters_fields_chip">
+        <item quantity="one">%d فیلتر دیگر</item>
+        <item quantity="other">%d فیلتر دیگر</item>
+    </plurals>
+    <string name="saved_title">جست‌وجوهای ذخیره‌شده</string>
+    <string name="saved_intro">جست‌وجو را دوباره باز کنید، یا وقتی آگهی تازه‌ای با آن جور شد خبردار شوید.</string>
+    <string name="saved_loading">در حال بارگذاری…</string>
+    <string name="saved_failed">جست‌وجوهای ذخیره‌شده بارگذاری نشد.</string>
+    <string name="saved_empty">هنوز جست‌وجویی ذخیره نکرده‌اید. فیلترها را بچینید و «ذخیرهٔ این جست‌وجو» را بزنید.</string>
+    <string name="saved_on">ذخیره در %1$s</string>
+    <string name="saved_alerts">خبرم کن</string>
+    <string name="saved_remove">حذف «%1$s»</string>
+    <string name="saved_save">ذخیرهٔ این جست‌وجو</string>
+    <string name="saved_done">ذخیره شد</string>
+    <string name="saved_limit">حداکثر ۲۰ جست‌وجو</string>
+    <string name="saved_save_failed">ذخیره نشد — دوباره</string>
+    <string name="saved_default_label">جست‌وجوی من</string>
 </resources>

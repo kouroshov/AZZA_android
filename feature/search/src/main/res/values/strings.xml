@@ -72,4 +72,26 @@
     <string name="scan_find_hint">Scan a post\'s label, or type its 13 digits below.</string>
     <string name="scan_looking">Looking up %1$s…</string>
     <string name="scan_not_found">No post has the code %1$s.</string>
+    <!-- ✅ (2026-10-23) Phase 2: kinds of ad, category fields, saved searches. -->
+    <string name="filters_listing_type">Kind of ad</string>
+    <string name="filters_toman">toman</string>
+    <string name="filters_from">From</string>
+    <string name="filters_to">To</string>
+    <plurals name="filters_fields_chip">
+        <item quantity="one">%d more filter</item>
+        <item quantity="other">%d more filters</item>
+    </plurals>
+    <string name="saved_title">Saved searches</string>
+    <string name="saved_intro">Open a search again, or get a notification when a new listing matches it.</string>
+    <string name="saved_loading">Loading…</string>
+    <string name="saved_failed">Your saved searches could not be loaded.</string>
+    <string name="saved_empty">You have not saved a search yet. Set some filters, then tap “Save this search”.</string>
+    <string name="saved_on">Saved %1$s</string>
+    <string name="saved_alerts">Alerts</string>
+    <string name="saved_remove">Remove “%1$s”</string>
+    <string name="saved_save">Save this search</string>
+    <string name="saved_done">Saved</string>
+    <string name="saved_limit">You can keep 20 searches</string>
+    <string name="saved_save_failed">Not saved — try again</string>
+    <string name="saved_default_label">My search</string>
 </resources>

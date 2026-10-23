@@ -11,6 +11,8 @@ data class SearchProduct(
     val storeName: String?,
     val cityName: String?,
     val availability: Availability,
+    /** ✅ (2026-10-23) «توافقی». */
+    val priceNegotiable: Boolean = false,
 )
 
 data class SearchUser(
@@ -47,10 +49,30 @@ data class SearchFilters(
     val availability: Availability? = null,
     val priceMin: String = "",
     val priceMax: String = "",
+    /** ✅ (2026-10-23) The kind of ad (SALE, RENT, WANTED…), with its name for the chip. */
+    val listingType: String? = null,
+    val listingTypeName: LocalizedText? = null,
+    /** ✅ (2026-10-23) The category's own fields (rooms, area, year…), by slug. */
+    val attrs: Map<String, AttrFilter> = emptyMap(),
 ) {
     val count: Int
-        get() = listOf(categoryId != null, condition != null, availability != null, priceMin.isNotBlank() || priceMax.isNotBlank()).count { it }
+        get() = listOf(categoryId != null, condition != null, availability != null, priceMin.isNotBlank() || priceMax.isNotBlank(), listingType != null)
+            .count { it } + attrs.size
     val isEmpty: Boolean get() = count == 0
+
+    /** Search has no field or kind-of-ad filters: these run on the feed instead (apps/api's `attrs`). */
+    val needsFeed: Boolean get() = listingType != null || attrs.isNotEmpty()
+}
+
+/**
+ * ✅ (2026-10-23) One category-field filter, the shape apps/api's
+ * attribute-filter.ts reads: options (any of), a yes, or a range. A MONEY
+ * range is in rial major units — the sheet converts what is typed in toman.
+ */
+sealed interface AttrFilter {
+    data class Options(val values: List<String>) : AttrFilter
+    data object Yes : AttrFilter
+    data class Range(val min: Double? = null, val max: Double? = null) : AttrFilter
 }
 
 enum class FavoriteUnavailable { DELETED, UNPUBLISHED, OUT_OF_STOCK }

@@ -19,6 +19,10 @@ fun notificationTitle(res: Resources, n: AppNotification): String = res.getStrin
         "REPORT_REVIEWED" -> R.string.n_type_report_reviewed
         "LISTING_TAKEN_DOWN" -> R.string.n_type_listing_taken_down
         "LISTING_RESTORED" -> R.string.n_type_listing_restored
+        // ✅ (2026-10-23) a listing ran its 30 days; one held for review went live; a saved search matched.
+        "LISTING_EXPIRED" -> R.string.n_type_listing_expired
+        "LISTING_APPROVED" -> R.string.n_type_listing_approved
+        "SAVED_SEARCH_MATCH" -> R.string.n_type_saved_search_match
         "STORE_SUSPENDED" -> R.string.n_type_store_suspended
         "STORE_RESTORED" -> R.string.n_type_store_restored
         "CONTENT_HIDDEN" -> R.string.n_type_content_hidden
@@ -53,6 +57,9 @@ fun notificationBody(res: Resources, n: AppNotification): String {
             if (subject.isNotEmpty()) res.getString(R.string.n_text_report_reviewed_subject, subject) else res.getString(R.string.n_text_report_reviewed)
         "LISTING_TAKEN_DOWN" -> res.getString(R.string.n_text_listing_taken_down, subject)
         "LISTING_RESTORED" -> res.getString(R.string.n_text_listing_restored, subject)
+        "LISTING_EXPIRED" -> res.getString(R.string.n_text_listing_expired, subject)
+        "LISTING_APPROVED" -> res.getString(R.string.n_text_listing_approved, subject)
+        "SAVED_SEARCH_MATCH" -> res.getString(R.string.n_text_saved_search_match, subject)
         "STORE_SUSPENDED" -> res.getString(R.string.n_text_store_suspended, subject)
         "STORE_RESTORED" -> res.getString(R.string.n_text_store_restored, subject)
         "CONTENT_HIDDEN" -> res.getString(R.string.n_text_content_hidden, subject)

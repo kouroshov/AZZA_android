@@ -81,4 +81,23 @@
     <string name="product_contact_warning">پیش از دیدن کالا یا ملک از نزدیک، هیچ بیعانه‌ای پرداخت نکنید.</string>
     <string name="product_contact_hidden">این آگهی شمارهٔ تماس نشان نمی‌دهد.</string>
     <string name="product_contact_limit">امروز شمارهٔ زیادی دیده‌اید. فردا دوباره امتحان کنید.</string>
+    <string name="owner_pending_title">در انتظار بررسی</string>
+    <string name="owner_pending_note">آگهی‌هایی مثل این، پیش از انتشار بررسی می‌شوند. پس از انتشار به شما خبر می‌دهیم.</string>
+    <string name="owner_expired">مهلت این آگهی تمام شده و دیگر نمایش داده نمی‌شود.</string>
+    <string name="owner_live">این آگهی منتشر شده است.</string>
+    <string name="owner_ends_today">امروز تمام می‌شود</string>
+    <plurals name="owner_days_left">
+        <item quantity="one">%d روز تا پایان آگهی</item>
+        <item quantity="other">%d روز تا پایان آگهی</item>
+    </plurals>
+    <string name="owner_renew">تمدید ۳۰ روزه</string>
+    <string name="owner_bump">نردبان</string>
+    <string name="owner_bump_hint">هفته‌ای یک بار رایگان: آگهی شما دوباره بالای فهرست‌ها می‌رود.</string>
+    <string name="owner_next_bump">نردبان بعدی از %1$s.</string>
+    <string name="owner_renewed">آگهی ۳۰ روز تمدید شد.</string>
+    <string name="owner_bumped">آگهی بالای فهرست رفت.</string>
+    <string name="owner_bump_too_soon">این آگهی به‌تازگی نردبان شده است.</string>
+    <string name="owner_renew_too_early">این آگهی هنوز نیازی به تمدید ندارد.</string>
+    <string name="product_similar">آگهی‌های مشابه</string>
+    <string name="product_verified">تأییدشده</string>
 </resources>

@@ -20,6 +20,8 @@ data class SearchProductDto(
     val price: Double,
     val currency: String = "IRR",
     val discountPercentage: Double? = null,
+    /** ✅ (2026-10-23) «توافقی». */
+    val priceNegotiable: Boolean = false,
     val primaryImage: String? = null,
     val categoryName: String = "",
     val availability: String = "UNKNOWN",

@@ -68,6 +68,16 @@ class ProductRepository @Inject constructor(
     /** One of the caller's own listings in any state — a hold's cause and reason included (GET /products/mine/:id). */
     suspend fun ownProduct(id: String): Outcome<ProductDetail> = safeApiCall(json) { own.byId(id).data }.map { it.toModel(media) }
 
+    /** ✅ (2026-10-23) «تمدید»: 409 RENEW_TOO_EARLY while more than 7 days are left. */
+    suspend fun renew(id: String): Outcome<ProductDetail> = safeApiCall(json) { api.renew(id).data }.map { it.toModel(media) }
+
+    /** ✅ (2026-10-23) «نردبان»: 429 BUMP_TOO_SOON within 7 days of the last one. */
+    suspend fun bump(id: String): Outcome<ProductDetail> = safeApiCall(json) { api.bump(id).data }.map { it.toModel(media) }
+
+    /** ✅ (2026-10-23) «آگهی‌های مشابه». */
+    suspend fun similar(id: String): Outcome<List<ProductDetail>> =
+        safeApiCall(json) { api.similar(id).data }.map { page -> page.items.map { it.toModel(media) } }
+
     /** The last [OPENED_KEPT] listings opened stay readable offline (personal: they are a history). */
     suspend fun product(id: String, source: String? = null): Outcome<ProductDetail> =
         offline.load("product:$id", personal = true, ProductDto.serializer(), keepNewest = OPENED_KEPT) {

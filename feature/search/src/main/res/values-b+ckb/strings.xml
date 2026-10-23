@@ -73,4 +73,25 @@
     <string name="scan_find_hint">لیبڵی پۆستێک سکان بکە یان ١٣ ژمارەکەی لە خوارەوە بنووسە.</string>
     <string name="scan_looking">گەڕان بۆ %1$s…</string>
     <string name="scan_not_found">هیچ پۆستێک کۆدی %1$s ـی نییە.</string>
+    <string name="filters_listing_type">جۆری ڕیکلام</string>
+    <string name="filters_toman">تمەن</string>
+    <string name="filters_from">لە</string>
+    <string name="filters_to">تا</string>
+    <plurals name="filters_fields_chip">
+        <item quantity="one">%d فلتەری تر</item>
+        <item quantity="other">%d فلتەری تر</item>
+    </plurals>
+    <string name="saved_title">گەڕانە پاشەکەوتکراوەکان</string>
+    <string name="saved_intro">گەڕانێک دووبارە بکەرەوە، یان کاتێک ڕیکلامێکی نوێ لەگەڵیدا گونجا ئاگادار بە.</string>
+    <string name="saved_loading">بار دەکرێت…</string>
+    <string name="saved_failed">گەڕانە پاشەکەوتکراوەکان بار نەکران.</string>
+    <string name="saved_empty">هێشتا هیچ گەڕانێکت پاشەکەوت نەکردووە. فلتەر دابنێ و «پاشەکەوتکردنی ئەم گەڕانە» لێبدە.</string>
+    <string name="saved_on">پاشەکەوت کرا لە %1$s</string>
+    <string name="saved_alerts">ئاگادارم بکە</string>
+    <string name="saved_remove">لابردنی «%1$s»</string>
+    <string name="saved_save">پاشەکەوتکردنی ئەم گەڕانە</string>
+    <string name="saved_done">پاشەکەوت کرا</string>
+    <string name="saved_limit">زۆرترین ٢٠ گەڕان</string>
+    <string name="saved_save_failed">پاشەکەوت نەکرا — دووبارە</string>
+    <string name="saved_default_label">گەڕانەکەم</string>
 </resources>

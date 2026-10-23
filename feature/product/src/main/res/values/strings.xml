@@ -81,4 +81,24 @@
     <string name="product_contact_warning">Never pay a deposit before seeing the item or the property in person.</string>
     <string name="product_contact_hidden">This listing does not show a phone number.</string>
     <string name="product_contact_limit">You have seen many numbers today. Try again tomorrow.</string>
+    <!-- ✅ (2026-10-23) Phase 2: review, expiry, renew, bump, similar, verified. -->
+    <string name="owner_pending_title">Waiting for review</string>
+    <string name="owner_pending_note">Our team checks listings like this one before they go live. You will get a notification when it is published.</string>
+    <string name="owner_expired">This listing has expired and is no longer shown.</string>
+    <string name="owner_live">This listing is live.</string>
+    <string name="owner_ends_today">Ends today</string>
+    <plurals name="owner_days_left">
+        <item quantity="one">%d day left</item>
+        <item quantity="other">%d days left</item>
+    </plurals>
+    <string name="owner_renew">Renew for 30 days</string>
+    <string name="owner_bump">Move to the top</string>
+    <string name="owner_bump_hint">Free once a week: your listing goes back to the top of the feeds.</string>
+    <string name="owner_next_bump">You can move it up again on %1$s.</string>
+    <string name="owner_renewed">Renewed for 30 days.</string>
+    <string name="owner_bumped">Moved to the top.</string>
+    <string name="owner_bump_too_soon">This listing was moved up recently.</string>
+    <string name="owner_renew_too_early">This listing does not need renewing yet.</string>
+    <string name="product_similar">Similar listings</string>
+    <string name="product_verified">Verified</string>
 </resources>

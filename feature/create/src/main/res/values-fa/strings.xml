@@ -79,4 +79,6 @@
     <string name="create_personal_single_item">پست شخصی یک کالا را می‌فروشد. برای تعیین موجودی، از طرف یکی از فروشگاه‌هایتان پست بگذارید.</string>
     <string name="create_show_phone">نمایش شمارهٔ تماس من</string>
     <string name="create_show_phone_hint">کاربرانی که وارد شده‌اند با زدن «اطلاعات تماس» آن را می‌بینند.</string>
+    <string name="create_negotiable">قیمت توافقی</string>
+    <string name="create_negotiable_hint">بدون قیمت ثابت: خریدار با شما توافق می‌کند. از راه سبد خرید خریده نمی‌شود.</string>
 </resources>

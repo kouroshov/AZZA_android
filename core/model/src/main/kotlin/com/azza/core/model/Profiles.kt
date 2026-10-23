@@ -46,6 +46,8 @@ data class PostTile(
     /** Shown on the owner's own grid only: DRAFT, SOLD, REJECTED (held)… */
     val status: String = "ACTIVE",
     val barcode: String? = null,
+    /** ✅ (2026-10-23) «توافقی». */
+    val priceNegotiable: Boolean = false,
 )
 
 /** A province or city. [latitude]/[longitude]: its centre, when apps/api knows it (to move a map there). */

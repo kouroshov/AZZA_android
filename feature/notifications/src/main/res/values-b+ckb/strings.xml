@@ -14,6 +14,9 @@
     <string name="n_type_report_reviewed">ڕاپۆرت پێداچوونەوەی بۆ کرا</string>
     <string name="n_type_listing_taken_down">ڕیکلام لابرا</string>
     <string name="n_type_listing_restored">ڕیکلام گەڕێنرایەوە</string>
+    <string name="n_type_listing_expired">ماوەی ڕیکلام تەواو بوو</string>
+    <string name="n_type_listing_approved">ڕیکلام بڵاو کرایەوە</string>
+    <string name="n_type_saved_search_match">ڕیکلامی نوێ</string>
     <string name="n_type_store_suspended">فرۆشگا ڕاگیرا</string>
     <string name="n_type_store_restored">فرۆشگا گەڕێنرایەوە</string>
     <string name="n_type_content_hidden">نووسینێکت شاردرایەوە</string>
@@ -36,6 +39,9 @@
     <string name="n_text_report_reviewed_subject">ڕاپۆرتەکەت دەربارەی %1$s پێداچوونەوەی بۆ کرا. سوپاس کە ئاگادارت کردینەوە.</string>
     <string name="n_text_listing_taken_down">ڕیکلامەکەت «%1$s» لەلایەن چاودێرییەوە لابرا. بیکەرەوە بۆ بینینی هۆکار و ناڕەزایی دەربڕین.</string>
     <string name="n_text_listing_restored">ڕیکلامەکەت «%1$s» دووبارە لە فرۆشتندایە.</string>
+    <string name="n_text_listing_expired">ماوەی ڕیکلامی «%1$s» تەواو بوو. بۆ نیشاندانەوە نوێی بکەرەوە.</string>
+    <string name="n_text_listing_approved">ڕیکلامی «%1$s» پشکنرا و بڵاو کرایەوە.</string>
+    <string name="n_text_saved_search_match">ڕیکلامێکی نوێ لەگەڵ گەڕانی پاشەکەوتکراوی «%1$s» دەگونجێت.</string>
     <string name="n_text_store_suspended">فرۆشگاکەت «%1$s» لەلایەن چاودێرییەوە ڕاگیرا. بیکەرەوە بۆ بینینی هۆکار و ناڕەزایی دەربڕین.</string>
     <string name="n_text_store_restored">فرۆشگاکەت «%1$s» دووبارە کراوەیە.</string>
     <string name="n_text_content_hidden">هەڵسەنگاندن یان لێدوانێکت لە ژێر «%1$s» لەلایەن چاودێرییەوە شاردرایەوە.</string>

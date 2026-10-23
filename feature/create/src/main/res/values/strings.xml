@@ -79,4 +79,6 @@
     <string name="create_personal_single_item">A personal post sells one item. To set a stock, post as one of your stores.</string>
     <string name="create_show_phone">Show my phone number</string>
     <string name="create_show_phone_hint">Signed-in visitors can tap "Contact details" to see it.</string>
+    <string name="create_negotiable">Negotiable price</string>
+    <string name="create_negotiable_hint">No fixed price: the buyer agrees it with you. It cannot be bought through the basket.</string>
 </resources>

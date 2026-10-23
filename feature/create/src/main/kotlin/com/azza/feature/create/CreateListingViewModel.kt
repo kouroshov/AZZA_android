@@ -64,6 +64,8 @@ data class CreateUiState(
     val listingType: String? = null,
     /** ✅ (2026-10-23) «اطلاعات تماس» on this listing. */
     val showPhone: Boolean = true,
+    /** ✅ (2026-10-23) «توافقی». */
+    val priceNegotiable: Boolean = false,
     val title: String = "",
     val description: String = "",
     val price: String = "",
@@ -258,6 +260,7 @@ class CreateListingViewModel @Inject constructor(
                             offeringKind = l.offeringKind,
                             listingType = l.listingType,
                             showPhone = l.showPhone,
+                            priceNegotiable = l.priceNegotiable,
                             category = ChosenCategory(l.categoryId, l.categoryName, emptyList()),
                             title = l.title,
                             description = l.description,
@@ -480,7 +483,8 @@ class CreateListingViewModel @Inject constructor(
             title = s.title,
             description = s.description,
             // A kind of ad without a price (a job, a giveaway) always sends 0.
-            price = if (s.priceMode == "NONE") "0" else s.price,
+            price = if (s.priceMode == "NONE" || s.priceNegotiable) "0" else s.price,
+            priceNegotiable = s.priceMode != "NONE" && s.priceNegotiable,
             discountPercentage = s.discount,
             condition = if (s.usesCondition) s.condition else ItemCondition.USED,
             listingType = s.schema?.listingType?.code ?: s.listingType,
@@ -538,9 +542,10 @@ class CreateListingViewModel @Inject constructor(
         if (s.title.isBlank() || s.title.length > 200) add(FormError.TITLE)
         if (s.description.isBlank()) add(FormError.DESCRIPTION)
         // ✅ (2026-10-23) the price rule of the kind of ad — apps/api's PRICE_REQUIRED / PRICE_NOT_ALLOWED.
-        when (s.priceMode) {
-            "NONE" -> Unit
-            "OPTIONAL" -> if (s.price.isNotBlank() && (number(s.price) ?: -1.0) < 0) add(FormError.PRICE)
+        // «توافقی» has no price to check.
+        when {
+            s.priceMode == "NONE" || s.priceNegotiable -> Unit
+            s.priceMode == "OPTIONAL" -> if (s.price.isNotBlank() && (number(s.price) ?: -1.0) < 0) add(FormError.PRICE)
             else -> if ((number(s.price) ?: 0.0) <= 0) add(FormError.PRICE)
         }
         if (s.discount.isNotBlank()) {

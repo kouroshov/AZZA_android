@@ -88,6 +88,8 @@ data class FeedCardDto(
     val price: Double,
     val currency: String = "IRR",
     val discountPercentage: Double? = null,
+    /** ✅ (2026-10-23) «توافقی»: no fixed price (stored as 0). */
+    val priceNegotiable: Boolean = false,
     /** A storage KEY or a URL — resolve with MediaUrlResolver. */
     val primaryImage: String? = null,
     val category: FeedCategoryDto,
@@ -161,7 +163,31 @@ data class ProductDto(
     /** ✅ (2026-10-23) whether «اطلاعات تماس» has a number behind it, and the seller's own switch. */
     val contactAvailable: Boolean = false,
     val showPhone: Boolean = false,
+    /** ✅ (2026-10-23) «توافقی», the 30-day end, and the last «نردبان». */
+    val priceNegotiable: Boolean = false,
+    val expiresAt: String? = null,
+    val bumpedAt: String? = null,
 )
+
+/** ✅ (2026-10-23) GET /products/:id/similar. */
+@Serializable
+data class SimilarProductsDto(val items: List<ProductDto> = emptyList())
+
+/** ✅ (2026-10-23) A saved search: apps/api's feed filters, prices in rial major units. */
+@Serializable
+data class SavedSearchDto(
+    val id: String,
+    val label: String,
+    val filters: kotlinx.serialization.json.JsonObject = kotlinx.serialization.json.JsonObject(emptyMap()),
+    val notify: Boolean = true,
+    val createdAt: String = "",
+)
+
+@Serializable
+data class CreateSavedSearchRequest(val label: String, val filters: kotlinx.serialization.json.JsonObject)
+
+@Serializable
+data class SavedSearchNotifyRequest(val notify: Boolean)
 
 @Serializable
 data class ProductParcelDto(
@@ -241,7 +267,13 @@ data class ProductSellerProfileDto(val firstName: String = "", val lastName: Str
 data class ProductSellerDto(val username: String, val profile: ProductSellerProfileDto? = null)
 
 @Serializable
-data class ProductStoreDto(val slug: String, val name: String = "", val avatarMediaKey: String? = null)
+data class ProductStoreDto(
+    val slug: String,
+    val name: String = "",
+    val avatarMediaKey: String? = null,
+    /** ✅ (2026-10-23) VERIFIED = the «تأییدشده» badge, given by an admin. */
+    val verificationStatus: String? = null,
+)
 
 @Serializable
 data class ProductListingTypeDto(

@@ -80,4 +80,6 @@
     <string name="create_personal_single_item">پۆستی کەسی یەک کاڵا دەفرۆشێت. بۆ دیاریکردنی بڕ، لە ناوی یەکێک لە دوکانەکانتەوە پۆست بکە.</string>
     <string name="create_show_phone">ژمارەی تەلەفۆنەکەم پیشان بدە</string>
     <string name="create_show_phone_hint">بەکارهێنەرانی چوونەژوورەوە بە لێدانی «زانیاری پەیوەندی» دەیبینن.</string>
+    <string name="create_negotiable">نرخی ڕێککەوتن</string>
+    <string name="create_negotiable_hint">بێ نرخی جێگیر: کڕیار لەگەڵت ڕێک دەکەوێت. لە ڕێگەی سەبەتەوە ناکڕدرێت.</string>
 </resources>

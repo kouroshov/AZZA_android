@@ -119,6 +119,11 @@ internal object NetworkModule {
 
     @Provides
     @Singleton
+    fun provideSavedSearchesApi(retrofit: Retrofit): com.azza.core.network.api.SavedSearchesApi =
+        retrofit.create(com.azza.core.network.api.SavedSearchesApi::class.java)
+
+    @Provides
+    @Singleton
     fun provideCartApi(retrofit: Retrofit): CartApi = retrofit.create(CartApi::class.java)
 
     @Provides

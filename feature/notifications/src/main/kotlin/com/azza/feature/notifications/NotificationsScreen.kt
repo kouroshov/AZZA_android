@@ -89,7 +89,8 @@ class NotificationNav(
         "USER_FOLLOWED", "STORE_FOLLOWED" -> n.actorUsername?.let { u -> { openUser(u) } }
         "ORDER_RECEIVED", "ORDER_PAID" -> n.sellerOrderId?.let { id -> { openReceivedOrder(id) } }
         "ORDER_SHIPPED" -> n.orderId?.let { id -> { openPlacedOrder(id) } }
-        "PRODUCT_REVIEWED", "LISTING_TAKEN_DOWN", "LISTING_RESTORED" -> n.productId?.let { id -> { openProduct(id) } }
+        "PRODUCT_REVIEWED", "LISTING_TAKEN_DOWN", "LISTING_RESTORED",
+        "LISTING_EXPIRED", "LISTING_APPROVED", "SAVED_SEARCH_MATCH" -> n.productId?.let { id -> { openProduct(id) } }
         // The timetable it belongs to — the listing would only offer to book the hour again.
         "APPOINTMENT_BOOKED", "APPOINTMENT_CANCELLED" -> openAppointments
         "STORE_SUSPENDED", "STORE_RESTORED" -> n.storeSlug?.let { slug -> { openStore(slug) } }

@@ -28,6 +28,19 @@ fun Money.format(locale: Locale = Locale.getDefault()): String {
     return "$text ${tomanWord(locale)}"
 }
 
+/**
+ * ✅ (2026-10-23) What a card or a listing says for its price: «توافقی» for
+ * a negotiable one (Divar's word), otherwise the price to pay, discount applied.
+ */
+fun Money.priceLabel(discountPercentage: Double?, negotiable: Boolean, locale: Locale = Locale.getDefault()): String =
+    if (negotiable) negotiableWord(locale) else discounted(discountPercentage).format(locale)
+
+private fun negotiableWord(locale: Locale): String = when (locale.language) {
+    "fa" -> "توافقی"
+    "ckb" -> "ڕێککەوتن"
+    else -> "Negotiable"
+}
+
 /** The amount alone, for an input to start from: rial minor units → toman, Latin digits. */
 fun Money.tomanInput(): String = (amountMinor / Money.MINOR_PER_TOMAN).toString()
 

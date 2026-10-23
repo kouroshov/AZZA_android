@@ -124,6 +124,7 @@ class ListingRepository @Inject constructor(
                 condition = runCatching { ItemCondition.valueOf(p.condition ?: "USED") }.getOrDefault(ItemCondition.USED),
                 listingType = p.listingType?.code,
                 showPhone = p.showPhone,
+                priceNegotiable = p.priceNegotiable,
                 attributes = p.attributeValues.mapNotNull { v -> v.toFormValue()?.let { v.categoryAttribute.slug to it } }.toMap(),
                 photos = p.media.filter { it.mediaType == "IMAGE" }.mapNotNull { m -> mediaUrls.resolve(m.url ?: m.storageKey)?.let { ExistingPhoto(m.id, it) } },
                 options = p.options.map { OptionDraft(it.name, tomanText(it.extraPriceAmountMinor), it.maxQuantity) },
@@ -245,7 +246,9 @@ class ListingRepository @Inject constructor(
         put("description", draft.description.trim())
         put("categoryId", draft.categoryId)
         // ✅ (2026-10-23) typed in toman, sent in rial.
-        put("price", com.azza.core.model.Money.tomanToRial(draft.price.toLatinNumber() ?: 0.0))
+        put("price", if (draft.priceNegotiable) 0L else com.azza.core.model.Money.tomanToRial(draft.price.toLatinNumber() ?: 0.0))
+        // ✅ (2026-10-23) «توافقی» — always sent, so an edit can switch it off.
+        put("priceNegotiable", draft.priceNegotiable)
         put("condition", draft.condition.name)
         put("offeringKind", draft.offeringKind.name)
         // ✅ (2026-10-23) the kind of ad; absent = the category's default.

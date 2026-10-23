@@ -38,6 +38,7 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 enum class SearchTab { PRODUCTS, USERS, STORES }
@@ -94,6 +95,8 @@ class SearchViewModel @Inject constructor(
     private val feed: FeedRepository,
     private val geography: GeographyRepository,
     private val listings: ListingRepository,
+    private val savedSearches: com.azza.core.data.SavedSearchesRepository,
+    private val auth: com.azza.core.data.AuthRepository,
 ) : ViewModel() {
 
     private val _query = MutableStateFlow("")
@@ -271,10 +274,116 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    /** Null = every category. */
+    /** Null = every category. Another category has other kinds of ad and other fields. */
     fun chooseCategory(id: String?, name: LocalizedText?) {
         _categories.value = CategoryBrowserState()
-        applyFilters(_filters.value.copy(categoryId = id, categoryName = name))
+        applyFilters(_filters.value.copy(categoryId = id, categoryName = name, listingType = null, listingTypeName = null, attrs = emptyMap()))
+    }
+
+    // ---- ✅ (2026-10-23) the chosen category's kinds of ad and own fields (the web's filter panel) ----
+
+    private val _schema = MutableStateFlow<com.azza.core.model.CategorySchema?>(null)
+    /** The schema of the filters' category, or null with no category chosen. */
+    val schema: StateFlow<com.azza.core.model.CategorySchema?> = _schema.asStateFlow()
+
+    /** Loads the schema for [categoryId] (and [listingType], whose fields may differ). */
+    fun loadSchema(categoryId: String?, listingType: String?) {
+        if (categoryId == null) {
+            _schema.value = null
+            return
+        }
+        viewModelScope.launch {
+            _schema.value = (listings.schema(categoryId, null, listingType) as? Outcome.Success)?.value
+        }
+    }
+
+    // ---- ✅ (2026-10-23) saved searches (the web's /saved-searches) ----
+
+    data class SavedUi(
+        val open: Boolean = false,
+        val loading: Boolean = false,
+        val items: List<com.azza.core.model.SavedSearch> = emptyList(),
+        /** The last save: null, SAVED, LIMIT, FAILED. */
+        val saveResult: String? = null,
+        val failed: Boolean = false,
+    )
+
+    private val _saved = MutableStateFlow(SavedUi())
+    val saved: StateFlow<SavedUi> = _saved.asStateFlow()
+
+    private val _needsSignIn = kotlinx.coroutines.channels.Channel<Unit>(kotlinx.coroutines.channels.Channel.CONFLATED)
+    /** Saving or listing searches needs an account. */
+    val needsSignIn = _needsSignIn.receiveAsFlow()
+
+    /** Saves the query, the applied filters and the first chosen city, under [label] (or a default). */
+    fun saveSearch(defaultLabel: String) = viewModelScope.launch {
+        if (!auth.isSignedIn.first()) return@launch _needsSignIn.send(Unit)
+        val f = _filters.value
+        val q = _active.value.takeIf { it.length >= MIN_QUERY_LENGTH }
+        val city = if (_scope.value == ExploreScope.CITY) cities.value.firstOrNull()?.id else null
+        val rial = { t: String -> com.azza.core.model.SchemaRules.toLatinDigits(t).replace(Regex("[,٬]"), "").toDoubleOrNull()
+            ?.let { com.azza.core.model.Money.tomanToRial(it).toLong() } }
+        val result = savedSearches.save(
+            label = q ?: f.categoryName?.fa?.takeIf { it.isNotBlank() } ?: defaultLabel,
+            query = q,
+            categoryId = f.categoryId,
+            listingType = f.listingType,
+            cityId = city,
+            minPrice = f.priceMin.trim().ifBlank { null }?.let(rial),
+            maxPrice = f.priceMax.trim().ifBlank { null }?.let(rial),
+            condition = f.condition?.name,
+            attrsJson = f.attrs.takeIf { it.isNotEmpty() }?.let { com.azza.core.data.attrsJson(it) },
+        )
+        _saved.update {
+            it.copy(
+                saveResult = when {
+                    result is Outcome.Success -> "SAVED"
+                    ((result as? Outcome.Failure)?.error as? com.azza.core.common.AppError.Api)?.code == "SAVED_SEARCH_LIMIT" -> "LIMIT"
+                    else -> "FAILED"
+                },
+            )
+        }
+    }
+
+    fun clearSaveResult() = _saved.update { it.copy(saveResult = null) }
+
+    fun openSaved() = viewModelScope.launch {
+        if (!auth.isSignedIn.first()) return@launch _needsSignIn.send(Unit)
+        _saved.update { it.copy(open = true, loading = true, failed = false) }
+        when (val r = savedSearches.list()) {
+            is Outcome.Success -> _saved.update { it.copy(loading = false, items = r.value) }
+            is Outcome.Failure -> _saved.update { it.copy(loading = false, failed = true) }
+        }
+    }
+
+    fun closeSaved() = _saved.update { it.copy(open = false) }
+
+    fun setSavedNotify(id: String, notify: Boolean) = viewModelScope.launch {
+        if (savedSearches.setNotify(id, notify) is Outcome.Success) {
+            _saved.update { s -> s.copy(items = s.items.map { if (it.id == id) it.copy(notify = notify) else it }) }
+        }
+    }
+
+    fun removeSaved(id: String) = viewModelScope.launch {
+        if (savedSearches.remove(id) is Outcome.Success) _saved.update { s -> s.copy(items = s.items.filter { it.id != id }) }
+    }
+
+    /** Opens a saved search: its query and filters (prices back to toman). Its city is not re-chosen. */
+    fun applySaved(s: com.azza.core.model.SavedSearch) {
+        val toman = { rial: Long -> (rial / com.azza.core.model.Money.RIAL_PER_TOMAN).toString() }
+        _saved.update { it.copy(open = false) }
+        _query.value = s.query.orEmpty()
+        applyFilters(
+            SearchFilters(
+                categoryId = s.categoryId,
+                categoryName = null,
+                condition = s.condition?.let { c -> runCatching { ItemCondition.valueOf(c) }.getOrNull() },
+                priceMin = s.minPrice?.let(toman).orEmpty(),
+                priceMax = s.maxPrice?.let(toman).orEmpty(),
+                listingType = s.listingType,
+                attrs = com.azza.core.data.parseAttrsJson(s.attrsJson),
+            ),
+        )
     }
 
     private fun pagerFor(tab: SearchTab): CursorPager<*> = when (tab) {

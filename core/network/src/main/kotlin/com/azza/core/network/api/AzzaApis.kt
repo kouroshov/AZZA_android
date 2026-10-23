@@ -114,6 +114,14 @@ interface DiscoveryApi {
         @Query("take") take: Int = 20,
         @Query("categoryId") categoryId: String? = null,
         @Query("q") query: String? = null,
+        // ✅ (2026-10-23) the filters search does not have: the kind of ad,
+        // and a category's own fields (a JSON object, attribute-filter.ts).
+        @Query("listingType") listingType: String? = null,
+        @Query("attrs") attrs: String? = null,
+        @Query("minPrice") minPrice: Long? = null,
+        @Query("maxPrice") maxPrice: Long? = null,
+        @Query("condition") condition: String? = null,
+        @Query("sort") sort: String? = null,
     ): ApiEnvelope<FeedPageDto>
 
     /** Posts from the people and stores the caller follows. Authenticated. */
@@ -129,10 +137,37 @@ interface DiscoveryApi {
     ): ApiEnvelope<FeedPageDto>
 }
 
+/** ✅ (2026-10-23) The caller's saved searches; another's id answers 404. */
+interface SavedSearchesApi {
+    @GET("saved-searches")
+    suspend fun list(): ApiEnvelope<List<com.azza.core.network.model.SavedSearchDto>>
+
+    @POST("saved-searches")
+    suspend fun create(@Body body: com.azza.core.network.model.CreateSavedSearchRequest): ApiEnvelope<com.azza.core.network.model.SavedSearchDto>
+
+    @retrofit2.http.PATCH("saved-searches/{id}")
+    suspend fun setNotify(@Path("id") id: String, @Body body: com.azza.core.network.model.SavedSearchNotifyRequest): ApiEnvelope<kotlinx.serialization.json.JsonObject>
+
+    @DELETE("saved-searches/{id}")
+    suspend fun remove(@Path("id") id: String): ApiEnvelope<kotlinx.serialization.json.JsonObject>
+}
+
 interface ProductsApi {
     /** ✅ (2026-10-23) «اطلاعات تماس»: the number a listing shows; signed in, counted, capped. */
     @POST("products/{id}/contact")
     suspend fun contact(@Path("id") id: String): ApiEnvelope<com.azza.core.network.model.ContactDto>
+
+    /** ✅ (2026-10-23) «تمدید»: another 30 days (from 7 days before the end, or once expired). */
+    @POST("products/{id}/renew")
+    suspend fun renew(@Path("id") id: String): ApiEnvelope<ProductDto>
+
+    /** ✅ (2026-10-23) «نردبان»: back to the top, once in 7 days. */
+    @POST("products/{id}/bump")
+    suspend fun bump(@Path("id") id: String): ApiEnvelope<ProductDto>
+
+    /** ✅ (2026-10-23) «آگهی‌های مشابه»: same category, a similar price. Public. */
+    @GET("products/{id}/similar")
+    suspend fun similar(@Path("id") id: String): ApiEnvelope<com.azza.core.network.model.SimilarProductsDto>
 
     @GET("products/{id}")
     suspend fun byId(

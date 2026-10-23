@@ -86,11 +86,11 @@ fun ProductPostCard(
             )
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    card.price.discounted(card.discountPercentage).format(),
+                    card.price.priceLabel(card.discountPercentage, card.priceNegotiable),
                     style = AzzaTextStyles.productPrice,
                     color = colors.textPrimary,
                 )
-                if ((card.discountPercentage ?: 0.0) > 0.0) {
+                if (!card.priceNegotiable && (card.discountPercentage ?: 0.0) > 0.0) {
                     Text(
                         card.price.format(),
                         style = AzzaTextStyles.productMeta,

@@ -237,6 +237,7 @@ fun AzzaApp(
                 onOpenAuthor = openAuthor,
                 onOpenMap = { navigateTab(navController, com.azza.feature.map.MapRoute(showBack = false)) },
                 onScan = { navController.navigate(com.azza.feature.search.FindByBarcodeRoute) },
+                onSignIn = signIn,
             )
             findByBarcodeScreen(
                 onBack = { navController.popBackStack() },
@@ -282,6 +283,8 @@ fun AzzaApp(
                     else navController.navigate(BasketRoute(tab = BasketTab.APPOINTMENTS.ordinal))
                 },
                 onOpenAuthor = openAuthor,
+                // ✅ (2026-10-23) «آگهی‌های مشابه».
+                onOpenProduct = openProduct,
                 // ✅ (2026-10-23) a property's "show on the map".
                 onShowOnMap = { id, place ->
                     navController.navigate(

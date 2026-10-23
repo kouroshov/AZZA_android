@@ -41,6 +41,8 @@ data class ListingDraft(
     val listingType: String? = null,
     /** ✅ (2026-10-23) Show my number («اطلاعات تماس»). */
     val showPhone: Boolean = true,
+    /** ✅ (2026-10-23) «توافقی»: no fixed price; the price is then sent as 0. */
+    val priceNegotiable: Boolean = false,
     /** Stores only; a personal listing's quantity is always 1, set by the server. */
     val quantity: String,
     val attributeValues: Map<String, Any>,
@@ -77,6 +79,7 @@ data class EditableListing(
     /** Null on a listing older than listing types. */
     val listingType: String? = null,
     val showPhone: Boolean = false,
+    val priceNegotiable: Boolean = false,
     /** Raw form values per slug: String, Boolean or List<String>. */
     val attributes: Map<String, Any>,
     val photos: List<ExistingPhoto>,

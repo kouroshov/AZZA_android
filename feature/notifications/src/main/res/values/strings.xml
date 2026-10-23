@@ -13,6 +13,9 @@
     <string name="n_type_report_reviewed">Report reviewed</string>
     <string name="n_type_listing_taken_down">Listing taken down</string>
     <string name="n_type_listing_restored">Listing restored</string>
+    <string name="n_type_listing_expired">Listing expired</string>
+    <string name="n_type_listing_approved">Listing published</string>
+    <string name="n_type_saved_search_match">New match</string>
     <string name="n_type_store_suspended">Store suspended</string>
     <string name="n_type_store_restored">Store restored</string>
     <string name="n_type_content_hidden">Something you wrote was hidden</string>
@@ -35,6 +38,9 @@
     <string name="n_text_report_reviewed_subject">Your report about %1$s has been reviewed. Thank you for telling us.</string>
     <string name="n_text_listing_taken_down">Your listing “%1$s” was taken down by moderation. Open it to see why, and to appeal.</string>
     <string name="n_text_listing_restored">Your listing “%1$s” is back on sale.</string>
+    <string name="n_text_listing_expired">Your listing “%1$s” has expired. Renew it to show it again.</string>
+    <string name="n_text_listing_approved">Your listing “%1$s” was reviewed and is now live.</string>
+    <string name="n_text_saved_search_match">A new listing matches your saved search “%1$s”.</string>
     <string name="n_text_store_suspended">Your store “%1$s” was suspended by moderation. Open it to see why, and to appeal.</string>
     <string name="n_text_store_restored">Your store “%1$s” is open again.</string>
     <string name="n_text_content_hidden">A review or comment of yours on “%1$s” was hidden by moderation.</string>

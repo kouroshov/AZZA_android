@@ -13,6 +13,9 @@
     <string name="n_type_report_reviewed">گزارش بررسی شد</string>
     <string name="n_type_listing_taken_down">آگهی برداشته شد</string>
     <string name="n_type_listing_restored">آگهی بازگردانده شد</string>
+    <string name="n_type_listing_expired">پایان مهلت آگهی</string>
+    <string name="n_type_listing_approved">انتشار آگهی</string>
+    <string name="n_type_saved_search_match">آگهی تازه</string>
     <string name="n_type_store_suspended">فروشگاه معلق شد</string>
     <string name="n_type_store_restored">فروشگاه بازگردانده شد</string>
     <string name="n_type_content_hidden">نوشته‌ای از شما پنهان شد</string>
@@ -35,6 +38,9 @@
     <string name="n_text_report_reviewed_subject">گزارش شما دربارهٔ %1$s بررسی شد. ممنون که به ما خبر دادید.</string>
     <string name="n_text_listing_taken_down">آگهی شما «%1$s» توسط نظارت برداشته شد. برای دیدن دلیل و اعتراض، آن را باز کنید.</string>
     <string name="n_text_listing_restored">آگهی شما «%1$s» دوباره در فروش است.</string>
+    <string name="n_text_listing_expired">مهلت آگهی «%1$s» تمام شد. برای نمایش دوباره، آن را تمدید کنید.</string>
+    <string name="n_text_listing_approved">آگهی «%1$s» بررسی و منتشر شد.</string>
+    <string name="n_text_saved_search_match">آگهی تازه‌ای با جست‌وجوی ذخیره‌شدهٔ «%1$s» جور است.</string>
     <string name="n_text_store_suspended">فروشگاه شما «%1$s» توسط نظارت معلق شد. برای دیدن دلیل و اعتراض، آن را باز کنید.</string>
     <string name="n_text_store_restored">فروشگاه شما «%1$s» دوباره باز است.</string>
     <string name="n_text_content_hidden">نظر یا دیدگاهی از شما زیر «%1$s» توسط نظارت پنهان شد.</string>

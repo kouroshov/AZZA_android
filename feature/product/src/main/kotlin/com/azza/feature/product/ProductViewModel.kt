@@ -43,6 +43,9 @@ sealed interface ProductEvent {
     data object SignInRequired : ProductEvent
     data object AddedToBasket : ProductEvent
     data class Failed(val error: AppError) : ProductEvent
+    /** ✅ (2026-10-23) «تمدید» / «نردبان» went through. */
+    data object Renewed : ProductEvent
+    data object Bumped : ProductEvent
 }
 
 @HiltViewModel
@@ -116,7 +119,10 @@ class ProductViewModel @Inject constructor(
         _state.value = ProductUiState.Loading
         viewModelScope.launch {
             _state.value = when (val result = fetch(route.source)) {
-                is Outcome.Success -> ProductUiState.Ready(result.value).also { loadAppeals(it.product) }
+                is Outcome.Success -> ProductUiState.Ready(result.value).also {
+                    loadAppeals(it.product)
+                    loadSimilar(it.product)
+                }
                 is Outcome.Failure -> ProductUiState.Failed(result.error)
             }
         }
@@ -140,6 +146,36 @@ class ProductViewModel @Inject constructor(
             (products.ownProduct(route.productId) as? Outcome.Success)?.let { return it }
         }
         return result
+    }
+
+    /** ✅ (2026-10-23) «آگهی‌های مشابه» — only under a live listing. */
+    private val _similar = MutableStateFlow<List<ProductDetail>>(emptyList())
+    val similar: StateFlow<List<ProductDetail>> = _similar.asStateFlow()
+
+    private fun loadSimilar(product: ProductDetail) {
+        if (product.status != "ACTIVE") return
+        viewModelScope.launch { (products.similar(product.id) as? Outcome.Success)?.let { _similar.value = it.value } }
+    }
+
+    /** ✅ (2026-10-23) The owner's «تمدید» / «نردبان»; the page then shows the listing as it now is. */
+    private val _lifecycleBusy = MutableStateFlow(false)
+    val lifecycleBusy: StateFlow<Boolean> = _lifecycleBusy.asStateFlow()
+
+    fun renew() = lifecycleAction(ProductEvent.Renewed) { products.renew(route.productId) }
+
+    fun bump() = lifecycleAction(ProductEvent.Bumped) { products.bump(route.productId) }
+
+    private fun lifecycleAction(done: ProductEvent, run: suspend () -> Outcome<ProductDetail>) = viewModelScope.launch {
+        if (_lifecycleBusy.value) return@launch
+        _lifecycleBusy.value = true
+        when (val r = run()) {
+            is Outcome.Success -> {
+                (fetch(null) as? Outcome.Success)?.let { _state.value = ProductUiState.Ready(it.value) }
+                _events.send(done)
+            }
+            is Outcome.Failure -> _events.send(ProductEvent.Failed(r.error))
+        }
+        _lifecycleBusy.value = false
     }
 
     private val _appeal = MutableStateFlow(AppealUi())

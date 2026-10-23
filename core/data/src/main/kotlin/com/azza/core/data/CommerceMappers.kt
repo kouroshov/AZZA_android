@@ -136,6 +136,7 @@ internal fun SearchProductDto.toModel(media: MediaUrlResolver) = SearchProduct(
     storeName = storeName,
     cityName = cityName,
     availability = runCatching { Availability.valueOf(availability) }.getOrDefault(Availability.UNKNOWN),
+    priceNegotiable = priceNegotiable,
 )
 
 internal fun SearchUserDto.toModel(media: MediaUrlResolver) =

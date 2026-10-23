@@ -199,13 +199,26 @@ fun CreateListingScreen(onPosted: (String) -> Unit, onDeleted: () -> Unit, viewM
             singleLine = false, error = (FormError.DESCRIPTION in state.formErrors).then(R.string.create_error_description))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             // A job ad or a giveaway has no price at all; a "wanted" ad may state a budget.
-            if (state.priceMode != "NONE") {
+            if (state.priceMode != "NONE" && !state.priceNegotiable) {
                 Field(state.price, { v -> viewModel.edit { copy(price = v, formErrors = formErrors - FormError.PRICE) } },
                     if (state.priceMode == "OPTIONAL") R.string.create_price_optional else R.string.create_price,
                     type = KeyboardType.Decimal, modifier = Modifier.weight(1f), error = (FormError.PRICE in state.formErrors).then(R.string.create_error_price))
             }
             Field(state.discount, { v -> viewModel.edit { copy(discount = v, formErrors = formErrors - FormError.DISCOUNT) } }, R.string.create_discount,
                 type = KeyboardType.Decimal, modifier = Modifier.weight(1f), error = (FormError.DISCOUNT in state.formErrors).then(R.string.create_error_discount))
+        }
+        // ✅ (2026-10-23) «توافقی» — no fixed price, agreed with the buyer (Divar).
+        if (state.priceMode != "NONE") {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.create_negotiable), style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.create_negotiable_hint), style = MaterialTheme.typography.bodySmall, color = AzzaTheme.colors.textMuted)
+                }
+                androidx.compose.material3.Switch(
+                    checked = state.priceNegotiable,
+                    onCheckedChange = { on -> viewModel.edit { copy(priceNegotiable = on, formErrors = formErrors - FormError.PRICE) } },
+                )
+            }
         }
         // ✅ (2026-10-23) «اطلاعات تماس» — Divar's per-listing choice.
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {

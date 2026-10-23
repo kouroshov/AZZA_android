@@ -139,7 +139,7 @@ private fun PostSquare(tile: PostTile, modifier: Modifier, selected: Boolean? = 
             )
         }
         Text(
-            tile.price.discounted(tile.discountPercentage).format(),
+            tile.price.priceLabel(tile.discountPercentage, tile.priceNegotiable),
             style = AzzaTextStyles.productMeta,
             fontWeight = FontWeight.Bold,
             color = Color.White,

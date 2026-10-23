@@ -82,4 +82,23 @@
     <string name="product_contact_warning">پێش بینینی کاڵا یان موڵک لە نزیکەوە، هیچ پێشەکییەک مەدە.</string>
     <string name="product_contact_hidden">ئەم ڕیکلامە ژمارەی تەلەفۆن پیشان نادات.</string>
     <string name="product_contact_limit">ئەمڕۆ ژمارەی زۆرت بینیوە. سبەینێ هەوڵ بدەرەوە.</string>
+    <string name="owner_pending_title">چاوەڕێی پشکنین</string>
+    <string name="owner_pending_note">ڕیکلامی وەک ئەمە پێش بڵاوبوونەوە دەپشکنرێن. دوای بڵاوبوونەوە ئاگادارت دەکەینەوە.</string>
+    <string name="owner_expired">ماوەی ئەم ڕیکلامە تەواو بووە و ئیتر نیشان نادرێت.</string>
+    <string name="owner_live">ئەم ڕیکلامە بڵاو کراوەتەوە.</string>
+    <string name="owner_ends_today">ئەمڕۆ تەواو دەبێت</string>
+    <plurals name="owner_days_left">
+        <item quantity="one">%d ڕۆژ ماوە</item>
+        <item quantity="other">%d ڕۆژ ماوە</item>
+    </plurals>
+    <string name="owner_renew">نوێکردنەوە بۆ ٣٠ ڕۆژ</string>
+    <string name="owner_bump">بەرزکردنەوە</string>
+    <string name="owner_bump_hint">هەفتەی جارێک بەخۆڕایی: ڕیکلامەکەت دەچێتەوە سەرەوەی لیستەکان.</string>
+    <string name="owner_next_bump">دەتوانیت لە %1$s دووبارە بەرزی بکەیتەوە.</string>
+    <string name="owner_renewed">ڕیکلامەکە بۆ ٣٠ ڕۆژ نوێ کرایەوە.</string>
+    <string name="owner_bumped">ڕیکلامەکە چووە سەرەوە.</string>
+    <string name="owner_bump_too_soon">ئەم ڕیکلامە تازە بەرز کراوەتەوە.</string>
+    <string name="owner_renew_too_early">ئەم ڕیکلامە هێشتا پێویستی بە نوێکردنەوە نییە.</string>
+    <string name="product_similar">ڕیکلامی هاوشێوە</string>
+    <string name="product_verified">پشتڕاستکراوە</string>
 </resources>

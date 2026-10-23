@@ -21,13 +21,22 @@ class PriceFormatTest {
     }
 
     @Test
-    fun `whole amounts print without decimals, grouped like the web`() {
-        assertThat(Money(1_250_000_00, "IRR").format(Locale.US)).isEqualTo("$1,250,000")
+    fun `prints toman, the rial amount over ten, grouped`() {
+        // 1,250,000 rial = 125,000 toman (2026-10-23: toman everywhere, as on the web).
+        assertThat(Money(1_250_000_00, "IRR").format(Locale.US)).isEqualTo("125,000 toman")
     }
 
     @Test
-    fun `fractional amounts keep two decimals`() {
-        assertThat(Money(1_234_56, "USD").format(Locale.US)).isEqualTo("$1,234.56")
+    fun `rounds to the nearest toman`() {
+        assertThat(Money(1_234_56, "IRR").format(Locale.US)).isEqualTo("123 toman")
+    }
+
+    @Test
+    fun `a negotiable listing says so instead of a price`() {
+        val price = Money(0, "IRR")
+        assertThat(price.priceLabel(null, negotiable = true, Locale("fa"))).isEqualTo("توافقی")
+        assertThat(price.priceLabel(null, negotiable = true, Locale.US)).isEqualTo("Negotiable")
+        assertThat(Money(1_000_00, "IRR").priceLabel(10.0, negotiable = false, Locale.US)).isEqualTo("90 toman")
     }
 
     @Test

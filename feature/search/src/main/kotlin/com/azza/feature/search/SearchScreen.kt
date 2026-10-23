@@ -22,6 +22,8 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Button
 import androidx.compose.material3.AssistChip
 import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material.icons.outlined.BookmarkAdd
+import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.ChevronRight
@@ -100,6 +102,7 @@ import com.azza.core.ui.LoadMoreEffect
 import com.azza.core.ui.LoadingState
 import com.azza.core.ui.handle
 import com.azza.core.ui.discounted
+import com.azza.core.ui.priceLabel
 import com.azza.core.ui.format
 import com.azza.core.ui.loadingMoreFooter
 import kotlinx.serialization.Serializable
@@ -114,8 +117,9 @@ fun NavGraphBuilder.searchScreen(
     onOpenAuthor: (PostAuthor) -> Unit,
     onOpenMap: () -> Unit,
     onScan: () -> Unit,
+    onSignIn: () -> Unit = {},
 ) {
-    composable<SearchRoute> { SearchScreen(onOpenProduct, onOpenUser, onOpenStore, onOpenAuthor, onOpenMap, onScan) }
+    composable<SearchRoute> { SearchScreen(onOpenProduct, onOpenUser, onOpenStore, onOpenAuthor, onOpenMap, onScan, onSignIn) }
 }
 
 @Composable
@@ -126,8 +130,11 @@ fun SearchScreen(
     onOpenAuthor: (PostAuthor) -> Unit,
     onOpenMap: () -> Unit,
     onScan: () -> Unit,
+    onSignIn: () -> Unit = {},
     viewModel: SearchViewModel = hiltViewModel(),
 ) {
+    val saved by viewModel.saved.collectAsStateWithLifecycle()
+    androidx.compose.runtime.LaunchedEffect(viewModel) { viewModel.needsSignIn.collect { onSignIn() } }
     val query by viewModel.query.collectAsStateWithLifecycle()
     val active by viewModel.activeQuery.collectAsStateWithLifecycle()
     val tab by viewModel.tab.collectAsStateWithLifecycle()
@@ -141,6 +148,7 @@ fun SearchScreen(
     if (picker.open) CityPickerDialog(picker, viewModel)
     if (categories.open) CategoryBrowserDialog(categories, viewModel)
     if (filtersOpen) FiltersSheet(filters, viewModel, onDismiss = { filtersOpen = false })
+    if (saved.open) SavedSearchesSheet(saved, viewModel)
 
     Column(Modifier.fillMaxSize()) {
         OutlinedTextField(
@@ -220,8 +228,25 @@ private fun FilterBar(filters: SearchFilters, viewModel: SearchViewModel, onOpen
             label = { Text(if (filters.isEmpty) stringResource(R.string.filters) else stringResource(R.string.filters_count, filters.count)) },
             leadingIcon = { Icon(Icons.Outlined.Tune, null, Modifier.size(18.dp)) },
         )
-        filters.categoryName?.let { name ->
-            InputChip(selected = true, onClick = { viewModel.chooseCategory(null, null) }, label = { Text(name.forLanguage(language)) }, trailingIcon = { Icon(Icons.Outlined.Close, stringResource(R.string.filters_remove), Modifier.size(16.dp)) })
+        filters.categoryId?.let {
+            val name = filters.categoryName?.forLanguage(language) ?: stringResource(R.string.filters_category)
+            InputChip(selected = true, onClick = { viewModel.chooseCategory(null, null) }, label = { Text(name) }, trailingIcon = { Icon(Icons.Outlined.Close, stringResource(R.string.filters_remove), Modifier.size(16.dp)) })
+        }
+        filters.listingType?.let { code ->
+            InputChip(
+                selected = true,
+                onClick = { viewModel.applyFilters(filters.copy(listingType = null, listingTypeName = null)) },
+                label = { Text(filters.listingTypeName?.forLanguage(language) ?: code) },
+                trailingIcon = { Icon(Icons.Outlined.Close, stringResource(R.string.filters_remove), Modifier.size(16.dp)) },
+            )
+        }
+        if (filters.attrs.isNotEmpty()) {
+            InputChip(
+                selected = true,
+                onClick = { viewModel.applyFilters(filters.copy(attrs = emptyMap())) },
+                label = { Text(pluralStringResource(R.plurals.filters_fields_chip, filters.attrs.size, filters.attrs.size)) },
+                trailingIcon = { Icon(Icons.Outlined.Close, stringResource(R.string.filters_remove), Modifier.size(16.dp)) },
+            )
         }
         filters.condition?.let { c ->
             InputChip(selected = true, onClick = { viewModel.setCondition(null) }, label = { Text(stringResource(c.label())) }, trailingIcon = { Icon(Icons.Outlined.Close, stringResource(R.string.filters_remove), Modifier.size(16.dp)) })
@@ -238,6 +263,31 @@ private fun FilterBar(filters: SearchFilters, viewModel: SearchViewModel, onOpen
             )
         }
         if (!filters.isEmpty) TextButton(onClick = viewModel::clearFilters) { Text(stringResource(R.string.filters_clear)) }
+        // ✅ (2026-10-23) keep this search, with an alert for new listings.
+        val saveState by viewModel.saved.collectAsStateWithLifecycle()
+        val defaultLabel = stringResource(R.string.saved_default_label)
+        AssistChip(
+            onClick = { viewModel.saveSearch(defaultLabel) },
+            enabled = saveState.saveResult != "SAVED",
+            label = {
+                Text(
+                    stringResource(
+                        when (saveState.saveResult) {
+                            "SAVED" -> R.string.saved_done
+                            "LIMIT" -> R.string.saved_limit
+                            "FAILED" -> R.string.saved_save_failed
+                            else -> R.string.saved_save
+                        },
+                    ),
+                )
+            },
+            leadingIcon = { Icon(Icons.Outlined.BookmarkAdd, null, Modifier.size(18.dp)) },
+        )
+        AssistChip(
+            onClick = viewModel::openSaved,
+            label = { Text(stringResource(R.string.saved_title)) },
+            leadingIcon = { Icon(Icons.Outlined.Bookmarks, null, Modifier.size(18.dp)) },
+        )
         state.total?.takeIf { !state.loadingFirst }?.let {
             Text(pluralStringResource(R.plurals.search_result_count, it, it), color = AzzaTheme.colors.textMuted, style = MaterialTheme.typography.bodySmall)
         }
@@ -252,6 +302,10 @@ private fun FiltersSheet(current: SearchFilters, viewModel: SearchViewModel, onD
     var availability by remember { mutableStateOf(current.availability) }
     var priceMin by remember { mutableStateOf(current.priceMin) }
     var priceMax by remember { mutableStateOf(current.priceMax) }
+    var listingType by remember { mutableStateOf(current.listingType) }
+    var attrs by remember { mutableStateOf(current.attrs) }
+    val schema by viewModel.schema.collectAsStateWithLifecycle()
+    androidx.compose.runtime.LaunchedEffect(current.categoryId, listingType) { viewModel.loadSchema(current.categoryId, listingType) }
     val digits = { s: String -> s.filter { it.isDigit() || it == '.' } }
     val badRange = priceMin.toDoubleOrNull() != null && priceMax.toDoubleOrNull() != null && priceMin.toDouble() > priceMax.toDouble()
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
@@ -267,11 +321,25 @@ private fun FiltersSheet(current: SearchFilters, viewModel: SearchViewModel, onD
                 Icon(Icons.Outlined.ChevronRight, null)
             }
 
-            Text(stringResource(R.string.filters_condition), style = MaterialTheme.typography.labelLarge)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(selected = condition == null, onClick = { condition = null }, label = { Text(stringResource(R.string.filters_any)) })
-                ItemCondition.entries.forEach { c ->
-                    FilterChip(selected = condition == c, onClick = { condition = c }, label = { Text(stringResource(c.label())) })
+            // ✅ (2026-10-23) the category's kinds of ad and its own fields.
+            schema?.takeIf { it.categoryId == current.categoryId }?.let { sc ->
+                FieldFilters(
+                    schema = sc,
+                    listingType = listingType,
+                    onListingType = { listingType = it },
+                    attrs = attrs,
+                    onAttr = { slug, f -> attrs = if (f == null) attrs - slug else attrs + (slug to f) },
+                )
+            }
+
+            // «New / Used» only where the category asks it (not land, a job…).
+            if (schema?.takeIf { it.categoryId == current.categoryId }?.usesCondition != false) {
+                Text(stringResource(R.string.filters_condition), style = MaterialTheme.typography.labelLarge)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(selected = condition == null, onClick = { condition = null }, label = { Text(stringResource(R.string.filters_any)) })
+                    ItemCondition.entries.forEach { c ->
+                        FilterChip(selected = condition == c, onClick = { condition = c }, label = { Text(stringResource(c.label())) })
+                    }
                 }
             }
 
@@ -313,7 +381,18 @@ private fun FiltersSheet(current: SearchFilters, viewModel: SearchViewModel, onD
                 Button(
                     enabled = !badRange,
                     onClick = {
-                        viewModel.applyFilters(current.copy(condition = condition, availability = availability, priceMin = priceMin.trim(), priceMax = priceMax.trim()))
+                        val typeName = schema?.allowedListingTypes?.firstOrNull { it.code == listingType }?.name
+                        viewModel.applyFilters(
+                            current.copy(
+                                condition = condition,
+                                availability = availability,
+                                priceMin = priceMin.trim(),
+                                priceMax = priceMax.trim(),
+                                listingType = listingType,
+                                listingTypeName = typeName,
+                                attrs = attrs,
+                            ),
+                        )
                         onDismiss()
                     },
                     modifier = Modifier.weight(1f),
@@ -456,6 +535,11 @@ private fun ExploreFeed(
             onClick = onOpenFilters,
             label = { Text(stringResource(R.string.filters)) },
             leadingIcon = { Icon(Icons.Outlined.Tune, null, Modifier.size(18.dp)) },
+        )
+        AssistChip(
+            onClick = viewModel::openSaved,
+            label = { Text(stringResource(R.string.saved_title)) },
+            leadingIcon = { Icon(Icons.Outlined.Bookmarks, null, Modifier.size(18.dp)) },
         )
     }
     when {
@@ -658,8 +742,8 @@ private fun ProductRow(product: SearchProduct, onOpen: () -> Unit) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(product.title, style = AzzaTextStyles.productTitle, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(product.price.discounted(product.discountPercentage).format(), style = MaterialTheme.typography.titleSmall)
-                if ((product.discountPercentage ?: 0.0) > 0) {
+                Text(product.price.priceLabel(product.discountPercentage, product.priceNegotiable), style = MaterialTheme.typography.titleSmall)
+                if (!product.priceNegotiable && (product.discountPercentage ?: 0.0) > 0) {
                     Text(product.price.format(), color = colors.textMuted, style = AzzaTextStyles.productMeta, textDecoration = TextDecoration.LineThrough)
                 }
             }

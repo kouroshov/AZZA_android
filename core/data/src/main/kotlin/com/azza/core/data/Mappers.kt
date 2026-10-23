@@ -50,6 +50,7 @@ internal fun FeedCardDto.toModel(media: MediaUrlResolver) = ProductCard(
     availability = runCatching { Availability.valueOf(availability) }.getOrDefault(Availability.UNKNOWN),
     favoriteCount = favoriteCount,
     viewCount = viewCount,
+    priceNegotiable = priceNegotiable,
 )
 
 internal fun ProductDto.toModel(media: MediaUrlResolver) = ProductDetail(
@@ -88,6 +89,10 @@ internal fun ProductDto.toModel(media: MediaUrlResolver) = ProductDetail(
     },
     purchasable = purchasable,
     contactAvailable = contactAvailable,
+    priceNegotiable = priceNegotiable,
+    expiresAt = expiresAt,
+    bumpedAt = bumpedAt,
+    storeVerified = store?.verificationStatus == "VERIFIED",
     place = parcel?.let { p ->
         val lat = p.latitude ?: return@let null
         val lng = p.longitude ?: return@let null

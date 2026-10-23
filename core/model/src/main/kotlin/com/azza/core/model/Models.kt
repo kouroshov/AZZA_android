@@ -40,6 +40,8 @@ data class ProductCard(
     val availability: Availability,
     val favoriteCount: Int,
     val viewCount: Int,
+    /** ✅ (2026-10-23) «توافقی» instead of a price. */
+    val priceNegotiable: Boolean = false,
 )
 
 data class ProductDetail(
@@ -78,6 +80,30 @@ data class ProductDetail(
     val place: ProductPlace? = null,
     /** ✅ (2026-10-23) «اطلاعات تماس» has a number behind it. */
     val contactAvailable: Boolean = false,
+    /** ✅ (2026-10-23) «توافقی»; the 30-day end; the last «نردبان» (ISO instants). */
+    val priceNegotiable: Boolean = false,
+    val expiresAt: String? = null,
+    val bumpedAt: String? = null,
+    /** ✅ (2026-10-23) a store's post whose store carries the «تأییدشده» badge. */
+    val storeVerified: Boolean = false,
+)
+
+/** ✅ (2026-10-23) A saved search: its name, its filters as apps/api keeps them, alerts on or off. */
+data class SavedSearch(
+    val id: String,
+    val label: String,
+    val query: String?,
+    val categoryId: String?,
+    val listingType: String?,
+    val cityId: String?,
+    /** Rial major units, as stored. */
+    val minPrice: Long?,
+    val maxPrice: Long?,
+    val condition: String?,
+    /** The category's own fields, as JSON text (exploreFilters.ts's shape). */
+    val attrsJson: String?,
+    val notify: Boolean,
+    val createdAt: String,
 )
 
 /** ✅ (2026-10-23) The number a listing shows, and who answers it. */

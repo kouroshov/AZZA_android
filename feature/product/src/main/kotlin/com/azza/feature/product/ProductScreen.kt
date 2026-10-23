@@ -31,6 +31,7 @@ import android.content.Context
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.TextButton
@@ -89,6 +90,7 @@ import com.azza.core.model.ProductDetail
 import com.azza.core.ui.ErrorState
 import com.azza.core.ui.LoadingState
 import com.azza.core.ui.discounted
+import com.azza.core.ui.priceLabel
 import com.azza.core.ui.format
 import kotlinx.serialization.Serializable
 
@@ -108,6 +110,7 @@ fun NavGraphBuilder.productScreen(
     onOpenTimetable: (storeId: String?) -> Unit,
     onOpenAuthor: (PostAuthor) -> Unit,
     onShowOnMap: (productId: String, place: ProductPlace) -> Unit = { _, _ -> },
+    onOpenProduct: (String) -> Unit = {},
 ) {
     composable<ProductRoute> {
         androidx.compose.runtime.CompositionLocalProvider(LocalOpenAuthor provides onOpenAuthor) {
@@ -120,6 +123,7 @@ fun NavGraphBuilder.productScreen(
             onBookingSettings = onBookingSettings,
             onOpenTimetable = onOpenTimetable,
             onShowOnMap = onShowOnMap,
+            onOpenProduct = onOpenProduct,
         )
         }
     }
@@ -135,8 +139,15 @@ fun ProductScreen(
     onBookingSettings: (String) -> Unit,
     onOpenTimetable: (storeId: String?) -> Unit,
     onShowOnMap: (productId: String, place: ProductPlace) -> Unit = { _, _ -> },
+    onOpenProduct: (String) -> Unit = {},
     viewModel: ProductViewModel = hiltViewModel(),
 ) {
+    val similar by viewModel.similar.collectAsStateWithLifecycle()
+    val lifecycleBusy by viewModel.lifecycleBusy.collectAsStateWithLifecycle()
+    val renewed = stringResource(R.string.owner_renewed)
+    val bumped = stringResource(R.string.owner_bumped)
+    val bumpTooSoon = stringResource(R.string.owner_bump_too_soon)
+    val renewTooEarly = stringResource(R.string.owner_renew_too_early)
     val state by viewModel.state.collectAsStateWithLifecycle()
     val isFavorite by viewModel.isFavorite.collectAsStateWithLifecycle()
     val adding by viewModel.adding.collectAsStateWithLifecycle()
@@ -168,7 +179,15 @@ fun ProductScreen(
                     if (snackbar.showSnackbar(added, actionLabel = viewBasket, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) {
                         onOpenBasket()
                     }
-                is ProductEvent.Failed -> snackbar.showSnackbar(errorText(context, event.error))
+                is ProductEvent.Failed -> snackbar.showSnackbar(
+                    when ((event.error as? com.azza.core.common.AppError.Api)?.code) {
+                        "BUMP_TOO_SOON" -> bumpTooSoon
+                        "RENEW_TOO_EARLY" -> renewTooEarly
+                        else -> errorText(context, event.error)
+                    },
+                )
+                ProductEvent.Renewed -> snackbar.showSnackbar(renewed)
+                ProductEvent.Bumped -> snackbar.showSnackbar(bumped)
             }
         }
     }
@@ -304,6 +323,7 @@ fun ProductScreen(
                 is ProductUiState.Ready -> ProductBody(s.product, onShowOnMap = { place -> onShowOnMap(s.product.id, place) }, top = {
                     if (isMine) {
                         OwnerStatus(s.product, appeal, viewModel::appeal)
+                        OwnerLifecycle(s.product, lifecycleBusy, onRenew = viewModel::renew, onBump = viewModel::bump)
                         // A timed service's own settings (length, gaps, notice, deposit); the week is the store's timetable.
                         if (s.product.offeringKind == OfferingKind.BOOKABLE && s.product.hold == null) {
                             Row(Modifier.padding(horizontal = 12.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -338,6 +358,7 @@ fun ProductScreen(
                     if (s.product.offeringKind == OfferingKind.BOOKABLE && !isMine) {
                         BookingPanel(onRequireSignIn = onRequireSignIn, onOpenAppointments = onOpenAppointments)
                     }
+                    SimilarListings(similar, onOpen = onOpenProduct)
                 }
             }
         }
@@ -394,7 +415,18 @@ private fun ProductBody(
                 ) {
                     com.azza.core.ui.Avatar(url = author.avatarUrl, isStore = author.isStore, size = 36)
                     Column(Modifier.weight(1f)) {
-                        Text(product.authorName ?: author.handle, style = MaterialTheme.typography.titleSmall, color = colors.textPrimary)
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(product.authorName ?: author.handle, style = MaterialTheme.typography.titleSmall, color = colors.textPrimary)
+                            // ✅ (2026-10-23) the «تأییدشده» badge an admin gives a store or agency.
+                            if (author.isStore && product.storeVerified) {
+                                Icon(
+                                    Icons.Filled.Verified,
+                                    contentDescription = stringResource(R.string.product_verified),
+                                    tint = colors.primary,
+                                    modifier = Modifier.size(16.dp),
+                                )
+                            }
+                        }
                         Text(com.azza.core.ui.handle(author.handle), style = MaterialTheme.typography.bodySmall, color = colors.textMuted)
                     }
                     Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = colors.textMuted)
@@ -413,11 +445,11 @@ private fun ProductBody(
             }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
-                    product.price.discounted(product.discountPercentage).format(),
+                    product.price.priceLabel(product.discountPercentage, product.priceNegotiable),
                     style = AzzaTextStyles.productPrice,
                     color = colors.textPrimary,
                 )
-                if ((product.discountPercentage ?: 0.0) > 0.0) {
+                if (!product.priceNegotiable && (product.discountPercentage ?: 0.0) > 0.0) {
                     Text(
                         product.price.format(),
                         style = AzzaTextStyles.productMeta,

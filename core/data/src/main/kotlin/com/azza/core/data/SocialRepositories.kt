@@ -95,6 +95,7 @@ class ProfilesRepository @Inject constructor(
         discountPercentage = discountPercentage,
         status = status,
         barcode = barcode,
+        priceNegotiable = priceNegotiable,
     )
 }
 
