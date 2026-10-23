@@ -289,6 +289,28 @@ interface SocialApi {
 
     @GET("users/me/favorites")
     suspend fun favorites(@Query("cursor") cursor: String?, @Query("take") take: Int = 60): ApiEnvelope<FavoritesPageDto>
+
+    // ✅ (2026-10-23) a listing's comments and reviews.
+    @GET("products/{id}/comments")
+    suspend fun comments(@Path("id") productId: String): ApiEnvelope<List<com.azza.core.network.model.CommentDto>>
+
+    @POST("products/{id}/comments")
+    suspend fun addComment(@Path("id") productId: String, @Body body: com.azza.core.network.model.CreateCommentRequest): ApiEnvelope<com.azza.core.network.model.CreatedIdDto>
+
+    @DELETE("comments/{id}")
+    suspend fun deleteComment(@Path("id") commentId: String)
+
+    @GET("products/{id}/reviews")
+    suspend fun reviews(@Path("id") productId: String): ApiEnvelope<List<com.azza.core.network.model.ReviewDto>>
+
+    @GET("products/{id}/reviews/summary")
+    suspend fun reviewSummary(@Path("id") productId: String): ApiEnvelope<com.azza.core.network.model.ReviewSummaryDto>
+
+    @GET("products/{id}/reviews/eligibility")
+    suspend fun reviewEligibility(@Path("id") productId: String): ApiEnvelope<com.azza.core.network.model.ReviewEligibilityDto>
+
+    @POST("products/{id}/reviews")
+    suspend fun addReview(@Path("id") productId: String, @Body body: com.azza.core.network.model.CreateReviewRequest): ApiEnvelope<com.azza.core.network.model.CreatedIdDto>
 }
 
 interface NotificationsApi {

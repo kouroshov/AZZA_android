@@ -100,4 +100,34 @@
     <string name="owner_renew_too_early">این آگهی هنوز نیازی به تمدید ندارد.</string>
     <string name="product_similar">آگهی‌های مشابه</string>
     <string name="product_verified">تأییدشده</string>
+    <string name="discussion_title">نظرها و دیدگاه‌ها</string>
+    <string name="discussion_no_reviews">هنوز امتیازی ثبت نشده</string>
+    <plurals name="discussion_review_count">
+        <item quantity="one">%d امتیاز</item>
+        <item quantity="other">%d امتیاز</item>
+    </plurals>
+    <plurals name="discussion_comment_count">
+        <item quantity="one">%d دیدگاه</item>
+        <item quantity="other">%d دیدگاه</item>
+    </plurals>
+    <plurals name="discussion_stars">
+        <item quantity="one">%d ستاره</item>
+        <item quantity="other">%d ستاره</item>
+    </plurals>
+    <string name="discussion_review_prompt">این را خریده‌اید. چطور بود؟</string>
+    <string name="discussion_review_title">عنوان (اختیاری)</string>
+    <string name="discussion_review_body">خریداران دیگر چه چیزی بدانند؟ (اختیاری)</string>
+    <string name="discussion_send_review">ثبت نظر</string>
+    <string name="discussion_review_thanks">سپاس — نظر شما ثبت شد.</string>
+    <string name="discussion_bought">خریدار</string>
+    <string name="discussion_comments">دیدگاه‌ها</string>
+    <string name="discussion_no_comments">هنوز دیدگاهی نیست. از آگهی‌دهنده سؤال بپرسید.</string>
+    <string name="discussion_reply">پاسخ</string>
+    <string name="discussion_delete">حذف</string>
+    <string name="discussion_seller">آگهی‌دهنده</string>
+    <string name="discussion_replying_to">در پاسخ به %1$s</string>
+    <string name="discussion_cancel">انصراف</string>
+    <string name="discussion_comment_placeholder">دیدگاه یا سؤالتان را بنویسید…</string>
+    <string name="discussion_sign_in">برای نوشتن دیدگاه وارد شوید</string>
+    <string name="discussion_send">ارسال</string>
 </resources>

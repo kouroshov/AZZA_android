@@ -81,4 +81,5 @@
     <string name="create_show_phone_hint">کاربرانی که وارد شده‌اند با زدن «اطلاعات تماس» آن را می‌بینند.</string>
     <string name="create_negotiable">قیمت توافقی</string>
     <string name="create_negotiable_hint">بدون قیمت ثابت: خریدار با شما توافق می‌کند. از راه سبد خرید خریده نمی‌شود.</string>
+    <string name="create_area_mismatch">متراژی که نوشته‌اید (%1$s) با مساحت مرزی که کشیده‌اید (%2$s) فاصلهٔ زیادی دارد. پیش از ثبت، هر دو را بررسی کنید.</string>
 </resources>

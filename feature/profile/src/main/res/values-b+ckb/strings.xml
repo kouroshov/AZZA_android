@@ -16,7 +16,7 @@
     <string name="profile_following">شوێنکەوتووەکان</string>
     <string name="profile_back">گەڕانەوە</string>
     <string name="profile_user_not_found">ئەم پرۆفایلە بوونی نییە.</string>
-    <string name="profile_store_not_found">Store not found</string>
+    <string name="profile_store_not_found">فرۆشگا نەدۆزرایەوە</string>
     <string name="profile_store_open">ئێستا کراوەیە</string>
     <string name="profile_store_closed">ئێستا داخراوە</string>
     <plurals name="profile_followers">

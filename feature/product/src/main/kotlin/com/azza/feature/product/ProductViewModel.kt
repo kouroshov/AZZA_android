@@ -59,8 +59,13 @@ class ProductViewModel @Inject constructor(
     private val appealsRepository: AppealsRepository,
     private val basketOptions: BasketOptions,
     private val stores: com.azza.core.data.StoresRepository,
+    private val discussionRepository: com.azza.core.data.DiscussionRepository,
     users: UserRepository,
 ) : ViewModel() {
+
+    /** ✅ (2026-10-23) the viewer's id: their own comments get a delete button. */
+    val myId: StateFlow<String?> = users.currentUser.map { it?.id }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     private val route = savedStateHandle.toRoute<ProductRoute>()
 
@@ -122,6 +127,7 @@ class ProductViewModel @Inject constructor(
                 is Outcome.Success -> ProductUiState.Ready(result.value).also {
                     loadAppeals(it.product)
                     loadSimilar(it.product)
+                    loadDiscussion(it.product)
                 }
                 is Outcome.Failure -> ProductUiState.Failed(result.error)
             }
@@ -146,6 +152,57 @@ class ProductViewModel @Inject constructor(
             (products.ownProduct(route.productId) as? Outcome.Success)?.let { return it }
         }
         return result
+    }
+
+    // ---- ✅ (2026-10-23) reviews and comments ----
+
+    private val _discussion = MutableStateFlow(DiscussionUi())
+    val discussion: StateFlow<DiscussionUi> = _discussion.asStateFlow()
+
+    private fun loadDiscussion(product: ProductDetail) {
+        if (product.status != "ACTIVE" && product.status != "RESERVED" && product.status != "SOLD") return
+        viewModelScope.launch {
+            (discussionRepository.load(product.id) as? Outcome.Success)?.let { r -> _discussion.update { it.copy(discussion = r.value) } }
+            if (auth.isSignedIn.first() && myId.value != product.sellerId) {
+                (discussionRepository.reviewableOrderItem(product.id) as? Outcome.Success)?.let { r ->
+                    _discussion.update { it.copy(reviewableOrderItem = r.value) }
+                }
+            }
+        }
+    }
+
+    private fun reloadDiscussion() = viewModelScope.launch {
+        (discussionRepository.load(route.productId) as? Outcome.Success)?.let { r -> _discussion.update { it.copy(discussion = r.value) } }
+    }
+
+    fun comment(body: String, parentId: String?) = viewModelScope.launch {
+        if (!auth.isSignedIn.first()) return@launch _events.send(ProductEvent.SignInRequired)
+        _discussion.update { it.copy(sending = true) }
+        when (val r = discussionRepository.addComment(route.productId, body, parentId)) {
+            is Outcome.Success -> reloadDiscussion()
+            is Outcome.Failure -> _events.send(ProductEvent.Failed(r.error))
+        }
+        _discussion.update { it.copy(sending = false) }
+    }
+
+    fun deleteComment(id: String) = viewModelScope.launch {
+        when (val r = discussionRepository.deleteComment(id)) {
+            is Outcome.Success -> reloadDiscussion()
+            is Outcome.Failure -> _events.send(ProductEvent.Failed(r.error))
+        }
+    }
+
+    fun review(rating: Int, title: String, body: String) = viewModelScope.launch {
+        val item = _discussion.value.reviewableOrderItem ?: return@launch
+        _discussion.update { it.copy(sending = true) }
+        when (val r = discussionRepository.addReview(route.productId, item, rating, title, body)) {
+            is Outcome.Success -> {
+                _discussion.update { it.copy(reviewSent = true, reviewableOrderItem = null) }
+                reloadDiscussion()
+            }
+            is Outcome.Failure -> _events.send(ProductEvent.Failed(r.error))
+        }
+        _discussion.update { it.copy(sending = false) }
     }
 
     /** ✅ (2026-10-23) «آگهی‌های مشابه» — only under a live listing. */

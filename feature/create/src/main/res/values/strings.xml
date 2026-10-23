@@ -81,4 +81,5 @@
     <string name="create_show_phone_hint">Signed-in visitors can tap "Contact details" to see it.</string>
     <string name="create_negotiable">Negotiable price</string>
     <string name="create_negotiable_hint">No fixed price: the buyer agrees it with you. It cannot be bought through the basket.</string>
+    <string name="create_area_mismatch">The area you typed (%1$s) is far from the area of the boundary you drew (%2$s). Check both before posting.</string>
 </resources>

@@ -101,4 +101,34 @@
     <string name="owner_renew_too_early">ئەم ڕیکلامە هێشتا پێویستی بە نوێکردنەوە نییە.</string>
     <string name="product_similar">ڕیکلامی هاوشێوە</string>
     <string name="product_verified">پشتڕاستکراوە</string>
+    <string name="discussion_title">هەڵسەنگاندن و بۆچوونەکان</string>
+    <string name="discussion_no_reviews">هێشتا هیچ هەڵسەنگاندنێک نییە</string>
+    <plurals name="discussion_review_count">
+        <item quantity="one">%d هەڵسەنگاندن</item>
+        <item quantity="other">%d هەڵسەنگاندن</item>
+    </plurals>
+    <plurals name="discussion_comment_count">
+        <item quantity="one">%d بۆچوون</item>
+        <item quantity="other">%d بۆچوون</item>
+    </plurals>
+    <plurals name="discussion_stars">
+        <item quantity="one">%d ئەستێرە</item>
+        <item quantity="other">%d ئەستێرە</item>
+    </plurals>
+    <string name="discussion_review_prompt">ئەمەت کڕیوە. چۆن بوو؟</string>
+    <string name="discussion_review_title">ناونیشان (ئارەزوومەندانە)</string>
+    <string name="discussion_review_body">کڕیارانی تر چی بزانن؟ (ئارەزوومەندانە)</string>
+    <string name="discussion_send_review">ناردنی هەڵسەنگاندن</string>
+    <string name="discussion_review_thanks">سوپاس — هەڵسەنگاندنەکەت تۆمار کرا.</string>
+    <string name="discussion_bought">کڕیار</string>
+    <string name="discussion_comments">بۆچوونەکان</string>
+    <string name="discussion_no_comments">هێشتا هیچ بۆچوونێک نییە. پرسیار لە ڕیکلامدەر بکە.</string>
+    <string name="discussion_reply">وەڵام</string>
+    <string name="discussion_delete">سڕینەوە</string>
+    <string name="discussion_seller">ڕیکلامدەر</string>
+    <string name="discussion_replying_to">لە وەڵامی %1$s</string>
+    <string name="discussion_cancel">هەڵوەشاندنەوە</string>
+    <string name="discussion_comment_placeholder">بۆچوون یان پرسیارەکەت بنووسە…</string>
+    <string name="discussion_sign_in">بۆ نووسینی بۆچوون بچۆ ژوورەوە</string>
+    <string name="discussion_send">ناردن</string>
 </resources>

@@ -143,6 +143,8 @@ fun ProductScreen(
     viewModel: ProductViewModel = hiltViewModel(),
 ) {
     val similar by viewModel.similar.collectAsStateWithLifecycle()
+    val discussion by viewModel.discussion.collectAsStateWithLifecycle()
+    val myId by viewModel.myId.collectAsStateWithLifecycle()
     val lifecycleBusy by viewModel.lifecycleBusy.collectAsStateWithLifecycle()
     val renewed = stringResource(R.string.owner_renewed)
     val bumped = stringResource(R.string.owner_bumped)
@@ -358,6 +360,16 @@ fun ProductScreen(
                     if (s.product.offeringKind == OfferingKind.BOOKABLE && !isMine) {
                         BookingPanel(onRequireSignIn = onRequireSignIn, onOpenAppointments = onOpenAppointments)
                     }
+                    DiscussionSection(
+                        ui = discussion,
+                        myId = myId,
+                        sellerId = s.product.sellerId,
+                        reviewable = s.product.purchasable,
+                        onComment = viewModel::comment,
+                        onDelete = viewModel::deleteComment,
+                        onReview = viewModel::review,
+                        onRequireSignIn = onRequireSignIn,
+                    )
                     SimilarListings(similar, onOpen = onOpenProduct)
                 }
             }
@@ -520,11 +532,12 @@ private fun Specifications(product: ProductDetail) {
         Text(stringResource(R.string.product_specifications), style = MaterialTheme.typography.titleSmall)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             product.specs.forEach { spec ->
+                // ✏️ (2026-10-23) a number in the app's digits, its unit in the app's words.
                 val value = spec.yes?.let { stringResource(if (it) R.string.product_yes else R.string.product_no) }
-                    ?: (if (fa) spec.valueFa else spec.valueEn).let { v ->
+                    ?: (spec.number?.let { com.azza.core.ui.formatPlainNumber(it) } ?: if (fa) spec.valueFa else spec.valueEn).let { v ->
                         // An option's label may already carry the unit ("32 GB").
                         val u = spec.unit?.takeIf { it.isNotBlank() && !v.endsWith(it, ignoreCase = true) }
-                        if (u != null) "$v $u" else v
+                        if (u != null) "$v ${com.azza.core.ui.localizeUnit(u)}" else v
                     }
                 SpecCell(if (fa) spec.labelFa else spec.labelEn, value)
             }
@@ -548,8 +561,8 @@ private fun PropertyPlace(place: ProductPlace, onShowOnMap: (ProductPlace) -> Un
                 stringResource(R.string.product_property_marked_as),
                 stringResource(if (place.isBoundary) R.string.product_property_boundary else R.string.product_property_point),
             )
-            place.areaM2?.let { SpecCell(stringResource(R.string.product_property_area), digits.format(Math.round(it)) + " m²") }
-            place.perimeterM?.let { SpecCell(stringResource(R.string.product_property_perimeter), digits.format(Math.round(it)) + " m") }
+            place.areaM2?.let { SpecCell(stringResource(R.string.product_property_area), digits.format(Math.round(it)) + " " + com.azza.core.ui.localizeUnit("m²")) }
+            place.perimeterM?.let { SpecCell(stringResource(R.string.product_property_perimeter), digits.format(Math.round(it)) + " " + com.azza.core.ui.localizeUnit("m")) }
         }
         OutlinedButton(onClick = { onShowOnMap(place) }) {
             Icon(Icons.Outlined.Place, contentDescription = null)

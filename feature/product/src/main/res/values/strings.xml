@@ -101,4 +101,35 @@
     <string name="owner_renew_too_early">This listing does not need renewing yet.</string>
     <string name="product_similar">Similar listings</string>
     <string name="product_verified">Verified</string>
+    <!-- ✅ (2026-10-23) reviews and comments -->
+    <string name="discussion_title">Reviews and comments</string>
+    <string name="discussion_no_reviews">No reviews yet</string>
+    <plurals name="discussion_review_count">
+        <item quantity="one">%d review</item>
+        <item quantity="other">%d reviews</item>
+    </plurals>
+    <plurals name="discussion_comment_count">
+        <item quantity="one">%d comment</item>
+        <item quantity="other">%d comments</item>
+    </plurals>
+    <plurals name="discussion_stars">
+        <item quantity="one">%d star</item>
+        <item quantity="other">%d stars</item>
+    </plurals>
+    <string name="discussion_review_prompt">You bought this. How was it?</string>
+    <string name="discussion_review_title">A title (optional)</string>
+    <string name="discussion_review_body">What should other buyers know? (optional)</string>
+    <string name="discussion_send_review">Post review</string>
+    <string name="discussion_review_thanks">Thank you — your review is posted.</string>
+    <string name="discussion_bought">Bought it</string>
+    <string name="discussion_comments">Comments</string>
+    <string name="discussion_no_comments">No comments yet. Ask the seller something.</string>
+    <string name="discussion_reply">Reply</string>
+    <string name="discussion_delete">Delete</string>
+    <string name="discussion_seller">Seller</string>
+    <string name="discussion_replying_to">Replying to %1$s</string>
+    <string name="discussion_cancel">Cancel</string>
+    <string name="discussion_comment_placeholder">Write a comment or a question…</string>
+    <string name="discussion_sign_in">Sign in to write a comment</string>
+    <string name="discussion_send">Send</string>
 </resources>

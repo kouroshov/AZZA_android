@@ -156,7 +156,9 @@ fun CreateListingScreen(onPosted: (String) -> Unit, onDeleted: () -> Unit, viewM
         }
 
         // 2a. What do you do? (create only) — its usual categories become one-tap choices.
-        if (!editing) OccupationStep(state, viewModel)
+        // ✏️ (2026-10-23, the audit) a store only: someone selling their sofa is not
+        // asked their occupation (Divar starts with "what are you selling?").
+        if (!editing && !state.isPersonal) OccupationStep(state, viewModel)
 
         // 2. Category, then what it is (a store may offer more than goods).
         Section(stringResource(R.string.create_category)) {
@@ -310,6 +312,20 @@ fun CreateListingScreen(onPosted: (String) -> Unit, onDeleted: () -> Unit, viewM
                 onProvince = { viewModel.loadCities(it) },
                 error = if (FormError.PARCEL in state.formErrors) stringResource(com.azza.core.map.R.string.parcel_incomplete) else null,
             )
+            // ✅ (2026-10-23, the audit) the typed area against the drawn one: more than
+            // 15% apart is pointed out (never blocked — a deed may differ from a drawing).
+            val typed = (state.attributes["land_area_m2"] ?: state.attributes["area_m2"])?.toString()
+                ?.let { com.azza.core.model.SchemaRules.toLatinDigits(it).replace(Regex("[,٬\\s]"), "").toDoubleOrNull() }
+            val drawn = state.parcel.ring.takeIf { state.parcel.mode == com.azza.core.model.ParcelMode.POLYGON && it.size >= 3 }
+                ?.let { com.azza.core.map.ringAreaM2(it) }
+            if (typed != null && typed > 0 && drawn != null && drawn > 0 && kotlin.math.abs(typed - drawn) / drawn > 0.15) {
+                val units = com.azza.core.map.rememberParcelUnits()
+                Text(
+                    stringResource(R.string.create_area_mismatch, com.azza.core.map.formatArea(typed, units), com.azza.core.map.formatArea(drawn, units)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = AzzaTheme.colors.warning,
+                )
+            }
         }
 
         // 4b. Free-form features ("Colour: red") beside the category's own fields.
@@ -534,7 +550,7 @@ private fun Field(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AttributeInput(field: SchemaField, required: Boolean, value: Any?, error: FieldErrorCode?, onChange: (Any?) -> Unit) {
-    val label = field.label.local() + (field.unit?.let { " ($it)" } ?: "") + if (required) " *" else ""
+    val label = field.label.local() + (field.unit?.let { " (${com.azza.core.ui.localizeUnit(it)})" } ?: "") + if (required) " *" else ""
     val errorText = error?.let { stringResource(it.message()) }
     when (field.dataType) {
         AttributeDataType.BOOLEAN -> Row(verticalAlignment = Alignment.CenterVertically) {

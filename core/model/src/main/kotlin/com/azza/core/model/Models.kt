@@ -124,7 +124,16 @@ data class ProductPlace(
 )
 
 /** One typed detail; [yes] set for a yes/no attribute (worded by the UI). */
-data class Spec(val labelEn: String, val labelFa: String, val valueEn: String, val valueFa: String, val unit: String?, val yes: Boolean? = null)
+data class Spec(
+    val labelEn: String,
+    val labelFa: String,
+    val valueEn: String,
+    val valueFa: String,
+    val unit: String?,
+    val yes: Boolean? = null,
+    /** ✅ (2026-10-23) a NUMBER field's value, formatted by the UI in the app's digits. */
+    val number: Double? = null,
+)
 
 /** A seller's option on a listing; [maxQuantity] per ONE item (1 = once). */
 data class ProductOption(val id: String, val name: String, val extra: Money, val maxQuantity: Int)

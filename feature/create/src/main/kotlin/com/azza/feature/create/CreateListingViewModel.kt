@@ -390,7 +390,27 @@ class CreateListingViewModel @Inject constructor(
 
     fun up() = _picker.update { it.copy(trail = it.trail.dropLast(1)) }
 
-    fun chooseHit(hit: CategoryHit) = choose(ChosenCategory(hit.id, hit.name, hit.path))
+    /**
+     * ✅ (2026-10-23) A search hit with subcategories is opened, not chosen: a
+     * listing goes into a category with none (apps/api: CATEGORY_NOT_LEAF).
+     */
+    fun chooseHit(hit: CategoryHit) {
+        val chain = chainTo(_picker.value.roots, hit.id)
+        if (chain != null && chain.last().children.isNotEmpty()) {
+            _picker.update { it.copy(trail = chain, query = "", hits = emptyList()) }
+            return
+        }
+        choose(ChosenCategory(hit.id, hit.name, hit.path))
+    }
+
+    /** The nodes from a root down to [id], or null when it is not in the tree. */
+    private fun chainTo(nodes: List<CategoryNode>, id: String): List<CategoryNode>? {
+        for (node in nodes) {
+            if (node.id == id) return listOf(node)
+            chainTo(node.children, id)?.let { return listOf(node) + it }
+        }
+        return null
+    }
 
     private fun choose(category: ChosenCategory) {
         _picker.value = CategoryPickerState()
@@ -499,7 +519,7 @@ class CreateListingViewModel @Inject constructor(
             photos = s.photos,
             options = s.options,
             features = s.features,
-            occupationId = s.occupation?.id,
+            occupationId = s.occupation?.id?.takeIf { !s.isPersonal },
             // Only a category that goes on the map sends a place (NONE removes it on an edit).
             parcel = s.parcel.takeIf { s.parcelRule?.allowed == true },
         )

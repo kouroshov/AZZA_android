@@ -60,7 +60,7 @@ internal fun FieldFilters(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun FieldFilter(field: SchemaField, language: String, value: AttrFilter?, onChange: (AttrFilter?) -> Unit) {
-    val label = field.label.forLanguage(language) + (field.unit?.let { " ($it)" } ?: "")
+    val label = field.label.forLanguage(language) + (field.unit?.let { " (${com.azza.core.ui.localizeUnit(it)})" } ?: "")
     when (field.dataType) {
         AttributeDataType.BOOLEAN -> FilterChip(
             selected = value == AttrFilter.Yes,

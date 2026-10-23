@@ -152,7 +152,8 @@ private fun com.azza.core.network.model.AttributeValueDto.toSpec(): Spec? {
             Triple(t, t, null)
         }
     }
-    return Spec(a.name.ifBlank { a.slug }, a.nameFa?.takeIf { it.isNotBlank() } ?: a.name, en, fa, a.unit, yes)
+    val number = valueNumber.takeIf { a.dataType == "NUMBER" || a.dataType == "INTEGER" || a.dataType == "DECIMAL" }
+    return Spec(a.name.ifBlank { a.slug }, a.nameFa?.takeIf { it.isNotBlank() } ?: a.name, en, fa, a.unit, yes, number)
 }
 
 /** Toman for a spec cell, in that language's digits (core:data cannot reach core:ui's formatter). */
