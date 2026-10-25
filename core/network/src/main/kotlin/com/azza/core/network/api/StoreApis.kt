@@ -55,7 +55,16 @@ data class OwnStoreDto(
     val moderation: StoreHoldDto? = null,
     val location: LocationDto? = null,
     val postCount: Int = 0,
+    /** ✅ (2026-10-23, restaurants) */
+    val businessType: String = "GENERAL",
+    val restaurant: com.azza.core.network.model.RestaurantTermsDto? = null,
 )
+
+@Serializable
+data class MenuSectionRequest(val name: String? = null, val sortOrder: Int? = null)
+
+@Serializable
+data class MenuSectionRowDto(val id: String, val name: String, val sortOrder: Int = 0)
 
 /** Create and edit. A null field is left out (the app's Json drops nulls), so an edit changes only what it sends. */
 @Serializable
@@ -136,6 +145,23 @@ interface StoreManageApi {
 
     @PATCH("stores/{storeId}")
     suspend fun update(@Path("storeId") storeId: String, @Body body: StoreRequest): ApiEnvelope<JsonElement>
+
+    /** The restaurant settings: a raw body, so a null (clearing the delivery time) is really sent. */
+    @PATCH("stores/{storeId}")
+    suspend fun updateRaw(@Path("storeId") storeId: String, @Body body: kotlinx.serialization.json.JsonObject): ApiEnvelope<JsonElement>
+
+    @POST("stores/{storeId}/menu-sections")
+    suspend fun createMenuSection(@Path("storeId") storeId: String, @Body body: MenuSectionRequest): ApiEnvelope<MenuSectionRowDto>
+
+    @PATCH("stores/{storeId}/menu-sections/{sectionId}")
+    suspend fun updateMenuSection(
+        @Path("storeId") storeId: String,
+        @Path("sectionId") sectionId: String,
+        @Body body: MenuSectionRequest,
+    ): ApiEnvelope<JsonElement>
+
+    @DELETE("stores/{storeId}/menu-sections/{sectionId}")
+    suspend fun deleteMenuSection(@Path("storeId") storeId: String, @Path("sectionId") sectionId: String): ApiEnvelope<JsonElement>
 
     @Multipart
     @POST("stores/{storeId}/avatar")

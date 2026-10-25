@@ -47,6 +47,7 @@ internal fun CartDto.toModel(media: MediaUrlResolver) = Cart(
             discountPercentage = p.discountPercentage,
             imageUrl = p.media.firstOrNull()?.let { media.resolve(it.url ?: it.storageKey) },
             available = p.status == "ACTIVE" && p.deletedAt == null,
+            storeId = p.storeId,
         )
     },
 )
@@ -123,6 +124,8 @@ internal fun ReceivedOrderDetailDto.toModel() = ReceivedOrderDetail(
     shippingVisibility = runCatching { ShippingVisibility.valueOf(shippingStatus) }.getOrDefault(ShippingVisibility.NOT_RECORDED),
     shipping = shipping?.toModel(),
     canMarkShipped = canMarkShipped,
+    canStartPreparing = canStartPreparing,
+    canMarkDelivered = canMarkDelivered,
 )
 
 internal fun SearchProductDto.toModel(media: MediaUrlResolver) = SearchProduct(

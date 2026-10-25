@@ -13,6 +13,8 @@ fun notificationTitle(res: Resources, n: AppNotification): String = res.getStrin
         "ORDER_RECEIVED" -> R.string.n_type_order_received
         "ORDER_PAID" -> R.string.n_type_order_paid
         "ORDER_SHIPPED" -> R.string.n_type_order_shipped
+        "ORDER_PREPARING" -> R.string.n_type_order_preparing
+        "ORDER_DELIVERED" -> R.string.n_type_order_delivered
         "PRODUCT_REVIEWED" -> R.string.n_type_product_reviewed
         "APPOINTMENT_BOOKED" -> R.string.n_type_appointment_booked
         "APPOINTMENT_CANCELLED" -> R.string.n_type_appointment_cancelled
@@ -50,6 +52,8 @@ fun notificationBody(res: Resources, n: AppNotification): String {
         "ORDER_RECEIVED" -> res.getString(R.string.n_text_order_received, actor, subject)
         "ORDER_PAID" -> res.getString(R.string.n_text_order_paid, subject)
         "ORDER_SHIPPED" -> res.getString(R.string.n_text_order_shipped, subject)
+        "ORDER_PREPARING" -> res.getString(R.string.n_text_order_preparing, subject)
+        "ORDER_DELIVERED" -> res.getString(R.string.n_text_order_delivered, subject)
         "PRODUCT_REVIEWED" -> res.getString(R.string.n_text_product_reviewed, actor, subject)
         "APPOINTMENT_BOOKED" -> res.getString(R.string.n_text_appointment_booked, actor, subject)
         "APPOINTMENT_CANCELLED" -> res.getString(R.string.n_text_appointment_cancelled, actor, subject)

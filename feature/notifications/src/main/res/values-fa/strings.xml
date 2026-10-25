@@ -77,4 +77,9 @@
     <string name="n_approval_payout_record">ثبت تسویه</string>
     <string name="n_approval_wallet_adjust">اصلاح موجودی</string>
     <string name="n_approval_other">یک کار</string>
+    <!-- ✅ (2026-10-23, Phase 4 — restaurants) -->
+    <string name="n_type_order_preparing">در حال آماده‌سازی</string>
+    <string name="n_type_order_delivered">تحویل شد</string>
+    <string name="n_text_order_preparing">سفارش %1$s شما پذیرفته شد و در حال آماده‌سازی است</string>
+    <string name="n_text_order_delivered">سفارش %1$s شما تحویل داده شد</string>
 </resources>

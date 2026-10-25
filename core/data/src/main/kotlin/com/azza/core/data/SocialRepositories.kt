@@ -16,6 +16,9 @@ import com.azza.core.model.Page
 import com.azza.core.model.PostTile
 import com.azza.core.model.PublicProfile
 import com.azza.core.model.StorePage
+import com.azza.core.model.StoreMenu
+import com.azza.core.model.MenuSection
+import com.azza.core.model.MenuDish
 import com.azza.core.network.MediaUrlResolver
 import com.azza.core.network.api.FollowApi
 import com.azza.core.network.api.GeographyApi
@@ -67,7 +70,25 @@ class ProfilesRepository @Inject constructor(
             occupation = it.occupation?.let { o -> LocalizedText(o.name.fa.ifBlank { o.name.en }, o.name.en.ifBlank { o.code }) },
             address = it.location?.address?.ifBlank { null },
             hours = it.hours.map { h -> OpenHours(h.dayOfWeek, h.opensMinute, h.closesMinute, h.isClosed || h.opensMinute == null) },
+            restaurant = it.restaurant?.toModel(),
+            ratingAverage = it.rating?.average,
+            ratingCount = it.rating?.count ?: 0,
         )
+    }
+
+    /** ✅ (2026-10-23, restaurants) A restaurant's menu by heading (public). */
+    suspend fun menu(idOrSlug: String): Outcome<StoreMenu> = safeApiCall(json) { stores.menu(idOrSlug).data }.map { m ->
+        fun dish(d: com.azza.core.network.model.MenuDishDto) = MenuDish(
+            id = d.id,
+            title = d.title,
+            description = d.description?.ifBlank { null },
+            price = Money(d.priceAmountMinor, d.currency),
+            discountPercentage = d.discountPercentage,
+            priceNegotiable = d.priceNegotiable,
+            imageUrl = mediaUrls.resolve(d.image),
+            hasOptions = d.hasOptions,
+        )
+        StoreMenu(m.sections.map { s -> MenuSection(s.id, s.name, s.items.map(::dish)) }, m.unsectioned.map(::dish))
     }
 
     /** The listings on a person's personal page, not their stores' (as the web's /u/[username]). */

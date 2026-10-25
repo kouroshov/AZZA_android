@@ -130,4 +130,31 @@
     <string name="stores_setup_body">Customers find a store on the map and see when it is open. Add where it is and its opening hours.</string>
     <string name="stores_set_hours">Set opening hours</string>
     <string name="stores_posts_short">%1$d posts</string>
+    <!-- ✅ (2026-10-23, Phase 4 — restaurants) -->
+    <string name="restaurant_settings_title">Restaurant and menu</string>
+    <string name="restaurant_settings_hint">Take food orders like a delivery app: a delivery fee, a minimum order and a delivery time, shown to customers and applied at checkout.</string>
+    <string name="restaurant_is_restaurant">This store is a restaurant</string>
+    <string name="restaurant_delivery_fee">Delivery fee (toman)</string>
+    <string name="restaurant_min_order">Minimum order (toman)</string>
+    <string name="restaurant_delivery_time">Delivery time</string>
+    <string name="restaurant_from">From</string>
+    <string name="restaurant_to">To</string>
+    <string name="restaurant_minutes">minutes</string>
+    <string name="restaurant_range_invalid">Give the delivery time as a range: from, then a larger to.</string>
+    <string name="restaurant_pause">Not taking orders right now</string>
+    <string name="restaurant_pause_hint">For a busy kitchen. Customers see the restaurant, but cannot order until you switch this off.</string>
+    <string name="restaurant_saved">Saved</string>
+    <string name="restaurant_menu_title">Menu sections</string>
+    <string name="restaurant_menu_hint">Headings like “Pizza” or “Drinks”, in the order customers see them. Choose a dish’s heading on its post form.</string>
+    <string name="restaurant_no_sections">No sections yet: dishes are shown in one list.</string>
+    <string name="restaurant_move_up">Move %1$s up</string>
+    <string name="restaurant_move_down">Move %1$s down</string>
+    <string name="restaurant_rename">Rename %1$s</string>
+    <string name="restaurant_remove">Remove %1$s</string>
+    <string name="restaurant_new_section">New section, e.g. Pizza</string>
+    <string name="restaurant_add_section">Add</string>
+    <string name="restaurant_section_exists">There is already a section with that name.</string>
+    <string name="restaurant_section_name">Section name</string>
+    <string name="restaurant_remove_confirm">Remove this section? Its dishes stay on the menu, under no heading.</string>
+    <string name="restaurant_cancel">Cancel</string>
 </resources>

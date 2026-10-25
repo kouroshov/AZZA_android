@@ -78,4 +78,9 @@
     <string name="n_approval_payout_record">record a payout</string>
     <string name="n_approval_wallet_adjust">adjust a balance</string>
     <string name="n_approval_other">an action</string>
+    <!-- ✅ (2026-10-23, Phase 4 — restaurants) -->
+    <string name="n_type_order_preparing">Being prepared</string>
+    <string name="n_type_order_delivered">Delivered</string>
+    <string name="n_text_order_preparing">Your order %1$s was accepted and is being prepared</string>
+    <string name="n_text_order_delivered">Your order %1$s was delivered</string>
 </resources>

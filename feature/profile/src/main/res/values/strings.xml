@@ -63,4 +63,16 @@
     <string name="profile_create">Create</string>
     <string name="profile_new_store">New store</string>
     <string name="profile_share_profile">Share profile</string>
+    <!-- ✅ (2026-10-23, Phase 4 — restaurants) -->
+    <string name="restaurant_open">Open</string>
+    <string name="restaurant_paused">Not taking orders</string>
+    <string name="restaurant_closed">Closed now</string>
+    <string name="restaurant_free_delivery">Free delivery</string>
+    <string name="restaurant_min_order_short">Min. order %1$s</string>
+    <string name="restaurant_delivery_minutes">%1$s–%2$s min</string>
+    <string name="restaurant_paused_notice">This restaurant is not taking orders right now.</string>
+    <string name="restaurant_closed_notice">This restaurant is closed right now. You can look at the menu, but not order.</string>
+    <string name="restaurant_other_dishes">More</string>
+    <string name="restaurant_sold_out">Sold out for now.</string>
+    <string name="restaurant_add_failed">Could not add it to your basket. Try again.</string>
 </resources>

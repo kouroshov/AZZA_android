@@ -167,6 +167,8 @@ data class ProductDto(
     val priceNegotiable: Boolean = false,
     val expiresAt: String? = null,
     val bumpedAt: String? = null,
+    /** ✅ (2026-10-23, restaurants) The heading it sits under on its store's menu. */
+    val menuSectionId: String? = null,
 )
 
 /** ✅ (2026-10-23) GET /products/:id/similar. */

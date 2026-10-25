@@ -13,6 +13,8 @@ data class CartLine(
     val imageUrl: String?,
     /** False when the listing was unpublished or deleted since it was added. */
     val available: Boolean,
+    /** ✅ (2026-10-23) The store it is sold from; null = a personal listing. */
+    val storeId: String? = null,
 )
 
 data class Cart(val lines: List<CartLine>) {
@@ -115,4 +117,7 @@ data class ReceivedOrderDetail(
     val shippingVisibility: ShippingVisibility,
     val shipping: ShippingDetails?,
     val canMarkShipped: Boolean,
+    /** ✅ (2026-10-23, restaurants) PAID → being prepared; SHIPPED → delivered. */
+    val canStartPreparing: Boolean = false,
+    val canMarkDelivered: Boolean = false,
 )

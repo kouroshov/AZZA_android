@@ -131,4 +131,31 @@
     <string name="stores_setup_body">کڕیاران فرۆشگا لەسەر نەخشە دەدۆزنەوە و کاتی کارکردنی دەبینن. شوێن و کاتی کارکردن زیاد بکە.</string>
     <string name="stores_set_hours">دیاریکردنی کاتی کارکردن</string>
     <string name="stores_posts_short">%1$d پۆست</string>
+    <!-- ✅ (2026-10-23, Phase 4 — restaurants) -->
+    <string name="restaurant_settings_title">چێشتخانە و مینیو</string>
+    <string name="restaurant_settings_hint">داواکاری خواردن وەک ئەپەکانی گەیاندن: نرخی گەیاندن، کەمترین داواکاری و کاتی گەیاندن، کە بە کڕیار نیشان دەدرێت و لە پارەداندا جێبەجێ دەکرێت.</string>
+    <string name="restaurant_is_restaurant">ئەم فرۆشگایە چێشتخانەیە</string>
+    <string name="restaurant_delivery_fee">نرخی گەیاندن (تمەن)</string>
+    <string name="restaurant_min_order">کەمترین داواکاری (تمەن)</string>
+    <string name="restaurant_delivery_time">کاتی گەیاندن</string>
+    <string name="restaurant_from">لە</string>
+    <string name="restaurant_to">تا</string>
+    <string name="restaurant_minutes">خولەک</string>
+    <string name="restaurant_range_invalid">کاتی گەیاندن وەک مەودا بنووسە: «لە» و پاشان «تا»یەکی گەورەتر.</string>
+    <string name="restaurant_pause">ئێستا داواکاری وەرناگرم</string>
+    <string name="restaurant_pause_hint">بۆ کاتێک چێشتخانە قەرەباڵغە. کڕیار چێشتخانەکە دەبینێت، بەڵام تا ئەمە نەکوژێنیتەوە ناتوانێت داوا بکات.</string>
+    <string name="restaurant_saved">پاشەکەوت کرا</string>
+    <string name="restaurant_menu_title">بەشەکانی مینیو</string>
+    <string name="restaurant_menu_hint">ناونیشانی وەک «پیتزا» یان «خواردنەوە»، بەو ڕیزەی کڕیار دەیبینێت. بەشی هەر خواردنێک لە فۆرمی پۆستەکەی خۆیدا هەڵبژێرە.</string>
+    <string name="restaurant_no_sections">هێشتا هیچ بەشێک نییە: خواردنەکان لە یەک لیستدا نیشان دەدرێن.</string>
+    <string name="restaurant_move_up">بردنی %1$s بۆ سەرەوە</string>
+    <string name="restaurant_move_down">بردنی %1$s بۆ خوارەوە</string>
+    <string name="restaurant_rename">گۆڕینی ناوی %1$s</string>
+    <string name="restaurant_remove">لابردنی %1$s</string>
+    <string name="restaurant_new_section">بەشی نوێ، بۆ نموونە پیتزا</string>
+    <string name="restaurant_add_section">زیادکردن</string>
+    <string name="restaurant_section_exists">بەشێک بەم ناوە هەیە.</string>
+    <string name="restaurant_section_name">ناوی بەش</string>
+    <string name="restaurant_remove_confirm">ئەم بەشە لاببرێت؟ خواردنەکانی لە مینیودا دەمێننەوە، بێ بەش.</string>
+    <string name="restaurant_cancel">پاشگەزبوونەوە</string>
 </resources>

@@ -127,4 +127,15 @@
     <string name="order_label_to">گیرنده</string>
     <string name="order_label_unpaid">هنوز پرداخت نشده</string>
     <string name="basket_saved_money">صرفه‌جویی شما</string>
+    <!-- ✅ (2026-10-23, Phase 4 — restaurants) -->
+    <string name="checkout_store_closed">%1$s فعلاً سفارش نمی‌پذیرد.</string>
+    <string name="checkout_below_minimum">%1$s از %2$s سفارش می‌پذیرد. کمی بیشتر اضافه کنید.</string>
+    <string name="checkout_error_store_closed">یکی از رستوران‌های سبد شما فعلاً سفارش نمی‌پذیرد.</string>
+    <string name="checkout_error_below_minimum">سفارش شما از یکی از رستوران‌ها کمتر از حداقل سفارش آن است.</string>
+    <string name="order_start_preparing">پذیرش و شروع آماده‌سازی</string>
+    <string name="order_mark_delivered">تحویل داده شد</string>
+    <string name="order_step_paid">پرداخت شد</string>
+    <string name="order_step_preparing">در حال آماده‌سازی</string>
+    <string name="order_step_sent">ارسال شد</string>
+    <string name="order_step_delivered">تحویل شد</string>
 </resources>

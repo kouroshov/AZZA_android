@@ -127,4 +127,15 @@
     <string name="order_label_to">Ship to</string>
     <string name="order_label_unpaid">NOT PAID YET</string>
     <string name="basket_saved_money">Saved money</string>
+    <!-- ✅ (2026-10-23, Phase 4 — restaurants) -->
+    <string name="checkout_store_closed">%1$s is not taking orders right now.</string>
+    <string name="checkout_below_minimum">%1$s takes orders from %2$s. Add a little more.</string>
+    <string name="checkout_error_store_closed">A restaurant in your basket is not taking orders right now.</string>
+    <string name="checkout_error_below_minimum">Your order from a restaurant is below its minimum order.</string>
+    <string name="order_start_preparing">Accept and start preparing</string>
+    <string name="order_mark_delivered">Mark as delivered</string>
+    <string name="order_step_paid">Paid</string>
+    <string name="order_step_preparing">Being prepared</string>
+    <string name="order_step_sent">On its way</string>
+    <string name="order_step_delivered">Delivered</string>
 </resources>

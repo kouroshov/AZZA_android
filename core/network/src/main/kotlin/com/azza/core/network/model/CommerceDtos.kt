@@ -22,6 +22,8 @@ data class CartProductDto(
     val status: String = "ACTIVE",
     val deletedAt: String? = null,
     val media: List<ProductMediaDto> = emptyList(),
+    /** ✅ (2026-10-23) Whose store it is: a restaurant's delivery terms apply per store. */
+    val storeId: String? = null,
 )
 
 @Serializable
@@ -191,4 +193,7 @@ data class ReceivedOrderDetailDto(
     val shippingStatus: String = "NOT_RECORDED",
     val shipping: ShippingDetailsDto? = null,
     val canMarkShipped: Boolean = false,
+    /** ✅ (2026-10-23, restaurants) PAID → being prepared; SHIPPED → delivered. */
+    val canStartPreparing: Boolean = false,
+    val canMarkDelivered: Boolean = false,
 )

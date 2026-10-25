@@ -130,4 +130,31 @@
     <string name="stores_setup_body">مشتری‌ها فروشگاه را روی نقشه پیدا می‌کنند و ساعت کارش را می‌بینند. مکان و ساعت کاری را وارد کنید.</string>
     <string name="stores_set_hours">تعیین ساعت کاری</string>
     <string name="stores_posts_short">%1$d پست</string>
+    <!-- ✅ (2026-10-23, Phase 4 — restaurants) -->
+    <string name="restaurant_settings_title">رستوران و منو</string>
+    <string name="restaurant_settings_hint">سفارش غذا مثل اپ‌های سفارش آنلاین: هزینهٔ ارسال، حداقل سفارش و زمان ارسال، که به مشتری نشان داده و هنگام پرداخت اعمال می‌شود.</string>
+    <string name="restaurant_is_restaurant">این فروشگاه رستوران است</string>
+    <string name="restaurant_delivery_fee">هزینهٔ ارسال (تومان)</string>
+    <string name="restaurant_min_order">حداقل سفارش (تومان)</string>
+    <string name="restaurant_delivery_time">زمان ارسال</string>
+    <string name="restaurant_from">از</string>
+    <string name="restaurant_to">تا</string>
+    <string name="restaurant_minutes">دقیقه</string>
+    <string name="restaurant_range_invalid">زمان ارسال را به صورت بازه بنویسید: «از» و سپس «تا»ی بزرگ‌تر.</string>
+    <string name="restaurant_pause">فعلاً سفارش نمی‌پذیرم</string>
+    <string name="restaurant_pause_hint">برای وقتی آشپزخانه شلوغ است. مشتری رستوران را می‌بیند، ولی تا وقتی این را خاموش نکنید نمی‌تواند سفارش دهد.</string>
+    <string name="restaurant_saved">ذخیره شد</string>
+    <string name="restaurant_menu_title">دسته‌های منو</string>
+    <string name="restaurant_menu_hint">عنوان‌هایی مثل «پیتزا» یا «نوشیدنی»، به ترتیبی که مشتری می‌بیند. دستهٔ هر غذا را در فرم آگهی همان غذا انتخاب کنید.</string>
+    <string name="restaurant_no_sections">هنوز دسته‌ای نیست: غذاها در یک فهرست نشان داده می‌شوند.</string>
+    <string name="restaurant_move_up">بردن %1$s به بالا</string>
+    <string name="restaurant_move_down">بردن %1$s به پایین</string>
+    <string name="restaurant_rename">تغییر نام %1$s</string>
+    <string name="restaurant_remove">حذف %1$s</string>
+    <string name="restaurant_new_section">دستهٔ تازه، مثلاً پیتزا</string>
+    <string name="restaurant_add_section">افزودن</string>
+    <string name="restaurant_section_exists">دسته‌ای با همین نام وجود دارد.</string>
+    <string name="restaurant_section_name">نام دسته</string>
+    <string name="restaurant_remove_confirm">این دسته حذف شود؟ غذاهایش در منو می‌مانند، بدون دسته.</string>
+    <string name="restaurant_cancel">انصراف</string>
 </resources>

@@ -63,4 +63,16 @@
     <string name="profile_create">ساختن</string>
     <string name="profile_new_store">فروشگاه جدید</string>
     <string name="profile_share_profile">اشتراک‌گذاری پروفایل</string>
+    <!-- ✅ (2026-10-23, Phase 4 — restaurants) -->
+    <string name="restaurant_open">باز</string>
+    <string name="restaurant_paused">فعلاً سفارش نمی‌پذیرد</string>
+    <string name="restaurant_closed">الان بسته است</string>
+    <string name="restaurant_free_delivery">ارسال رایگان</string>
+    <string name="restaurant_min_order_short">حداقل سفارش %1$s</string>
+    <string name="restaurant_delivery_minutes">%1$s تا %2$s دقیقه</string>
+    <string name="restaurant_paused_notice">این رستوران فعلاً سفارش نمی‌پذیرد.</string>
+    <string name="restaurant_closed_notice">این رستوران الان بسته است. منو را می‌توانید ببینید، ولی سفارش نه.</string>
+    <string name="restaurant_other_dishes">سایر</string>
+    <string name="restaurant_sold_out">فعلاً تمام شده است.</string>
+    <string name="restaurant_add_failed">به سبد اضافه نشد. دوباره امتحان کنید.</string>
 </resources>

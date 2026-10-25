@@ -130,6 +130,7 @@ class ListingRepository @Inject constructor(
                 options = p.options.map { OptionDraft(it.name, tomanText(it.extraPriceAmountMinor), it.maxQuantity) },
                 features = freeFeatures(p),
                 parcel = p.parcel.toDraft(),
+                menuSectionId = p.menuSectionId,
             )
         }
 
@@ -254,6 +255,8 @@ class ListingRepository @Inject constructor(
         // ✅ (2026-10-23) the kind of ad; absent = the category's default.
         draft.listingType?.let { put("listingType", it) }
         put("showPhone", draft.showPhone)
+        // ✅ (2026-10-23, restaurants) a store listing's menu heading; null takes it out of one.
+        if (draft.storeId != null) put("menuSectionId", draft.menuSectionId?.let { JsonPrimitive(it) } ?: JsonNull)
         // Always sent, blank = 0: on an edit a missing field is left as it was, so clearing it would not clear it.
         put("discountPercentage", draft.discountPercentage.toLatinNumber() ?: 0.0)
         put("attributeValues", JsonObject(draft.attributeValues.mapValues { (_, v) -> v.toJson() }))

@@ -31,6 +31,45 @@ data class StorePage(
     val address: String? = null,
     /** The main branch's week, Sunday (0) first; empty = no hours published. */
     val hours: List<OpenHours> = emptyList(),
+    /** ✅ (2026-10-23, restaurants) Its delivery terms; null = not a restaurant. */
+    val restaurant: RestaurantInfo? = null,
+    /** Average of its listings' published reviews; null average = none yet. */
+    val ratingAverage: Double? = null,
+    val ratingCount: Int = 0,
+)
+
+/**
+ * ✅ (2026-10-23, Phase 4 — restaurants, after Snappfood and Uber Eats).
+ * What a restaurant sells under: the delivery fee, the smallest basket, the
+ * promised time, and whether it takes an order now ([ordering]: OPEN,
+ * PAUSED by its owner, or CLOSED by its hours). apps/api decides all of it;
+ * checkout applies the same rule.
+ */
+data class RestaurantInfo(
+    val deliveryFee: Money,
+    val minOrder: Money,
+    val deliveryMinutes: IntRange?,
+    val paused: Boolean,
+    val ordering: String,
+) {
+    val open: Boolean get() = ordering == "OPEN"
+}
+
+/** A restaurant's menu: the owner's headings in order, then the dishes under none. */
+data class StoreMenu(val sections: List<MenuSection>, val unsectioned: List<MenuDish>)
+
+data class MenuSection(val id: String, val name: String, val items: List<MenuDish>)
+
+data class MenuDish(
+    val id: String,
+    val title: String,
+    val description: String?,
+    val price: Money,
+    val discountPercentage: Double?,
+    val priceNegotiable: Boolean,
+    val imageUrl: String?,
+    /** Has extras to choose: opened on its own page rather than added from the menu. */
+    val hasOptions: Boolean,
 )
 
 /** One day of a published week; [opens]/[closes] are minutes from midnight. */

@@ -124,4 +124,8 @@ class OrdersRepository @Inject constructor(
 
     suspend fun markShipped(sellerOrderId: String): Outcome<Unit> =
         safeApiCall(json) { orders.markShipped(sellerOrderId) }.map { }
+
+    /** ✅ (2026-10-23, restaurants) "prepare" (PAID → being prepared) or "deliver" (SHIPPED → delivered). */
+    suspend fun advance(sellerOrderId: String, step: String): Outcome<Unit> =
+        safeApiCall(json) { orders.advance(sellerOrderId, step) }.map { }
 }

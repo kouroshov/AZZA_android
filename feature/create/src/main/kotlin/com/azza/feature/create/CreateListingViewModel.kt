@@ -56,6 +56,9 @@ data class CreateUiState(
     val stores: List<OwnStore> = emptyList(),
     /** Null = the personal page. */
     val storeId: String? = null,
+    /** ✅ (2026-10-23, restaurants) The store's menu headings, and the one this listing sits under. */
+    val menuHeadings: List<com.azza.core.data.MenuHeading> = emptyList(),
+    val menuSectionId: String? = null,
     val category: ChosenCategory? = null,
     val schema: CategorySchema? = null,
     val schemaLoading: Boolean = false,
@@ -145,7 +148,16 @@ class CreateListingViewModel @Inject constructor(
     private val listings: ListingRepository,
     private val parcels: ParcelsRepository,
     private val geography: GeographyRepository,
+    private val stores: com.azza.core.data.StoresRepository,
 ) : ViewModel() {
+
+    /** The chosen store's menu headings (none for the personal page). */
+    private fun loadMenuHeadings(storeId: String?) = viewModelScope.launch {
+        val headings = storeId?.let { (stores.menuHeadings(it) as? Outcome.Success)?.value }.orEmpty()
+        _state.update { s -> if (s.storeId == storeId) s.copy(menuHeadings = headings) else s }
+    }
+
+    fun chooseMenuSection(id: String?) = _state.update { it.copy(menuSectionId = id) }
 
     /** Set when the screen was opened as EditListingRoute. */
     private val editId: String? = savedStateHandle.get<String>("productId")
@@ -257,6 +269,7 @@ class CreateListingViewModel @Inject constructor(
                         it.copy(
                             loadingListing = false,
                             storeId = l.storeId,
+                            menuSectionId = l.menuSectionId,
                             offeringKind = l.offeringKind,
                             listingType = l.listingType,
                             showPhone = l.showPhone,
@@ -275,6 +288,7 @@ class CreateListingViewModel @Inject constructor(
                         )
                     }
                     loadSchema(l.categoryId)
+                    loadMenuHeadings(l.storeId)
                 }
             }
         }
@@ -329,13 +343,14 @@ class CreateListingViewModel @Inject constructor(
 
     fun postAs(storeId: String?) {
         _state.update { s ->
-            val next = s.copy(storeId = storeId)
+            val next = s.copy(storeId = storeId, menuSectionId = null, menuHeadings = emptyList())
             // Switching to the personal page drops a service choice it cannot make (the web does the same).
             if (storeId == null && s.offeringKind != OfferingKind.GOOD) next.copy(offeringKind = OfferingKind.GOOD) else next
         }
         _state.value.category?.let { loadSchema(it.id) }
         // Each page has its own occupations.
         if (_state.value.editingId == null) loadMyOccupations()
+        loadMenuHeadings(storeId)
     }
 
     fun chooseKind(kind: OfferingKind) {
@@ -509,6 +524,7 @@ class CreateListingViewModel @Inject constructor(
             condition = if (s.usesCondition) s.condition else ItemCondition.USED,
             listingType = s.schema?.listingType?.code ?: s.listingType,
             showPhone = s.showPhone,
+            menuSectionId = s.menuSectionId.takeIf { s.storeId != null },
             quantity = s.quantity,
             // Only what the rules accept: hidden fields and empty inputs are not sent.
             // ✅ (2026-10-23) an amount field is typed in toman and stored in rial.

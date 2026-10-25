@@ -128,4 +128,15 @@
     <string name="order_label_to">بۆ</string>
     <string name="order_label_unpaid">هێشتا نەدراوە</string>
     <string name="basket_saved_money">پارەی پاشەکەوتکراو</string>
+    <!-- ✅ (2026-10-23, Phase 4 — restaurants) -->
+    <string name="checkout_store_closed">%1$s ئێستا داواکاری وەرناگرێت.</string>
+    <string name="checkout_below_minimum">%1$s لە %2$s داواکاری وەردەگرێت. کەمێکی تر زیاد بکە.</string>
+    <string name="checkout_error_store_closed">یەکێک لە چێشتخانەکانی سەبەتەکەت ئێستا داواکاری وەرناگرێت.</string>
+    <string name="checkout_error_below_minimum">داواکارییەکەت لە چێشتخانەیەک کەمترە لە کەمترین داواکارییەکەی.</string>
+    <string name="order_start_preparing">وەرگرتن و دەستپێکردنی ئامادەکردن</string>
+    <string name="order_mark_delivered">گەیەندرا</string>
+    <string name="order_step_paid">پارەدرا</string>
+    <string name="order_step_preparing">ئامادە دەکرێت</string>
+    <string name="order_step_sent">نێردرا</string>
+    <string name="order_step_delivered">گەیەندرا</string>
 </resources>

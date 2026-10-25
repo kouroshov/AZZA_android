@@ -78,4 +78,9 @@
     <string name="n_approval_payout_record">تۆمارکردنی پارەدان</string>
     <string name="n_approval_wallet_adjust">ڕاستکردنەوەی باڵانس</string>
     <string name="n_approval_other">کارێک</string>
+    <!-- ✅ (2026-10-23, Phase 4 — restaurants) -->
+    <string name="n_type_order_preparing">ئامادە دەکرێت</string>
+    <string name="n_type_order_delivered">گەیەندرا</string>
+    <string name="n_text_order_preparing">داواکاریی %1$sت وەرگیرا و ئامادە دەکرێت</string>
+    <string name="n_text_order_delivered">داواکاریی %1$sت گەیەندرا</string>
 </resources>

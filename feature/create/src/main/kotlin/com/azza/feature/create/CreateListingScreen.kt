@@ -155,6 +155,18 @@ fun CreateListingScreen(onPosted: (String) -> Unit, onDeleted: () -> Unit, viewM
             }
         }
 
+        // ✅ (2026-10-23, restaurants) Which heading of the store's menu it sits under.
+        if (state.storeId != null && state.menuHeadings.isNotEmpty()) {
+            Section(stringResource(R.string.create_menu_section)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(state.menuSectionId == null, { viewModel.chooseMenuSection(null) }, { Text(stringResource(R.string.create_no_menu_section)) })
+                    state.menuHeadings.forEach { h ->
+                        FilterChip(state.menuSectionId == h.id, { viewModel.chooseMenuSection(h.id) }, { Text(h.name) })
+                    }
+                }
+            }
+        }
+
         // 2a. What do you do? (create only) — its usual categories become one-tap choices.
         // ✏️ (2026-10-23, the audit) a store only: someone selling their sofa is not
         // asked their occupation (Divar starts with "what are you selling?").

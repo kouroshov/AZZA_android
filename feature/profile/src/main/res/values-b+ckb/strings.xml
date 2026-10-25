@@ -64,4 +64,16 @@
     <string name="profile_create">دروستکردن</string>
     <string name="profile_new_store">دوکانی نوێ</string>
     <string name="profile_share_profile">هاوبەشکردنی پرۆفایل</string>
+    <!-- ✅ (2026-10-23, Phase 4 — restaurants) -->
+    <string name="restaurant_open">کراوە</string>
+    <string name="restaurant_paused">ئێستا داواکاری وەرناگرێت</string>
+    <string name="restaurant_closed">ئێستا داخراوە</string>
+    <string name="restaurant_free_delivery">گەیاندنی بەخۆڕایی</string>
+    <string name="restaurant_min_order_short">کەمترین داواکاری %1$s</string>
+    <string name="restaurant_delivery_minutes">%1$s تا %2$s خولەک</string>
+    <string name="restaurant_paused_notice">ئەم چێشتخانەیە ئێستا داواکاری وەرناگرێت.</string>
+    <string name="restaurant_closed_notice">ئەم چێشتخانەیە ئێستا داخراوە. دەتوانیت مینیوکە ببینیت، بەڵام داوا ناکرێت.</string>
+    <string name="restaurant_other_dishes">ئەوانی تر</string>
+    <string name="restaurant_sold_out">ئێستا نەماوە.</string>
+    <string name="restaurant_add_failed">زیاد نەکرا بۆ سەبەتە. دووبارە هەوڵ بدەرەوە.</string>
 </resources>

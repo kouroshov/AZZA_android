@@ -59,6 +59,8 @@ data class ListingDraft(
      * category takes none, and nothing is sent; NONE on an edit removes it.
      */
     val parcel: ParcelDraft? = null,
+    /** ✅ (2026-10-23, restaurants) The store's menu heading; null = none. Stores only. */
+    val menuSectionId: String? = null,
 )
 
 /** One option as the form edits it: a name, an extra price in major units (text), and a per-item cap 1..10. */
@@ -86,6 +88,7 @@ data class EditableListing(
     val options: List<OptionDraft> = emptyList(),
     val features: List<Pair<String, String>> = emptyList(),
     val parcel: ParcelDraft = ParcelDraft(),
+    val menuSectionId: String? = null,
 )
 
 data class ExistingPhoto(val mediaId: String, val url: String)

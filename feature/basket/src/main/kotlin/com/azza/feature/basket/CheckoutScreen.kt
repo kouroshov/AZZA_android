@@ -127,8 +127,22 @@ fun CheckoutScreen(
             Text(stringResource(R.string.checkout_one_code_only), color = AzzaTheme.colors.textMuted, style = MaterialTheme.typography.bodySmall)
         }
 
+        val restaurants by viewModel.restaurants.collectAsStateWithLifecycle()
+        val chosen by viewModel.chosenOptions.collectAsStateWithLifecycle()
+        // ✅ (2026-10-23, restaurants) each restaurant's part, priced as apps/api prices it.
+        val partMinor = currentCart.lines.filter { it.available && it.storeId != null }.groupBy { it.storeId!! }.mapValues { (_, lines) ->
+            lines.sumOf { l -> l.unitPrice.discounted(l.discountPercentage).amountMinor * l.quantity + chosen[l.productId].orEmpty().sumOf { o -> o.extra.amountMinor * o.perItem * l.quantity } }
+        }
+        val inBasket = restaurants.filterKeys { it in partMinor }
+        val closed = inBasket.values.filter { (_, info) -> !info.open }
+        val belowMinimum = inBasket.filter { (id, r) -> (partMinor[id] ?: 0L) < r.second.minOrder.amountMinor }.values
+        val deliveryMinor = inBasket.values.sumOf { it.second.deliveryFee.amountMinor }
+        closed.forEach { (name, _) -> Text(stringResource(R.string.checkout_store_closed, name), color = AzzaTheme.colors.error) }
+        belowMinimum.forEach { (name, info) ->
+            Text(stringResource(R.string.checkout_below_minimum, name, info.minOrder.format()), color = AzzaTheme.colors.error)
+        }
+
         Section(stringResource(R.string.checkout_summary)) {
-            val chosen by viewModel.chosenOptions.collectAsStateWithLifecycle()
             var optionsMinor = 0L
             currentCart.lines.filter { it.available }.forEach { line ->
                 AmountRow("${line.title} × ${line.quantity}", Money(line.unitPrice.discounted(line.discountPercentage).amountMinor * line.quantity, line.unitPrice.currency).format())
@@ -143,9 +157,19 @@ fun CheckoutScreen(
             val withOptions = subtotal?.let { Money(it.amountMinor + optionsMinor, it.currency) }
             withOptions?.let { AmountRow(stringResource(R.string.order_subtotal), it.format()) }
             state.discount?.let { AmountRow(stringResource(R.string.order_discount), "−" + it.format()) }
-            AmountRow(stringResource(R.string.order_shipping), stringResource(R.string.order_free))
+            if (inBasket.isEmpty()) {
+                AmountRow(stringResource(R.string.order_shipping), stringResource(R.string.order_free))
+            } else {
+                inBasket.values.forEach { (name, info) ->
+                    AmountRow(
+                        stringResource(R.string.order_shipping) + " · " + name,
+                        if (info.deliveryFee.amountMinor == 0L) stringResource(R.string.order_free) else info.deliveryFee.format(),
+                    )
+                }
+            }
             withOptions?.let {
-                val total = Money((it.amountMinor - (state.discount?.amountMinor ?: 0)).coerceAtLeast(0), it.currency)
+                // The delivery fee is never discounted (apps/api adds it after the code).
+                val total = Money((it.amountMinor - (state.discount?.amountMinor ?: 0)).coerceAtLeast(0) + deliveryMinor, it.currency)
                 AmountRow(stringResource(R.string.checkout_total), total.format(), strong = true)
             }
         }
@@ -154,7 +178,7 @@ fun CheckoutScreen(
 
         Button(
             onClick = viewModel::placeOrder,
-            enabled = state.canPlace && subtotal != null,
+            enabled = state.canPlace && subtotal != null && closed.isEmpty() && belowMinimum.isEmpty(),
             modifier = Modifier.fillMaxWidth().height(48.dp),
         ) {
             if (state.placing) CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.height(20.dp))
@@ -193,6 +217,9 @@ private fun checkoutErrorText(error: AppError): String = when ((error as? AppErr
     "SELF_PURCHASE_NOT_ALLOWED" -> stringResource(R.string.checkout_error_self_purchase)
     "DISCOUNT_CODE_INVALID", "DISCOUNT_CODE_LIMIT_REACHED" -> stringResource(R.string.checkout_error_discount)
     "CART_EMPTY" -> stringResource(R.string.basket_empty_heading)
+    // ✅ (2026-10-23, restaurants)
+    "STORE_CLOSED" -> stringResource(R.string.checkout_error_store_closed)
+    "BELOW_MINIMUM_ORDER" -> stringResource(R.string.checkout_error_below_minimum)
     else -> if (error == AppError.Unauthenticated) stringResource(R.string.checkout_error_sign_in) else errorMessage(error)
 }
 

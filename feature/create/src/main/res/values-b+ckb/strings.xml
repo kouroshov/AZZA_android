@@ -83,4 +83,7 @@
     <string name="create_negotiable">نرخی ڕێککەوتن</string>
     <string name="create_negotiable_hint">بێ نرخی جێگیر: کڕیار لەگەڵت ڕێک دەکەوێت. لە ڕێگەی سەبەتەوە ناکڕدرێت.</string>
     <string name="create_area_mismatch">ئەو ڕووبەرەی نووسیوتە (%1$s) جیاوازییەکی زۆری هەیە لەگەڵ ڕووبەری ئەو سنوورەی کێشاوتە (%2$s). پێش بڵاوکردنەوە هەردووکیان بپشکنە.</string>
+    <!-- ✅ (2026-10-23, Phase 4 — restaurants) -->
+    <string name="create_menu_section">بەشی مینیو</string>
+    <string name="create_no_menu_section">بێ بەش</string>
 </resources>

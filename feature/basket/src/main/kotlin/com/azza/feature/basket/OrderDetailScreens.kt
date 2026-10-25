@@ -106,6 +106,7 @@ private fun PlacedBody(order: PlacedOrderDetail, paying: Boolean, payError: AppE
         order.groups.forEach { group ->
             Section(stringResource(R.string.order_sold_by) + ": " + group.seller.name) {
                 StatusChip(group.status)
+                OrderSteps(group.status)
                 group.lines.forEach { LineRow(it) }
             }
         }
@@ -139,18 +140,19 @@ fun ReceivedOrderScreen(onBack: () -> Unit, viewModel: ReceivedOrderViewModel = 
         when (val s = state) {
             DetailState.Loading -> LoadingState()
             is DetailState.Failed -> orderLoadError(s.error) { viewModel.load() }
-            is DetailState.Ready -> ReceivedBody(s.value, shipping, shipError, viewModel::markShipped)
+            is DetailState.Ready -> ReceivedBody(s.value, shipping, shipError) { step -> viewModel.markShipped(step) }
         }
     }
 }
 
 @Composable
-private fun ReceivedBody(order: ReceivedOrderDetail, shipping: Boolean, shipError: AppError?, onShip: () -> Unit) {
+private fun ReceivedBody(order: ReceivedOrderDetail, shipping: Boolean, shipError: AppError?, onStep: (String) -> Unit) {
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         StatusChip(order.status)
+        OrderSteps(order.status)
         Text(
             stringResource(R.string.order_placed_on, formatInstantDate(order.placedAt)) + " · " + contextLabel(order.context),
             color = AzzaTheme.colors.textMuted,
@@ -177,9 +179,20 @@ private fun ReceivedBody(order: ReceivedOrderDetail, shipping: Boolean, shipErro
                 ShippingVisibility.NOT_RECORDED -> Text(stringResource(R.string.order_no_shipping_address), color = AzzaTheme.colors.textMuted)
             }
         }
+        // ✅ (2026-10-23, restaurants) accepted and being prepared → sent → delivered.
+        if (order.canStartPreparing) {
+            OutlinedButton(onClick = { onStep("prepare") }, enabled = !shipping, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+                Text(stringResource(R.string.order_start_preparing))
+            }
+        }
         if (order.canMarkShipped) {
-            Button(onClick = onShip, enabled = !shipping, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+            Button(onClick = { onStep("ship") }, enabled = !shipping, modifier = Modifier.fillMaxWidth().height(48.dp)) {
                 Text(stringResource(if (shipping) R.string.order_marking_shipped else R.string.order_mark_shipped))
+            }
+        }
+        if (order.canMarkDelivered) {
+            Button(onClick = { onStep("deliver") }, enabled = !shipping, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+                Text(stringResource(R.string.order_mark_delivered))
             }
         }
         shipError?.let {

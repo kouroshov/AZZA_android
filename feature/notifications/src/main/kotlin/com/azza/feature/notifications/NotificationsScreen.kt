@@ -88,7 +88,7 @@ class NotificationNav(
     fun target(n: AppNotification): (() -> Unit)? = when (n.type) {
         "USER_FOLLOWED", "STORE_FOLLOWED" -> n.actorUsername?.let { u -> { openUser(u) } }
         "ORDER_RECEIVED", "ORDER_PAID" -> n.sellerOrderId?.let { id -> { openReceivedOrder(id) } }
-        "ORDER_SHIPPED" -> n.orderId?.let { id -> { openPlacedOrder(id) } }
+        "ORDER_SHIPPED", "ORDER_PREPARING", "ORDER_DELIVERED" -> n.orderId?.let { id -> { openPlacedOrder(id) } }
         "PRODUCT_REVIEWED", "LISTING_TAKEN_DOWN", "LISTING_RESTORED",
         "LISTING_EXPIRED", "LISTING_APPROVED", "SAVED_SEARCH_MATCH" -> n.productId?.let { id -> { openProduct(id) } }
         // The timetable it belongs to — the listing would only offer to book the hour again.

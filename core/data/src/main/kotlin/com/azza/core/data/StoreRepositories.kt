@@ -65,7 +65,24 @@ data class ManagedStore(
     val postCount: Int = 0,
     /** The main branch's address, when it has a place on the map. */
     val address: String? = null,
+    /** ✅ (2026-10-23, restaurants) Its delivery terms; null = not a restaurant. */
+    val restaurant: com.azza.core.model.RestaurantInfo? = null,
 )
+
+/**
+ * ✅ (2026-10-23, restaurants) What the restaurant settings save. Amounts are
+ * typed in toman; [deliveryMinutes] null clears the promised time.
+ */
+data class RestaurantSettings(
+    val isRestaurant: Boolean,
+    val deliveryFeeToman: Double = 0.0,
+    val minOrderToman: Double = 0.0,
+    val deliveryMinutes: IntRange? = null,
+    val paused: Boolean = false,
+)
+
+/** A heading of a store's menu, with how many live dishes sit under it. */
+data class MenuHeading(val id: String, val name: String, val dishCount: Int = 0)
 
 /** What the store form edits. */
 data class StoreDraft(
@@ -139,7 +156,45 @@ class StoresRepository @Inject constructor(
     private val media: MediaUrlResolver,
     private val photos: PhotoCompressor,
     private val json: Json,
+    private val publicStores: com.azza.core.network.api.StoresApi,
 ) {
+    // ---- ✅ (2026-10-23, restaurants)
+
+    suspend fun saveRestaurant(storeId: String, s: RestaurantSettings): Outcome<Unit> = safeApiCall(json) {
+        api.updateRaw(
+            storeId,
+            kotlinx.serialization.json.buildJsonObject {
+                if (!s.isRestaurant) {
+                    put("businessType", kotlinx.serialization.json.JsonPrimitive("GENERAL"))
+                } else {
+                    put("businessType", kotlinx.serialization.json.JsonPrimitive("RESTAURANT"))
+                    put("deliveryFee", kotlinx.serialization.json.JsonPrimitive(Math.round(com.azza.core.model.Money.tomanToRial(s.deliveryFeeToman))))
+                    put("minOrder", kotlinx.serialization.json.JsonPrimitive(Math.round(com.azza.core.model.Money.tomanToRial(s.minOrderToman))))
+                    put("deliveryMinutesMin", s.deliveryMinutes?.let { kotlinx.serialization.json.JsonPrimitive(it.first) } ?: kotlinx.serialization.json.JsonNull)
+                    put("deliveryMinutesMax", s.deliveryMinutes?.let { kotlinx.serialization.json.JsonPrimitive(it.last) } ?: kotlinx.serialization.json.JsonNull)
+                    put("ordersPaused", kotlinx.serialization.json.JsonPrimitive(s.paused))
+                }
+            },
+        )
+    }.map { }
+
+    /** The store's headings in the owner's order (from its public menu, which counts the dishes). */
+    suspend fun menuHeadings(storeId: String): Outcome<List<MenuHeading>> =
+        safeApiCall(json) { publicStores.menu(storeId).data }.map { m -> m.sections.map { MenuHeading(it.id, it.name, it.items.size) } }
+
+    suspend fun addMenuHeading(storeId: String, name: String): Outcome<Unit> =
+        safeApiCall(json) { api.createMenuSection(storeId, com.azza.core.network.api.MenuSectionRequest(name = name.trim())) }.map { }
+
+    suspend fun renameMenuHeading(storeId: String, id: String, name: String): Outcome<Unit> =
+        safeApiCall(json) { api.updateMenuSection(storeId, id, com.azza.core.network.api.MenuSectionRequest(name = name.trim())) }.map { }
+
+    suspend fun moveMenuHeading(storeId: String, id: String, sortOrder: Int): Outcome<Unit> =
+        safeApiCall(json) { api.updateMenuSection(storeId, id, com.azza.core.network.api.MenuSectionRequest(sortOrder = sortOrder)) }.map { }
+
+    /** Its dishes stay on the menu, under no heading. */
+    suspend fun deleteMenuHeading(storeId: String, id: String): Outcome<Unit> =
+        safeApiCall(json) { api.deleteMenuSection(storeId, id) }.map { }
+
     /** Creating a store needs an active seller subscription (apps/api's SellerEntitlementGuard). */
     suspend fun canCreate(): Outcome<Boolean> = safeApiCall(json) { api.eligibility().data }.map { it.eligible }
 
@@ -331,6 +386,7 @@ class StoresRepository @Inject constructor(
         hasLocation = location != null,
         postCount = postCount,
         address = location?.address?.takeIf { it.isNotBlank() },
+        restaurant = restaurant?.toModel(),
     )
 
     private fun BranchDetailDto.toModel(): Branch {

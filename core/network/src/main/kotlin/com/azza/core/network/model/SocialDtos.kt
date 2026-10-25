@@ -35,6 +35,53 @@ data class StoreDto(
     val hours: List<com.azza.core.network.api.HoursDto> = emptyList(),
     val occupation: com.azza.core.network.api.StoreOccupationDto? = null,
     val location: com.azza.core.network.api.LocationDto? = null,
+    /** ✅ (2026-10-23, restaurants) GENERAL or RESTAURANT. */
+    val businessType: String = "GENERAL",
+    /** A restaurant's delivery terms and whether it takes an order now; null otherwise. */
+    val restaurant: RestaurantTermsDto? = null,
+    /** The score of its listings' published reviews (Snappfood's stars). */
+    val rating: StoreRatingDto? = null,
+)
+
+@Serializable
+data class RestaurantTermsDto(
+    @Serializable(with = FlexibleLongSerializer::class) val deliveryFeeAmountMinor: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class) val minOrderAmountMinor: Long = 0,
+    val deliveryMinutes: MinutesRangeDto? = null,
+    val ordersPaused: Boolean = false,
+    /** OPEN, PAUSED or CLOSED: the same rule checkout applies. */
+    val ordering: String = "OPEN",
+)
+
+@Serializable
+data class MinutesRangeDto(val min: Int, val max: Int)
+
+@Serializable
+data class StoreRatingDto(val count: Int = 0, val average: Double? = null)
+
+// ---------- a restaurant's menu (GET /stores/:idOrSlug/menu) ----------
+
+@Serializable
+data class StoreMenuDto(
+    val storeId: String,
+    val sections: List<MenuSectionDto> = emptyList(),
+    val unsectioned: List<MenuDishDto> = emptyList(),
+)
+
+@Serializable
+data class MenuSectionDto(val id: String, val name: String, val sortOrder: Int = 0, val items: List<MenuDishDto> = emptyList())
+
+@Serializable
+data class MenuDishDto(
+    val id: String,
+    val title: String,
+    val description: String? = null,
+    @Serializable(with = FlexibleLongSerializer::class) val priceAmountMinor: Long,
+    val currency: String = "IRR",
+    @Serializable(with = FlexibleDoubleSerializer::class) val discountPercentage: Double? = null,
+    val priceNegotiable: Boolean = false,
+    val image: String? = null,
+    val hasOptions: Boolean = false,
 )
 
 @Serializable

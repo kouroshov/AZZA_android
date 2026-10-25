@@ -124,9 +124,20 @@ class CheckoutViewModel @Inject constructor(
     private val orders: OrdersRepository,
     private val account: MyAccountRepository,
     basketOptions: com.azza.core.data.BasketOptions,
+    private val profiles: com.azza.core.data.ProfilesRepository,
 ) : ViewModel() {
 
     val cart: StateFlow<Cart?> = cartRepository.cart
+
+    /**
+     * ✅ (2026-10-23, restaurants) The restaurants in the basket, by store id:
+     * their name and delivery terms. Checkout adds each one's delivery fee and
+     * refuses a closed one or a part below its minimum; this is what lets the
+     * summary say so before the order is sent.
+     */
+    private val _restaurants = MutableStateFlow<Map<String, Pair<String, com.azza.core.model.RestaurantInfo>>>(emptyMap())
+    val restaurants: StateFlow<Map<String, Pair<String, com.azza.core.model.RestaurantInfo>>> = _restaurants.asStateFlow()
+    private val lookedUp = mutableSetOf<String>()
 
     /** Options chosen on listing pages; shown in the summary, priced again by apps/api at checkout. */
     val chosenOptions: StateFlow<Map<String, List<com.azza.core.data.ChosenOption>>> = basketOptions.chosen
@@ -141,6 +152,17 @@ class CheckoutViewModel @Inject constructor(
     init {
         // What is on screen is what will be ordered: the basket as the server has it now.
         viewModelScope.launch { cartRepository.refresh() }
+        viewModelScope.launch {
+            cartRepository.cart.collect { c ->
+                c?.lines.orEmpty().mapNotNull { it.storeId }.distinct().filter { lookedUp.add(it) }.forEach { id ->
+                    launch {
+                        val store = (profiles.store(id) as? com.azza.core.common.Outcome.Success)?.value ?: return@launch
+                        val info = store.restaurant ?: return@launch
+                        _restaurants.update { it + (id to (store.name to info)) }
+                    }
+                }
+            }
+        }
         viewModelScope.launch {
             val saved = (account.addresses() as? Outcome.Success)?.value.orEmpty()
             _saved.value = saved
@@ -279,12 +301,13 @@ class ReceivedOrderViewModel @Inject constructor(
         }
     }
 
-    fun markShipped() {
+    /** ✅ (2026-10-23, restaurants) "ship", or the steps around it: "prepare", "deliver". */
+    fun markShipped(step: String = "ship") {
         if (_shipping.value) return
         _shipping.value = true
         _shipError.value = null
         viewModelScope.launch {
-            val r = orders.markShipped(sellerOrderId)
+            val r = if (step == "ship") orders.markShipped(sellerOrderId) else orders.advance(sellerOrderId, step)
             if (r is Outcome.Failure) _shipError.value = r.error else load()
             _shipping.value = false
         }

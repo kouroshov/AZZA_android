@@ -87,6 +87,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -181,9 +182,29 @@ class StoreProfileViewModel @Inject constructor(
     private val auth: AuthRepository,
     private val reports: ReportsRepository,
     private val stores: StoresRepository,
+    private val cart: com.azza.core.data.CartRepository,
     users: UserRepository,
 ) : ViewModel() {
     private val idOrSlug = savedStateHandle.toRoute<StoreProfileRoute>().idOrSlug
+
+    private val _menu = MutableStateFlow<com.azza.core.model.StoreMenu?>(null)
+    /** ✅ (2026-10-23, restaurants) A restaurant's menu by heading; null = not loaded, or not a restaurant. */
+    val menu: StateFlow<com.azza.core.model.StoreMenu?> = _menu.asStateFlow()
+
+    /** How many of each listing are in the basket, for the count on a dish's "add" button. */
+    val inBasket: StateFlow<Map<String, Int>> = cart.cart
+        .map { c -> c?.lines.orEmpty().associate { it.productId to it.quantity } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
+
+    private val _addFailed = Channel<AppError>(Channel.CONFLATED)
+    val addFailed = _addFailed.receiveAsFlow()
+
+    /** A dish without extras goes straight into the basket; a guest is sent to sign in first. */
+    fun addDish(productId: String) = viewModelScope.launch {
+        if (!auth.isSignedIn.first()) return@launch _signInRequired.send(Unit)
+        val r = cart.add(productId, 1)
+        if (r is Outcome.Failure) _addFailed.send(r.error)
+    }
 
     private val _branches = MutableStateFlow<List<Branch>>(emptyList())
     /** Its active branches (public), for the branch list. */
@@ -224,7 +245,11 @@ class StoreProfileViewModel @Inject constructor(
         _state.value = when (val r = profiles.store(idOrSlug)) {
             is Outcome.Success -> Loadable.Ready(r.value).also {
                 storeId = r.value.id
-                posts.refresh()
+                if (r.value.restaurant != null) {
+                    viewModelScope.launch { _menu.value = (profiles.menu(r.value.id) as? Outcome.Success)?.value }
+                } else {
+                    posts.refresh()
+                }
                 viewModelScope.launch {
                     _branches.value = (stores.branches(r.value.id) as? Outcome.Success)?.value.orEmpty().filter { it.status == "ACTIVE" }
                 }
@@ -307,7 +332,15 @@ fun StoreProfileScreen(
     val context = LocalContext.current
     val language = LocalConfiguration.current.locales[0].language
     val button by viewModel.followButton.collectAsStateWithLifecycle()
+    val menu by viewModel.menu.collectAsStateWithLifecycle()
+    val inBasket by viewModel.inBasket.collectAsStateWithLifecycle()
     LaunchedEffect(viewModel) { viewModel.signInRequired.collect { onSignIn() } }
+    LaunchedEffect(viewModel) {
+        viewModel.addFailed.collect { e ->
+            val text = if ((e as? AppError.Api)?.code == "INSUFFICIENT_INVENTORY") context.getString(R.string.restaurant_sold_out) else context.getString(R.string.restaurant_add_failed)
+            android.widget.Toast.makeText(context, text, android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
     val title = (state as? Loadable.Ready)?.value?.slug?.let(::handle).orEmpty()
     var reporting by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -316,7 +349,14 @@ fun StoreProfileScreen(
         when (val s = state) {
             Loadable.Loading -> LoadingState()
             is Loadable.Failed -> notFoundOrError(s.error, R.string.profile_store_not_found, viewModel::load)
-            is Loadable.Ready -> PostsPage(viewModel.posts, onOpenProduct) {
+            is Loadable.Ready -> StoreBody(
+                s.value,
+                viewModel.posts,
+                menu,
+                inBasket,
+                onOpenProduct,
+                onAdd = { viewModel.addDish(it) },
+            ) {
                 val store = s.value
                 item(key = "header") {
                     ProfileHeader(
@@ -352,6 +392,10 @@ fun StoreProfileScreen(
                             onOpen(BranchPageRoute(store.id, b.id, store.slug, store.name))
                         }
                     }
+                }
+                // ✅ (2026-10-23, restaurants) Snappfood's strip: open now, score, delivery, minimum, time.
+                store.restaurant?.let { info ->
+                    item(key = "restaurant") { RestaurantStrip(info, store.ratingAverage, store.ratingCount) }
                 }
             }
         }
@@ -390,6 +434,44 @@ private fun ProfileScaffold(title: String, onBack: () -> Unit, onReport: (() -> 
 @Composable
 private fun notFoundOrError(error: AppError, notFound: Int, retry: () -> Unit) {
     if ((error as? AppError.Api)?.status == 404) EmptyState(stringResource(notFound)) else ErrorState(error, onRetry = { retry() })
+}
+
+/**
+ * ✅ (2026-10-23) A restaurant shows its menu by heading where any other
+ * store shows its grid of posts; the header items are the same.
+ */
+@Composable
+private fun StoreBody(
+    store: StorePage,
+    posts: CursorPager<PostTile>,
+    menu: com.azza.core.model.StoreMenu?,
+    inBasket: Map<String, Int>,
+    onOpenProduct: (String) -> Unit,
+    onAdd: (String) -> Unit,
+    header: LazyListScope.() -> Unit,
+) {
+    val info = store.restaurant ?: return PostsPage(posts, onOpenProduct, header)
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val other = stringResource(R.string.restaurant_other_dishes)
+    LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+        header()
+        if (menu == null) {
+            item { Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) { Text("…") } }
+        } else {
+            restaurantMenu(
+                menu = menu,
+                canOrder = info.open,
+                inBasket = inBasket,
+                otherDishesTitle = other,
+                onJump = { i -> scope.launch { listState.animateScrollToItem(i) } },
+                onAdd = { onAdd(it.id) },
+                onOpen = onOpenProduct,
+                // header items: header, info, and the strip.
+                firstIndex = 3,
+            )
+        }
+    }
 }
 
 /** Header item(s) first, then the grid of posts, in one scroll. */

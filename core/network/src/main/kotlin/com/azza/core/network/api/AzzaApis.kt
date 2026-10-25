@@ -76,6 +76,10 @@ interface StoresApi {
     /** By id or slug. Public; a suspended or unknown store is 404 STORE_NOT_FOUND. */
     @GET("stores/{idOrSlug}")
     suspend fun get(@Path("idOrSlug") idOrSlug: String): ApiEnvelope<StoreDto>
+
+    /** ✅ (2026-10-23, restaurants) Its live listings under the owner's headings. Public. */
+    @GET("stores/{idOrSlug}/menu")
+    suspend fun menu(@Path("idOrSlug") idOrSlug: String): ApiEnvelope<com.azza.core.network.model.StoreMenuDto>
 }
 
 interface FollowApi {
@@ -241,6 +245,13 @@ interface OrdersApi {
 
     @POST("orders/received/{sellerOrderId}/ship")
     suspend fun markShipped(@Path("sellerOrderId") sellerOrderId: String): ApiEnvelope<kotlinx.serialization.json.JsonElement>
+
+    /** ✅ (2026-10-23, restaurants) PAID → being prepared ("prepare"), SHIPPED → delivered ("deliver"). */
+    @POST("orders/received/{sellerOrderId}/{step}")
+    suspend fun advance(
+        @Path("sellerOrderId") sellerOrderId: String,
+        @Path("step") step: String,
+    ): ApiEnvelope<kotlinx.serialization.json.JsonElement>
 }
 
 interface PaymentsApi {

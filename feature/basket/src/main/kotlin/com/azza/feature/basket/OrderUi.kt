@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -108,5 +109,45 @@ internal fun ShippingBlock(shipping: ShippingDetails) {
         Text(listOfNotNull(shipping.city.ifBlank { null }, shipping.region, shipping.countryCode.ifBlank { null }).joinToString(", "))
         shipping.postalCode?.let { Text(stringResource(R.string.order_postal_code) + ": " + it, color = AzzaTheme.colors.textSecondary) }
         shipping.phone?.let { Text(stringResource(R.string.order_phone) + ": " + it, color = AzzaTheme.colors.textSecondary) }
+    }
+}
+
+/**
+ * ✅ (2026-10-23, Phase 4 — restaurants). Where an order is, as Snappfood
+ * shows it: paid → being prepared → on its way → delivered. Read from the
+ * seller order's own status; an unpaid, cancelled or refunded one has none.
+ */
+@androidx.compose.runtime.Composable
+internal fun OrderSteps(status: com.azza.core.model.OrderStatus) {
+    val steps = listOf(
+        com.azza.core.model.OrderStatus.PAID to R.string.order_step_paid,
+        com.azza.core.model.OrderStatus.PROCESSING to R.string.order_step_preparing,
+        com.azza.core.model.OrderStatus.SHIPPED to R.string.order_step_sent,
+        com.azza.core.model.OrderStatus.DELIVERED to R.string.order_step_delivered,
+    )
+    val at = steps.indexOfFirst { it.first == status }
+    if (at < 0) return
+    androidx.compose.foundation.layout.Row(
+        androidx.compose.ui.Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(4.dp),
+    ) {
+        steps.forEachIndexed { i, (_, label) ->
+            val done = i <= at
+            androidx.compose.foundation.layout.Column(
+                androidx.compose.ui.Modifier.weight(1f),
+                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+            ) {
+                androidx.compose.foundation.layout.Box(
+                    androidx.compose.ui.Modifier.fillMaxWidth().height(4.dp)
+                        .background(if (done) AzzaTheme.colors.success else AzzaTheme.colors.navDivider),
+                )
+                androidx.compose.material3.Text(
+                    androidx.compose.ui.res.stringResource(label),
+                    style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
+                    color = if (done) AzzaTheme.colors.textPrimary else AzzaTheme.colors.textMuted,
+                    modifier = androidx.compose.ui.Modifier.padding(top = 4.dp),
+                )
+            }
+        }
     }
 }
