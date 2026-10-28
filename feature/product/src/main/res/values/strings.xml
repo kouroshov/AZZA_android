@@ -132,4 +132,30 @@
     <string name="discussion_comment_placeholder">Write a comment or a question…</string>
     <string name="discussion_sign_in">Sign in to write a comment</string>
     <string name="discussion_send">Send</string>
+    <!-- ✅ (2026-10-25, Phase 5 — shops) -->
+    <string name="shop_variants">Options</string>
+    <string name="shop_low_stock">Only a few left</string>
+    <string name="shop_dispatch_today">Ships today</string>
+    <string name="shop_dispatch_range">Ships in %1$s–%2$s working days (%3$s – %4$s)</string>
+    <string name="shop_add_variant">Add a size or colour</string>
+    <string name="shop_variants_hint">Sell this in other sizes or colours, each with its own price and stock. The title, description, details and photos are copied from this listing.</string>
+    <string name="shop_main_label">Name of this one</string>
+    <string name="shop_main_label_placeholder">e.g. Blue</string>
+    <string name="shop_variant_label">Name of the new one</string>
+    <string name="shop_variant_label_placeholder">e.g. Red / XL</string>
+    <string name="shop_variant_price">Price (toman)</string>
+    <string name="shop_variant_quantity">Stock</string>
+    <string name="shop_add">Add</string>
+    <string name="shop_cancel">Cancel</string>
+    <string name="shop_variant_added">Added. It is among this listing’s sizes and colours now.</string>
+    <string name="shop_variant_label_taken">This listing already has one with that name.</string>
+    <string name="shop_variant_limit">A listing can have at most 30 sizes and colours.</string>
+    <plurals name="shop_only_left">
+        <item quantity="one">Only %1$s left</item>
+        <item quantity="other">Only %1$s left</item>
+    </plurals>
+    <plurals name="shop_review_count">
+        <item quantity="one">%1$s review</item>
+        <item quantity="other">%1$s reviews</item>
+    </plurals>
 </resources>

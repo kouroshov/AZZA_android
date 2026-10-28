@@ -157,4 +157,9 @@
     <string name="restaurant_section_name">Section name</string>
     <string name="restaurant_remove_confirm">Remove this section? Its dishes stay on the menu, under no heading.</string>
     <string name="restaurant_cancel">Cancel</string>
+    <!-- ✅ (2026-10-25, Phase 5 — shops) -->
+    <string name="shop_dispatch_title">Dispatch time</string>
+    <string name="shop_dispatch_hint">How many working days you take to send an order. Each listing shows the dates (Fridays are skipped).</string>
+    <string name="shop_working_days">working days</string>
+    <string name="shop_dispatch_invalid">Give a range from 0 to 30 days: from, then a larger to. Leave both empty to clear.</string>
 </resources>

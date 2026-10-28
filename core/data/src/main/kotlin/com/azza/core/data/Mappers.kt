@@ -93,6 +93,20 @@ internal fun ProductDto.toModel(media: MediaUrlResolver) = ProductDetail(
     expiresAt = expiresAt,
     bumpedAt = bumpedAt,
     storeVerified = store?.verificationStatus == "VERIFIED",
+    stockState = availability?.state,
+    stockLeft = availability?.left,
+    variants = variants.map {
+        com.azza.core.model.ProductVariant(
+            id = it.id,
+            label = it.label,
+            price = Money(it.priceAmountMinor, it.currency),
+            discountPercentage = it.discountPercentage,
+            inStock = it.availability != "OUT_OF_STOCK",
+            current = it.current,
+        )
+    },
+    variantLabel = variantLabel,
+    dispatch = deliveryEstimate?.let { com.azza.core.model.DispatchEstimate(it.minDays, it.maxDays, it.from, it.to) },
     place = parcel?.let { p ->
         val lat = p.latitude ?: return@let null
         val lng = p.longitude ?: return@let null

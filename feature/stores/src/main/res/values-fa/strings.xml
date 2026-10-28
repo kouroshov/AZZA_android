@@ -157,4 +157,9 @@
     <string name="restaurant_section_name">نام دسته</string>
     <string name="restaurant_remove_confirm">این دسته حذف شود؟ غذاهایش در منو می‌مانند، بدون دسته.</string>
     <string name="restaurant_cancel">انصراف</string>
+    <!-- ✅ (2026-10-25, Phase 5 — shops) -->
+    <string name="shop_dispatch_title">زمان ارسال</string>
+    <string name="shop_dispatch_hint">چند روز کاری طول می‌کشد تا سفارش را ارسال کنید. هر آگهی تاریخ‌ها را نشان می‌دهد (جمعه‌ها حساب نمی‌شوند).</string>
+    <string name="shop_working_days">روز کاری</string>
+    <string name="shop_dispatch_invalid">یک بازه از ۰ تا ۳۰ روز بنویسید: «از» و سپس «تا»ی بزرگ‌تر. برای پاک کردن هر دو را خالی بگذارید.</string>
 </resources>

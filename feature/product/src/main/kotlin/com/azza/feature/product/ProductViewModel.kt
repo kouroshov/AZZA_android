@@ -46,6 +46,8 @@ sealed interface ProductEvent {
     /** ✅ (2026-10-23) «تمدید» / «نردبان» went through. */
     data object Renewed : ProductEvent
     data object Bumped : ProductEvent
+    /** ✅ (2026-10-25, shops) another size or colour was added. */
+    data object VariantAdded : ProductEvent
 }
 
 @HiltViewModel
@@ -222,6 +224,10 @@ class ProductViewModel @Inject constructor(
 
     fun bump() = lifecycleAction(ProductEvent.Bumped) { products.bump(route.productId) }
 
+    /** ✅ (2026-10-25, shops) The page reloads afterwards, so the new one is among its variants. */
+    fun addVariant(label: String, priceToman: Double, quantity: Int?, mainLabel: String?) =
+        lifecycleAction(ProductEvent.VariantAdded) { products.addVariant(route.productId, label, priceToman, quantity, mainLabel) }
+
     private fun lifecycleAction(done: ProductEvent, run: suspend () -> Outcome<ProductDetail>) = viewModelScope.launch {
         if (_lifecycleBusy.value) return@launch
         _lifecycleBusy.value = true
@@ -275,7 +281,7 @@ class ProductViewModel @Inject constructor(
     val quantity: StateFlow<Int> = _quantity.asStateFlow()
 
     fun setQuantity(n: Int) {
-        val max = (_state.value as? ProductUiState.Ready)?.product?.quantityAvailable ?: 99
+        val max = (_state.value as? ProductUiState.Ready)?.product?.let { it.stockLeft ?: it.quantityAvailable } ?: 99
         _quantity.value = n.coerceIn(1, max.coerceIn(1, 99))
     }
 

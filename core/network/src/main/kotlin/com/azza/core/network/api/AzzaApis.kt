@@ -169,6 +169,13 @@ interface ProductsApi {
     @POST("products/{id}/bump")
     suspend fun bump(@Path("id") id: String): ApiEnvelope<ProductDto>
 
+    /** ✅ (2026-10-25, shops) Another size or colour of a store listing; answers the new listing. */
+    @POST("products/{id}/variants")
+    suspend fun createVariant(
+        @Path("id") id: String,
+        @Body body: com.azza.core.network.model.CreateVariantRequest,
+    ): ApiEnvelope<ProductDto>
+
     /** ✅ (2026-10-23) «آگهی‌های مشابه»: same category, a similar price. Public. */
     @GET("products/{id}/similar")
     suspend fun similar(@Path("id") id: String): ApiEnvelope<com.azza.core.network.model.SimilarProductsDto>

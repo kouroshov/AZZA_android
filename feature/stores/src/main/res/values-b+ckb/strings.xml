@@ -158,4 +158,9 @@
     <string name="restaurant_section_name">ناوی بەش</string>
     <string name="restaurant_remove_confirm">ئەم بەشە لاببرێت؟ خواردنەکانی لە مینیودا دەمێننەوە، بێ بەش.</string>
     <string name="restaurant_cancel">پاشگەزبوونەوە</string>
+    <!-- ✅ (2026-10-25, Phase 5 — shops) -->
+    <string name="shop_dispatch_title">کاتی ناردن</string>
+    <string name="shop_dispatch_hint">چەند ڕۆژی کار دەخایەنێت تا داواکاری بنێریت. هەر پۆستێک بەروارەکان نیشان دەدات (هەینی ناژمێردرێت).</string>
+    <string name="shop_working_days">ڕۆژی کار</string>
+    <string name="shop_dispatch_invalid">مەودایەک لە ٠ تا ٣٠ ڕۆژ بنووسە: «لە» و پاشان «تا»یەکی گەورەتر. بۆ سڕینەوە هەردووکیان بەتاڵ بهێڵە.</string>
 </resources>

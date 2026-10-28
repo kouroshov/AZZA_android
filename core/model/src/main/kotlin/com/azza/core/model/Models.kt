@@ -86,7 +86,29 @@ data class ProductDetail(
     val bumpedAt: String? = null,
     /** ✅ (2026-10-23) a store's post whose store carries the «تأییدشده» badge. */
     val storeVerified: Boolean = false,
+    /** ✅ (2026-10-25, shops) IN_STOCK / LOW_STOCK / OUT_OF_STOCK / UNKNOWN; null = not goods. */
+    val stockState: String? = null,
+    /** How many are left, given only for a store's listing running low. */
+    val stockLeft: Int? = null,
+    /** Its sizes and colours, itself included; empty = none. */
+    val variants: List<ProductVariant> = emptyList(),
+    val variantLabel: String? = null,
+    /** When it would be sent (a store's goods); null = not said. */
+    val dispatch: DispatchEstimate? = null,
 )
+
+/** ✅ (2026-10-25, shops) One size or colour of a listing: a listing of its own. */
+data class ProductVariant(
+    val id: String,
+    val label: String,
+    val price: Money,
+    val discountPercentage: Double?,
+    val inStock: Boolean,
+    val current: Boolean,
+)
+
+/** Working days to send, and the Tehran dates (YYYY-MM-DD) they fall on. */
+data class DispatchEstimate(val minDays: Int, val maxDays: Int, val from: String, val to: String)
 
 /** ✅ (2026-10-23) A saved search: its name, its filters as apps/api keeps them, alerts on or off. */
 data class SavedSearch(

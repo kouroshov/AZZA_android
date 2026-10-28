@@ -58,6 +58,8 @@ data class OwnStoreDto(
     /** ✅ (2026-10-23, restaurants) */
     val businessType: String = "GENERAL",
     val restaurant: com.azza.core.network.model.RestaurantTermsDto? = null,
+    /** ✅ (2026-10-25, shops) working days to send an order. */
+    val dispatchDays: com.azza.core.network.model.MinutesRangeDto? = null,
 )
 
 @Serializable

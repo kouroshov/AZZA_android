@@ -130,4 +130,30 @@
     <string name="discussion_comment_placeholder">دیدگاه یا سؤالتان را بنویسید…</string>
     <string name="discussion_sign_in">برای نوشتن دیدگاه وارد شوید</string>
     <string name="discussion_send">ارسال</string>
+    <!-- ✅ (2026-10-25, Phase 5 — shops) -->
+    <string name="shop_variants">انتخاب‌ها</string>
+    <string name="shop_low_stock">تعداد کمی باقی مانده</string>
+    <string name="shop_dispatch_today">ارسال امروز</string>
+    <string name="shop_dispatch_range">ارسال %1$s تا %2$s روز کاری (%3$s تا %4$s)</string>
+    <string name="shop_add_variant">افزودن رنگ یا اندازه</string>
+    <string name="shop_variants_hint">این کالا را در رنگ یا اندازهٔ دیگر بفروشید، هرکدام با قیمت و موجودی خودش. عنوان، توضیحات، مشخصات و عکس‌ها از همین آگهی کپی می‌شوند.</string>
+    <string name="shop_main_label">نام همین مورد</string>
+    <string name="shop_main_label_placeholder">مثلاً آبی</string>
+    <string name="shop_variant_label">نام مورد جدید</string>
+    <string name="shop_variant_label_placeholder">مثلاً قرمز / XL</string>
+    <string name="shop_variant_price">قیمت (تومان)</string>
+    <string name="shop_variant_quantity">موجودی</string>
+    <string name="shop_add">افزودن</string>
+    <string name="shop_cancel">انصراف</string>
+    <string name="shop_variant_added">اضافه شد. حالا در رنگ‌ها و اندازه‌های همین آگهی است.</string>
+    <string name="shop_variant_label_taken">این آگهی موردی با همین نام دارد.</string>
+    <string name="shop_variant_limit">هر آگهی حداکثر ۳۰ رنگ و اندازه می‌تواند داشته باشد.</string>
+    <plurals name="shop_only_left">
+        <item quantity="one">تنها %1$s عدد باقی مانده</item>
+        <item quantity="other">تنها %1$s عدد باقی مانده</item>
+    </plurals>
+    <plurals name="shop_review_count">
+        <item quantity="one">%1$s دیدگاه</item>
+        <item quantity="other">%1$s دیدگاه</item>
+    </plurals>
 </resources>

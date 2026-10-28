@@ -74,6 +74,20 @@ class ProductRepository @Inject constructor(
     /** ✅ (2026-10-23) «نردبان»: 429 BUMP_TOO_SOON within 7 days of the last one. */
     suspend fun bump(id: String): Outcome<ProductDetail> = safeApiCall(json) { api.bump(id).data }.map { it.toModel(media) }
 
+    /** ✅ (2026-10-25, shops) Another size or colour; [priceToman] as typed. [mainLabel] names this one, the first time. */
+    suspend fun addVariant(id: String, label: String, priceToman: Double, quantity: Int?, mainLabel: String?): Outcome<ProductDetail> =
+        safeApiCall(json) {
+            api.createVariant(
+                id,
+                com.azza.core.network.model.CreateVariantRequest(
+                    label = label.trim(),
+                    price = Math.round(com.azza.core.model.Money.tomanToRial(priceToman)),
+                    quantity = quantity,
+                    mainLabel = mainLabel?.trim()?.ifEmpty { null },
+                ),
+            ).data
+        }.map { it.toModel(media) }
+
     /** ✅ (2026-10-23) «آگهی‌های مشابه». */
     suspend fun similar(id: String): Outcome<List<ProductDetail>> =
         safeApiCall(json) { api.similar(id).data }.map { page -> page.items.map { it.toModel(media) } }

@@ -131,4 +131,30 @@
     <string name="discussion_comment_placeholder">بۆچوون یان پرسیارەکەت بنووسە…</string>
     <string name="discussion_sign_in">بۆ نووسینی بۆچوون بچۆ ژوورەوە</string>
     <string name="discussion_send">ناردن</string>
+    <!-- ✅ (2026-10-25, Phase 5 — shops) -->
+    <string name="shop_variants">هەڵبژاردنەکان</string>
+    <string name="shop_low_stock">کەمێک ماوە</string>
+    <string name="shop_dispatch_today">ناردن ئەمڕۆ</string>
+    <string name="shop_dispatch_range">ناردن لە %1$s تا %2$s ڕۆژی کار (%3$s تا %4$s)</string>
+    <string name="shop_add_variant">زیادکردنی ڕەنگ یان قەبارە</string>
+    <string name="shop_variants_hint">ئەم کاڵایە بە ڕەنگ یان قەبارەی تر بفرۆشە، هەریەکە بە نرخ و کۆگای خۆی. ناونیشان، وەسف، تایبەتمەندی و وێنەکان لەم پۆستەوە کۆپی دەکرێن.</string>
+    <string name="shop_main_label">ناوی ئەمە</string>
+    <string name="shop_main_label_placeholder">بۆ نموونە شین</string>
+    <string name="shop_variant_label">ناوی نوێیەکە</string>
+    <string name="shop_variant_label_placeholder">بۆ نموونە سوور / XL</string>
+    <string name="shop_variant_price">نرخ (تمەن)</string>
+    <string name="shop_variant_quantity">کۆگا</string>
+    <string name="shop_add">زیادکردن</string>
+    <string name="shop_cancel">پاشگەزبوونەوە</string>
+    <string name="shop_variant_added">زیاد کرا. ئێستا لە ڕەنگ و قەبارەکانی ئەم پۆستەدایە.</string>
+    <string name="shop_variant_label_taken">ئەم پۆستە یەکێکی بەم ناوەی هەیە.</string>
+    <string name="shop_variant_limit">هەر پۆستێک دەتوانێت زۆرترین ٣٠ ڕەنگ و قەبارەی هەبێت.</string>
+    <plurals name="shop_only_left">
+        <item quantity="one">تەنها %1$s دانە ماوە</item>
+        <item quantity="other">تەنها %1$s دانە ماوە</item>
+    </plurals>
+    <plurals name="shop_review_count">
+        <item quantity="one">%1$s بۆچوون</item>
+        <item quantity="other">%1$s بۆچوون</item>
+    </plurals>
 </resources>

@@ -67,6 +67,8 @@ data class ManagedStore(
     val address: String? = null,
     /** ✅ (2026-10-23, restaurants) Its delivery terms; null = not a restaurant. */
     val restaurant: com.azza.core.model.RestaurantInfo? = null,
+    /** ✅ (2026-10-25, shops) Working days to send an order; null = not said. */
+    val dispatchDays: IntRange? = null,
 )
 
 /**
@@ -174,6 +176,17 @@ class StoresRepository @Inject constructor(
                     put("deliveryMinutesMax", s.deliveryMinutes?.let { kotlinx.serialization.json.JsonPrimitive(it.last) } ?: kotlinx.serialization.json.JsonNull)
                     put("ordersPaused", kotlinx.serialization.json.JsonPrimitive(s.paused))
                 }
+            },
+        )
+    }.map { }
+
+    /** ✅ (2026-10-25, shops) Working days to send an order; null clears. */
+    suspend fun saveDispatchDays(storeId: String, days: IntRange?): Outcome<Unit> = safeApiCall(json) {
+        api.updateRaw(
+            storeId,
+            kotlinx.serialization.json.buildJsonObject {
+                put("dispatchDaysMin", days?.let { kotlinx.serialization.json.JsonPrimitive(it.first) } ?: kotlinx.serialization.json.JsonNull)
+                put("dispatchDaysMax", days?.let { kotlinx.serialization.json.JsonPrimitive(it.last) } ?: kotlinx.serialization.json.JsonNull)
             },
         )
     }.map { }
@@ -387,6 +400,7 @@ class StoresRepository @Inject constructor(
         postCount = postCount,
         address = location?.address?.takeIf { it.isNotBlank() },
         restaurant = restaurant?.toModel(),
+        dispatchDays = dispatchDays?.let { it.min..it.max },
     )
 
     private fun BranchDetailDto.toModel(): Branch {

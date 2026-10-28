@@ -4,6 +4,7 @@ import androidx.compose.material.icons.outlined.EventNote
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material.icons.outlined.Restaurant
+import androidx.compose.material.icons.outlined.LocalShipping
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -126,6 +127,7 @@ fun NavGraphBuilder.storeScreens(nav: StoreNavigation) {
     composable<StoreProductsRoute> { StoreProductsScreen(nav) }
     composable<BookingSettingsRoute> { BookingSettingsScreen(nav) }
     composable<RestaurantRoute> { RestaurantScreen(nav) }
+    composable<DispatchRoute> { DispatchScreen(nav) }
 }
 
 @Composable
@@ -351,6 +353,10 @@ fun StoreHomeScreen(nav: StoreNavigation, viewModel: StoreHomeViewModel = hiltVi
                 ActionRow(Icons.Outlined.Edit, stringResource(R.string.stores_edit)) { nav.open(StoreEditRoute(st.id)) }
                 // ✅ (2026-10-23, restaurants) delivery terms, "not taking orders", and the menu's headings.
                 ActionRow(Icons.Outlined.Restaurant, stringResource(R.string.restaurant_settings_title)) { nav.open(RestaurantRoute(st.id)) }
+                // ✅ (2026-10-25, shops) working days to send an order; a restaurant has its delivery time instead.
+                if (st.restaurant == null) {
+                    ActionRow(Icons.Outlined.LocalShipping, stringResource(R.string.shop_dispatch_title)) { nav.open(DispatchRoute(st.id)) }
+                }
                 ActionRow(Icons.Outlined.CalendarMonth, stringResource(R.string.stores_timetable)) { nav.open(TimetableRoute(st.id)) }
                 ActionRow(Icons.Outlined.EventNote, stringResource(R.string.stores_appointments_week)) { nav.open(CalendarWeekRoute(st.id)) }
                 ActionRow(Icons.Outlined.Group, stringResource(R.string.stores_followers)) { nav.open(StoreFollowersRoute(st.id)) }

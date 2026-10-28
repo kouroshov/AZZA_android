@@ -148,6 +148,7 @@ fun ProductScreen(
     val lifecycleBusy by viewModel.lifecycleBusy.collectAsStateWithLifecycle()
     val renewed = stringResource(R.string.owner_renewed)
     val bumped = stringResource(R.string.owner_bumped)
+    val variantAdded = stringResource(R.string.shop_variant_added)
     val bumpTooSoon = stringResource(R.string.owner_bump_too_soon)
     val renewTooEarly = stringResource(R.string.owner_renew_too_early)
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -185,11 +186,14 @@ fun ProductScreen(
                     when ((event.error as? com.azza.core.common.AppError.Api)?.code) {
                         "BUMP_TOO_SOON" -> bumpTooSoon
                         "RENEW_TOO_EARLY" -> renewTooEarly
+                        "VARIANT_LABEL_TAKEN" -> context.getString(R.string.shop_variant_label_taken)
+                        "VARIANT_LIMIT_REACHED" -> context.getString(R.string.shop_variant_limit)
                         else -> errorText(context, event.error)
                     },
                 )
                 ProductEvent.Renewed -> snackbar.showSnackbar(renewed)
                 ProductEvent.Bumped -> snackbar.showSnackbar(bumped)
+                ProductEvent.VariantAdded -> snackbar.showSnackbar(variantAdded)
             }
         }
     }
@@ -284,7 +288,8 @@ fun ProductScreen(
                     }
                 }
             } else if (ready != null && ready.product.offeringKind == OfferingKind.GOOD && !isMine && ready.product.status == "ACTIVE") {
-                val soldOut = ready.product.quantityAvailable == 0
+                // ✅ (2026-10-25, shops) a store's stock too, as apps/api counts it.
+                val soldOut = ready.product.quantityAvailable == 0 || ready.product.stockState == "OUT_OF_STOCK"
                 // Price × quantity, with the chosen options for each item (the web's "Total with options").
                 val unit = ready.product.price.discounted(ready.product.discountPercentage).amountMinor +
                     ready.product.options.sumOf { o -> o.extra.amountMinor * (chosenOptions[o.id] ?: 0) }
@@ -301,7 +306,7 @@ fun ProductScreen(
                         Text(quantity.toString(), style = MaterialTheme.typography.titleMedium)
                         IconButton(
                             onClick = { viewModel.setQuantity(quantity + 1) },
-                            enabled = quantity < (ready.product.quantityAvailable ?: 99).coerceAtMost(99),
+                            enabled = quantity < (ready.product.stockLeft ?: ready.product.quantityAvailable ?: 99).coerceAtMost(99),
                         ) { Icon(Icons.Outlined.Add, stringResource(R.string.product_quantity_more)) }
                     }
                     Button(
@@ -322,7 +327,14 @@ fun ProductScreen(
             when (val s = state) {
                 ProductUiState.Loading -> LoadingState()
                 is ProductUiState.Failed -> ErrorState(s.error, onRetry = viewModel::load)
-                is ProductUiState.Ready -> ProductBody(s.product, onShowOnMap = { place -> onShowOnMap(s.product.id, place) }, top = {
+                is ProductUiState.Ready -> ProductBody(
+                    s.product,
+                    onShowOnMap = { place -> onShowOnMap(s.product.id, place) },
+                    onOpenProduct = onOpenProduct,
+                    rating = discussion.discussion?.summary?.takeIf { it.count > 0 && s.product.purchasable }?.average?.let { avg ->
+                        avg to discussion.discussion!!.summary.count
+                    },
+                    top = {
                     if (isMine) {
                         OwnerStatus(s.product, appeal, viewModel::appeal)
                         OwnerLifecycle(s.product, lifecycleBusy, onRenew = viewModel::renew, onBump = viewModel::bump)
@@ -337,6 +349,10 @@ fun ProductScreen(
                         if (s.product.offeringKind == OfferingKind.GOOD && s.product.purchasable) {
                             LaunchedEffect(s.product.id) { viewModel.loadOwnerStock(s.product) }
                             OwnerStock(s.product, branchStock)
+                            // ✅ (2026-10-25, shops) another size or colour, for a store's goods at a fixed price.
+                            if (s.product.storeId != null && !s.product.priceNegotiable && s.product.hold == null) {
+                                AddVariantButton(s.product, lifecycleBusy, viewModel::addVariant)
+                            }
                         }
                     }
                 }) {
@@ -382,6 +398,9 @@ fun ProductScreen(
 private fun ProductBody(
     product: ProductDetail,
     onShowOnMap: (ProductPlace) -> Unit = {},
+    onOpenProduct: (String) -> Unit = {},
+    /** Average and count of its published reviews, when it has any. */
+    rating: Pair<Double, Int>? = null,
     top: @Composable () -> Unit = {},
     extra: @Composable () -> Unit = {},
 ) {
@@ -445,6 +464,8 @@ private fun ProductBody(
                 }
             }
             Text(product.title, style = MaterialTheme.typography.headlineSmall, color = colors.textPrimary)
+            // ✅ (2026-10-25, shops) the score under the title, as on Digikala.
+            rating?.let { (average, count) -> RatingLine(average, count) }
             // ✅ (2026-10-23) the kind of ad, as on the web: for sale, for rent, wanted…
             product.listingTypeName?.let { name ->
                 val language = LocalConfiguration.current.locales[0].language
@@ -470,14 +491,10 @@ private fun ProductBody(
                     )
                 }
             }
-            // Stock means nothing on a listing that is not on sale.
-            product.quantityAvailable?.takeIf { product.status == "ACTIVE" && product.purchasable }?.let { qty ->
-                Text(
-                    if (qty > 0) stringResource(R.string.product_in_stock) else stringResource(R.string.product_out_of_stock),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (qty > 0) colors.success else colors.error,
-                )
-            }
+            // ✅ (2026-10-25, shops) its sizes and colours; then stock and dispatch, as apps/api counts them
+            // (a store's stock too, which the old line here could not see). Not on a listing not on sale.
+            VariantChips(product, onOpenProduct)
+            StockAndDispatch(product)
             if (!product.description.isNullOrBlank()) {
                 Text(product.description!!, style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
             }

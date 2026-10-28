@@ -169,6 +169,42 @@ data class ProductDto(
     val bumpedAt: String? = null,
     /** ✅ (2026-10-23, restaurants) The heading it sits under on its store's menu. */
     val menuSectionId: String? = null,
+    /** ✅ (2026-10-25, shops) Stock as a visitor sees it; null for anything but goods. */
+    val availability: StockDto? = null,
+    /** Its group of sizes and colours (empty = none), itself included. */
+    val variants: List<VariantDto> = emptyList(),
+    /** When a store's goods would be sent; null = the store has not said. */
+    val deliveryEstimate: DeliveryEstimateDto? = null,
+    val variantOfId: String? = null,
+    val variantLabel: String? = null,
+)
+
+/** ✅ (2026-10-25) IN_STOCK, LOW_STOCK (with [left] for a store), OUT_OF_STOCK or UNKNOWN. */
+@Serializable
+data class StockDto(val state: String = "UNKNOWN", val left: Int? = null)
+
+@Serializable
+data class VariantDto(
+    val id: String,
+    val label: String = "",
+    @Serializable(with = FlexibleLongSerializer::class) val priceAmountMinor: Long,
+    val currency: String = "IRR",
+    @Serializable(with = FlexibleDoubleSerializer::class) val discountPercentage: Double? = null,
+    val availability: String = "UNKNOWN",
+    val current: Boolean = false,
+)
+
+/** Working days to send it, and the Tehran dates they fall on (YYYY-MM-DD). */
+@Serializable
+data class DeliveryEstimateDto(val minDays: Int, val maxDays: Int, val from: String, val to: String)
+
+/** ✅ (2026-10-25) POST /products/:id/variants. Price: rial, major units. */
+@Serializable
+data class CreateVariantRequest(
+    val label: String,
+    val price: Long,
+    val quantity: Int? = null,
+    val mainLabel: String? = null,
 )
 
 /** ✅ (2026-10-23) GET /products/:id/similar. */
